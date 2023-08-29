@@ -62,10 +62,10 @@ Overall, We hope that in time SkyAlt achieve Minecraft feel - build large and co
 
 
 ## Apps
-- 6Gui: https://github.com/milansuk/skyalt/main/apps/6gui/main/main.go
-- Calendar: https://github.com/milansuk/skyalt/main/apps/calendar/main/main.go
-- Map: https://github.com/milansuk/skyalt/main/apps/map/main/main.go
-- Database: https://github.com/milansuk/skyalt/main/apps/db/main/main.go
+- 6Gui: https://github.com/milansuk/skyalt/blob/main/apps/6gui/main/main.go
+- Calendar: https://github.com/milansuk/skyalt/blob/main/apps/calendar/main/main.go
+- Map: https://github.com/milansuk/skyalt/blob/main/apps/map/main/main.go
+- Database: https://github.com/milansuk/skyalt/blob/main/apps/db/main/main.go
 
 
 
