@@ -17,7 +17,7 @@ https://www.skyalt.com/
 
 
 
-# The problem, The solution
+# From SaaS to Local-first
 Most of today's apps run in a browser as Software as a Service. Here's the list of problems you may experience:
 - delay between client and server
 - none or simple export
@@ -39,6 +39,9 @@ SkyAlt solves them with Local-first software(https://www.inkandswitch.com/local-
 - works 'forever' + run any version
 <br/><br/>
 
+
+
+# From Webkit to WASM
 There are few implementations of local-first platforms and most of them use Webkit. Webkit is huge and browsers are most complex things humans build and maintain. SkyAlt is heading in oposite direction, simplicity.
 <br/><br/>
 
@@ -57,7 +60,7 @@ There are few implementations of local-first platforms and most of them use Webk
 - Json for settings
 <br/><br/>
 
-Overall, We hope that in time SkyAlt achieve Minecraft feel - build large and complex world with few simple tools.
+Overall, We hope that in time SkyAlt achieve 'Minecraft feel' - build large and complex world with few simple tools.
 
 
 
