@@ -1,0 +1,17 @@
+echo "base/main"
+cp sdk.go base/main/sdk.go;cp sdk_wasi.go base/main/sdk_wasi.go;cd base/main;sh build;rm sdk.go;rm sdk_wasi.go;cd ../../
+
+echo "6gui/main"
+cp sdk.go 6gui/main/sdk.go;cp sdk_wasi.go 6gui/main/sdk_wasi.go;cd 6gui/main;sh build;rm sdk.go;rm sdk_wasi.go;cd ../../
+
+echo "6gui/calendar"
+cp sdk.go 6gui/calendar/sdk.go;cp sdk_wasi.go 6gui/calendar/sdk_wasi.go;cd 6gui/calendar;sh build;rm sdk.go;rm sdk_wasi.go;cd ../../
+
+echo "calendar/main"
+cp sdk.go calendar/main/sdk.go;cp sdk_wasi.go calendar/main/sdk_wasi.go;cd calendar/main;sh build;rm sdk.go;rm sdk_wasi.go;cd ../../
+
+echo "map/main"
+cp sdk.go map/main/sdk.go;cp sdk_wasi.go map/main/sdk_wasi.go;cd map/main;sh build;rm sdk.go;rm sdk_wasi.go;cd ../../
+
+echo "db/main"
+cp sdk.go db/main/sdk.go;cp sdk_wasi.go db/main/sdk_wasi.go;cd db/main;sh build;rm sdk.go;rm sdk_wasi.go;cd ../../

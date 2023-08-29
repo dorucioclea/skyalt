@@ -1,0 +1,2 @@
+#prints number of lines
+cloc --by-file --unix --include-ext=go .

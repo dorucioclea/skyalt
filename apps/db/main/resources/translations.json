@@ -1,0 +1,99 @@
+{
+"NAME.en": "Name", 
+"NAME.cs": "Název",
+
+"CREATE_TABLE.en": "Create table", 
+"CREATE_TABLE.cs": "Vytvoř tabulku",
+
+"CREATE_COLUMN.en": "Create column", 
+"CREATE_COLUMN.cs": "Vytvoř sloupec",
+
+"CREATE_VIEW.en": "Create view", 
+"CREATE_VIEW.cs": "Vytvoř pohled",
+
+"VIEWS.en": "Views", 
+"VIEWS.cs": "Pohledy",
+
+"RENAME.en": "Rename", 
+"RENAME.cs": "Přejmenovat",
+
+"REMOVE.en": "Remove", 
+"REMOVE.cs": "Smazat",
+
+"DUPLICATE.en": "Duplicate", 
+"DUPLICATE.cs": "Duplikovat",
+
+"ALREADY_EXISTS.en": "Already exists", 
+"ALREADY_EXISTS.cs": "Již existuje",
+
+"EMPTY_FIELD.en": "Empty field", 
+"EMPTY_FIELD.cs": "Prázdné pole",
+
+"INVALID_NAME.en": "Invalid nam", 
+"INVALID_NAME.cs": "Neplatné jméno",
+
+"TEXT.en": "Text", 
+"TEXT.cs": "Text",
+"INTEGER.en": "Integer number", 
+"INTEGER.cs": "Celé číslo",
+"FLOAT.en": "Float number", 
+"FLOAT.cs": "Desetinné číslo",
+"BLOB.en": "File", 
+"BLOB.cs": "Soubor",
+"CHECK_BOX.en": "Check-box", 
+"CHECK_BOX.cs": "Zaškrtávátko",
+"DATE.en": "Date", 
+"DATE.cs": "Datum",
+"PERCENT.en": "Percent", 
+"PERCENT.cs": "Procenta",
+"RATING.en": "Rating", 
+"RATING.cs": "Hodnocení",
+"MAX_STARS.en": "Max. stars", 
+"MAX_STARS.cs": "Max. hvězdiček",
+
+"MIN.en": "Minimum", 
+"MIN.cs": "Minimum",
+
+"MAX.en": "Maximum", 
+"MAX.cs": "Maximum",
+
+"AVG.en": "Average", 
+"AVG.cs": "Průměr",
+
+"SUM.en": "Sum", 
+"SUM.cs": "Suma",
+
+"COUNT.en": "Count", 
+"COUNT.cs": "Počet",
+
+"ADD_ROW.en": "Add row", 
+"ADD_ROW.cs": "Přidej řádek",
+
+"SORT.en": "Sort", 
+"SORT.cs": "Řazení",
+
+"FILTER.en": "Filter", 
+"FILTER.cs": "Filter",
+
+"ROWS_HEIGHT.en": "Rows Height", 
+"ROWS_HEIGHT.cs": "Výška řádků",
+
+"COLUMNS.en": "Columns", 
+"COLUMNS.cs": "Sloupce",
+"HIDE.en": "Hide", 
+"HIDE.cs": "Schovat",
+
+
+"SHOW_ALL.en": "Show all", 
+"SHOW_ALL.cs": "Zobrazit vše",
+"HIDE_ALL.en": "Hide all", 
+"HIDE_ALL.cs": "Schovat vše",
+
+"ENABLE.en": "Enable", 
+"ENABLE.cs": "Povolit",
+
+"AND.en": "AND", 
+"AND.cs": "A",
+"OR.en": "OR", 
+"OR.cs": "NEBO"
+}
