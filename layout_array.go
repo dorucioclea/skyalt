@@ -230,49 +230,6 @@ func (arr *LayoutArray) Update(cell int, window int) {
 			arr.items[i].max = float32(resV)
 			arr.items[i].resize.value = float32(resV)
 		}
-
-		//-------------------------------------
-
-		// min
-		//v := float64(arr.items[i].min)
-		/*minV := float64(arr.items[i].min)
-		minV = OsClampFloat(minV, 0.001, 100000000)
-
-		// max
-		maxV := minV
-		if arr.items[i].max > 0 {
-			maxV = float64(arr.items[i].max)
-			maxV = OsMaxFloat(minV, maxV)
-		}*/
-
-		// resize(url)
-		/*if arr.items[i].resize != nil {
-			resizeV = float64(arr.items[i].resize.value)
-			//resizeV = v
-		}*/
-
-		// check
-		//minV = OsClampFloat(minV, 0.001, 100000000)
-		//maxV = OsClampFloat(maxV, 0.001, 100000000)
-		//minV = OsMinFloat(minV, maxV)
-		//maxV = OsMaxFloat(minV, maxV)
-
-		/*resizeV := float64(-1)
-		if arr.items[i].resize != nil {
-			resizeV = float64(arr.items[i].resize.value)
-			resizeV = OsClampFloat(resizeV, minV, maxV)
-
-			minV = resizeV // otherwise, update() will resize it to max!
-			maxV = resizeV
-			//resizeV = resizeV
-		}
-
-		// set
-		arr.items[i].min = float32(minV)
-		arr.items[i].max = float32(maxV)
-		if arr.items[i].resize != nil {
-			arr.items[i].resize.value = float32(resizeV) //clamped
-		}*/
 	}
 
 	//sum

@@ -136,7 +136,10 @@ func SA_ColResizeName(pos int, name string, val float64) float64 {
 	return _sa_div_colResize(uint64(pos), _SA_stringToPtr(name), val)
 }
 
-func SA_RowResize(pos int, name string, val float64) float64 {
+func SA_RowResize(pos int, val float64) float64 {
+	return _sa_div_rowResize(uint64(pos), _SA_stringToPtr(""), val)
+}
+func SA_RowResizeName(pos int, name string, val float64) float64 {
 	return _sa_div_rowResize(uint64(pos), _SA_stringToPtr(name), val)
 }
 
@@ -768,8 +771,9 @@ type _SA_Text struct {
 	enable    bool
 	selection bool
 
-	cd       SACd
-	drawBack bool
+	backCd      SACd
+	drawBack    bool
+	back_margin float64
 }
 
 func SA_Text(value string) *_SA_Text {
@@ -806,6 +810,13 @@ func (b *_SA_Text) FrontCd(v SACd) *_SA_Text {
 	b.frontCd = v
 	return b
 }
+func (b *_SA_Text) BackCd(v SACd, back_margin float64) *_SA_Text {
+	b.backCd = v
+	b.back_margin = back_margin
+	b.drawBack = true
+	return b
+}
+
 func (b *_SA_Text) Align(v int) *_SA_Text {
 	b.align = uint32(v)
 	return b
@@ -821,8 +832,12 @@ func (b *_SA_Text) RatioH(v float64) *_SA_Text {
 }
 
 func (b *_SA_Text) Show(x, y, w, h int) {
-
 	if SA_DivStart(x, y, w, h) {
+
+		if b.drawBack {
+			SAPaint_Rect(0, 0, 1, 1, b.back_margin, b.backCd, 0)
+		}
+
 		_sa_swp_drawText(uint32(b.frontCd.r), uint32(b.frontCd.g), uint32(b.frontCd.b), uint32(b.frontCd.a),
 			_SA_stringToPtr(b.value), _SA_stringToPtr(b.title), b.font,
 			b.margin, b.marginX, b.marginY, b.align, b.alignV, b.ratioH,

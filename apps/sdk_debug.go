@@ -580,12 +580,13 @@ func _sa_swp_drawButton(cd_r, cd_g, cd_b, cd_a uint32,
 	return int64(ReadUint64())
 }
 
-func _sa_swp_drawSlider(value float64, min float64, max float64, jump float64, title SAMem, enable uint32, outMem SAMem) float64 {
+func _sa_swp_drawSlider(value float64, min float64, max float64, jump float64, titleMem SAMem, enable uint32, outMem SAMem) float64 {
 	WriteUint64(40)
 	WriteFloat64(value)
 	WriteFloat64(min)
 	WriteFloat64(max)
 	WriteFloat64(jump)
+	WriteMem(titleMem)
 	WriteUint64(uint64(enable))
 
 	ReadMem(outMem)

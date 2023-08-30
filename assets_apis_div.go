@@ -256,7 +256,6 @@ func (asset *Asset) div_colResize(pos uint64, name string, val float64) float64 
 	if !asset.checkGridLock() {
 		return -1
 	}
-
 	root := asset.app.root
 	st := root.stack
 
@@ -264,15 +263,11 @@ func (asset *Asset) div_colResize(pos uint64, name string, val float64) float64 
 	if len(name) == 0 {
 		name = strconv.Itoa(int(pos))
 	}
-
 	res, found := st.stack.data.cols.FindOrAddResize(name)
 	if !found {
 		res.value = float32(val)
 	}
 	st.stack.GetInputCol(int(pos)).resize = res
-
-	//st.stack.GetInputCol(int(pos)).resize = float32(val)
-	//st.stack.GetInputCol(int(pos)).resize_name = name
 
 	return float64(st.stack.data.cols.GetOutput(int(pos))) / float64(root.ui.Cell())
 }
@@ -281,18 +276,18 @@ func (asset *Asset) div_rowResize(pos uint64, name string, val float64) float64 
 	if !asset.checkGridLock() {
 		return -1
 	}
-
 	root := asset.app.root
 	st := root.stack
 
 	//if 'resize' exist in layout than read it from there
+	if len(name) == 0 {
+		name = strconv.Itoa(int(pos))
+	}
 	res, found := st.stack.data.rows.FindOrAddResize(name)
 	if !found {
 		res.value = float32(val)
 	}
 	st.stack.GetInputRow(int(pos)).resize = res
-
-	//st.stack.GetInputRow(int(pos)).resize_name = name
 
 	return float64(st.stack.data.rows.GetOutput(int(pos))) / float64(root.ui.Cell())
 }

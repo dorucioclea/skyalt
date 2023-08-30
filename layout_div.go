@@ -372,7 +372,7 @@ func (div *LayoutDiv) RenderResizeSpliter(root *Root, buff *PaintBuff) {
 					r = float64(touchPos.Y - (crop.Start.Y + div.data.rows.GetResizerPos(int(row)-1, cell)))
 				}
 
-				div.SetResizer(int(col), r, false, root.ui)
+				div.SetResizer(int(row), r, false, root.ui)
 			}
 		}
 	}
@@ -396,7 +396,7 @@ func (div *LayoutDiv) RenderResizeSpliter(root *Root, buff *PaintBuff) {
 
 		for i := 0; i < div.data.rows.NumIns(); i++ {
 			if div.data.rows.GetResizeIndex(i) >= 0 {
-				if vHighlight && i == int(row) {
+				if hHighlight && i == int(row) {
 					div.RenderResizeDraw(crop, i, activeCd, false, buff)
 				} else {
 					div.RenderResizeDraw(crop, i, defaultCd, false, buff)
@@ -446,13 +446,7 @@ func (div *LayoutDiv) SetResizer(i int, value float64, isCol bool, ui *Ui) {
 	}
 
 	if ind >= 0 {
-
 		arr.items[ind].resize.value = float32(value)
-
-		//res, _ := arr.FindOrAddResize()
-		//arr.SetResize(ind, "", float32(value))
-		//arr.findOrAdd(ind).resize = float32(value)
-		//div.UpdateGrid(ui)
 	}
 }
 
