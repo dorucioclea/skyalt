@@ -644,7 +644,7 @@ func (asset *Asset) _sa_div_set_info(idMem uint64, val float64, x int64, y int64
 	return asset.div_set_info(id, val, x, y)
 }
 
-func (asset *Asset) div_drag(groupName string, id int64, vertical uint32, horizontal uint32, inside uint32) int64 {
+func (asset *Asset) div_drag(groupName string, id uint64) int64 {
 
 	root := asset.app.root
 	st := root.stack
@@ -655,21 +655,18 @@ func (asset *Asset) div_drag(groupName string, id int64, vertical uint32, horizo
 		drag.div = root.stack.stack
 		drag.group = groupName
 		drag.id = id
-		drag.vertical = OsTrnBool(vertical > 0, true, false)
-		drag.horizontal = OsTrnBool(horizontal > 0, true, false)
-		drag.inside = OsTrnBool(inside > 0, true, false)
 
 		//paint
 		asset.paint_rect(0, 0, 1, 1, 0, OsCd{0, 0, 0, 180}, 0) //fade
 	}
 	return 1
 }
-func (asset *Asset) div_drop(groupName string) (int64, uint64, int64) {
+func (asset *Asset) div_drop(groupName string, vertical uint32, horizontal uint32, inside uint32) (uint64, uint64, int64) {
 
 	root := asset.app.root
 	st := root.stack
 
-	id := int64(0)
+	id := uint64(0)
 	pos := uint64(0)
 	done := int64(0)
 
@@ -681,7 +678,7 @@ func (asset *Asset) div_drop(groupName string) (int64, uint64, int64) {
 
 		r := touchPos.Sub(st.stack.crop.Middle())
 
-		if drag.vertical && drag.horizontal {
+		if vertical > 0 && horizontal > 0 {
 			arx := float32(OsAbs(r.X)) / float32(st.stack.crop.Size.X)
 			ary := float32(OsAbs(r.Y)) / float32(st.stack.crop.Size.Y)
 			if arx > ary {
@@ -697,13 +694,13 @@ func (asset *Asset) div_drop(groupName string) (int64, uint64, int64) {
 					pos = 2 //V_RIGHT
 				}
 			}
-		} else if drag.vertical {
+		} else if vertical > 0 {
 			if r.Y < 0 {
 				pos = 1 //V_LEFT
 			} else {
 				pos = 2 //V_RIGHT
 			}
-		} else if drag.horizontal {
+		} else if horizontal > 0 {
 			if r.X < 0 {
 				pos = 3 //H_LEFT
 			} else {
@@ -711,15 +708,15 @@ func (asset *Asset) div_drop(groupName string) (int64, uint64, int64) {
 			}
 		}
 
-		if drag.inside {
-			if drag.vertical {
+		if inside > 0 {
+			if vertical > 0 {
 				q = q.AddSpaceY(st.stack.crop.Size.Y / 3)
 			}
-			if drag.horizontal {
+			if horizontal > 0 {
 				q = q.AddSpaceX(st.stack.crop.Size.X / 3)
 			}
 
-			if !drag.vertical && !drag.horizontal {
+			if vertical == 0 && horizontal == 0 {
 				pos = 0
 			} else if q.Inside(touchPos) {
 				pos = 0
@@ -757,22 +754,22 @@ func (asset *Asset) div_drop(groupName string) (int64, uint64, int64) {
 	return id, pos, done
 }
 
-func (asset *Asset) _sa_div_drag(groupNameMem uint64, id int64, vertical uint32, horizontal uint32, inside uint32) int64 {
+func (asset *Asset) _sa_div_drag(groupNameMem uint64, id uint64) int64 {
 
 	groupName, err := asset.ptrToString(groupNameMem)
 	if asset.AddLogErr(err) {
 		return -1
 	}
 
-	return asset.div_drag(groupName, id, vertical, horizontal, inside)
+	return asset.div_drag(groupName, id)
 }
-func (asset *Asset) _sa_div_drop(groupNameMem uint64, outMem uint64) int64 {
+func (asset *Asset) _sa_div_drop(groupNameMem uint64, vertical uint32, horizontal uint32, inside uint32, outMem uint64) int64 {
 	groupName, err := asset.ptrToString(groupNameMem)
 	if asset.AddLogErr(err) {
 		return -1
 	}
 
-	id, pos, done := asset.div_drop(groupName)
+	id, pos, done := asset.div_drop(groupName, vertical, horizontal, inside)
 
 	out, err := asset.ptrToBytesDirect(outMem)
 	if asset.AddLogErr(err) {

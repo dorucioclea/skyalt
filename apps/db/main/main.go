@@ -377,11 +377,11 @@ func UpdateViews() {
 }
 
 func DragAndDropTable(dst int) {
-	SA_Div_SetDrag("table", dst, false, true, false)
-	src, pos, done := SA_Div_IsDrop("table")
+	SA_Div_SetDrag("table", uint64(dst))
+	src, pos, done := SA_Div_IsDrop("table", false, true, false)
 	if done {
 		selTable := store.Tables[store.SelectedTable]
-		SA_MoveElement(store.Tables, src, dst, pos)
+		SA_MoveElement(&store.Tables, &store.Tables, int(src), dst, pos)
 
 		for i, tb := range store.Tables {
 			if tb == selTable {
@@ -392,27 +392,12 @@ func DragAndDropTable(dst int) {
 }
 
 func DragAndDropColumn(dst int, table *Table) {
-	SA_Div_SetDrag("column", dst, false, true, false)
-	src, pos, done := SA_Div_IsDrop("column")
+	SA_Div_SetDrag("column", uint64(dst))
+	src, pos, done := SA_Div_IsDrop("column", false, true, false)
 	if done {
-		SA_MoveElement(table.Columns, src, dst, pos)
+		SA_MoveElement(&table.Columns, &table.Columns, int(src), dst, pos)
 	}
 }
-
-/*func DragAndDropView(dst int, table *Table) {
-	SA_Div_SetDrag("view", dst, true, false, false)
-	src, pos, done := SA_Div_IsDrop("view")
-	if done {
-		selView := table.Views[table.SelectedView]
-		SA_MoveElement(table.Views, src, dst, pos)
-
-		for i, vw := range table.Views {
-			if vw == selView {
-				table.SelectedView = i
-			}
-		}
-	}
-}*/
 
 func TablesList() {
 	SA_DivSetInfo("scrollHnarrow", 1)
@@ -555,10 +540,10 @@ func Reorder[T any](x, y, w, h int, group string, id int, array []T) {
 
 	SA_DivStart(x, y, w, h)
 	{
-		SA_Div_SetDrag(group, id, true, false, false)
-		src, pos, done := SA_Div_IsDrop(group)
+		SA_Div_SetDrag(group, uint64(id))
+		src, pos, done := SA_Div_IsDrop(group, true, false, false)
 		if done {
-			SA_MoveElement(array, src, id, pos)
+			SA_MoveElement(&array, &array, int(src), id, pos)
 		}
 		SA_Image(SA_ResourceBuildAssetPath("", "reorder.png")).Margin(0.17).Show(0, 0, 1, 1)
 	}

@@ -199,10 +199,10 @@ func _sa_swp_drawCombo(cd_r, cd_g, cd_b, cd_a uint32,
 func _sa_swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32, value uint64, descriptionMem SAMem, titleMem SAMem, enable uint32) int64
 
 //export _sa_div_drag
-func _sa_div_drag(groupNameMem SAMem, id int64, vertical uint32, horizontal uint32, inside uint32) int64
+func _sa_div_drag(groupNameMem SAMem, id uint64) int64
 
 //export _sa_div_drop
-func _sa_div_drop(groupNameMem SAMem, outMem SAMem) int64
+func _sa_div_drop(groupNameMem SAMem, vertical uint32, horizontal uint32, inside uint32, outMem SAMem) int64
 
 //export _sa_render_app
 func _sa_render_app(appMem SAMem, dbMem SAMem, sts_id uint64) int64

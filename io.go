@@ -35,12 +35,9 @@ type Edit struct {
 }
 
 type Drag struct {
-	div        *LayoutDiv
-	group      string
-	id         int64
-	vertical   bool
-	horizontal bool
-	inside     bool
+	div   *LayoutDiv
+	group string
+	id    uint64 //maybe string? ...
 }
 
 type Keys struct {

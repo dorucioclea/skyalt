@@ -706,19 +706,19 @@ func _sa_swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32,
 	return int64(ReadUint64())
 }
 
-func _sa_div_drag(groupName SAMem, id int64, vertical uint32, horizontal uint32, inside uint32) int64 {
+func _sa_div_drag(groupName SAMem, id uint64) int64 {
 	WriteUint64(47)
 	WriteMem(groupName)
-	WriteUint64(uint64(id))
-	WriteUint64(uint64(vertical))
-	WriteUint64(uint64(horizontal))
-	WriteUint64(uint64(inside))
+	WriteUint64(id)
 	return int64(ReadUint64())
 }
 
-func _sa_div_drop(groupName SAMem, outMem SAMem) int64 {
+func _sa_div_drop(groupName SAMem, vertical uint32, horizontal uint32, inside uint32, outMem SAMem) int64 {
 	WriteUint64(48)
 	WriteMem(groupName)
+	WriteUint64(uint64(vertical))
+	WriteUint64(uint64(horizontal))
+	WriteUint64(uint64(inside))
 
 	ReadMem(outMem)
 	return int64(ReadUint64())

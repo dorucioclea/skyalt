@@ -1510,22 +1510,22 @@ const (
 	SA_Drop_H_RIGHT SA_Drop_POS = 4
 )
 
-func SA_Div_SetDrag(group string, id int, vertical, horizontal, inside bool) bool {
-	return _sa_div_drag(_SA_stringToPtr(group), int64(id), _SA_boolToUint32(vertical), _SA_boolToUint32(horizontal), _SA_boolToUint32(inside)) > 0
+func SA_Div_SetDrag(group string, id uint64) bool {
+	return _sa_div_drag(_SA_stringToPtr(group), id) > 0
 }
 
-func SA_Div_IsDrop(group string) (int, SA_Drop_POS, bool) {
+func SA_Div_IsDrop(group string, vertical, horizontal, inside bool) (uint64, SA_Drop_POS, bool) {
 	var out [2 * 8]byte
 
-	done := _sa_div_drop(_SA_stringToPtr(group), _SA_bytesToPtr(out[:]))
+	done := _sa_div_drop(_SA_stringToPtr(group), _SA_boolToUint32(vertical), _SA_boolToUint32(horizontal), _SA_boolToUint32(inside), _SA_bytesToPtr(out[:]))
 
-	id := int(binary.LittleEndian.Uint64(out[0:]))
+	id := binary.LittleEndian.Uint64(out[0:])
 	pos := SA_Drop_POS(binary.LittleEndian.Uint64(out[8:]))
 	return id, pos, done > 0
 }
 
 // usefull for moving element inside array for Drag & Drop
-func SA_MoveElement[T any](array []T, src int, dst int, pos SA_Drop_POS) {
+func SA_MoveElement[T any](array_src *[]T, array_dst *[]T, src int, dst int, pos SA_Drop_POS) {
 
 	//check
 	if src < dst && (pos == SA_Drop_V_LEFT || pos == SA_Drop_H_LEFT) {
@@ -1536,11 +1536,27 @@ func SA_MoveElement[T any](array []T, src int, dst int, pos SA_Drop_POS) {
 	}
 
 	//move(by swap one-by-one)
-	for i := src; i < dst; i++ {
-		array[i], array[i+1] = array[i+1], array[i]
-	}
-	for i := src; i > dst; i-- {
-		array[i], array[i-1] = array[i-1], array[i]
+	if array_src == array_dst {
+		for i := src; i < dst; i++ {
+			(*array_dst)[i], (*array_dst)[i+1] = (*array_dst)[i+1], (*array_dst)[i]
+		}
+		for i := src; i > dst; i-- {
+			(*array_dst)[i], (*array_dst)[i-1] = (*array_dst)[i-1], (*array_dst)[i]
+		}
+	} else {
+
+		backup := (*array_src)[src]
+
+		//remove
+		*array_src = append((*array_src)[:src], (*array_src)[src+1:]...)
+
+		//insert
+		if dst < len(*array_dst) {
+			*array_dst = append((*array_dst)[:dst+1], (*array_dst)[dst:]...)
+			(*array_dst)[dst] = backup
+		} else {
+			*array_dst = append(*array_dst, backup)
+		}
 	}
 }
 

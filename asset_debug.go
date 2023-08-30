@@ -613,17 +613,17 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 
 		case 47:
 			groupName := string(ad.ReadBytes())
-			id := int64(ad.ReadUint64())
-			vertical := uint32(ad.ReadUint64())
-			horizontal := uint32(ad.ReadUint64())
-			inside := uint32(ad.ReadUint64())
-			ret := asset.div_drag(groupName, id, vertical, horizontal, inside)
+			id := ad.ReadUint64()
+			ret := asset.div_drag(groupName, id)
 			ad.WriteUint64(uint64(ret))
 
 		case 48:
 			groupName := string(ad.ReadBytes())
+			vertical := uint32(ad.ReadUint64())
+			horizontal := uint32(ad.ReadUint64())
+			inside := uint32(ad.ReadUint64())
 
-			id, pos, done := asset.div_drop(groupName)
+			id, pos, done := asset.div_drop(groupName, vertical, horizontal, inside)
 
 			var dst [2 * 8]byte
 			binary.LittleEndian.PutUint64(dst[0:], uint64(id))

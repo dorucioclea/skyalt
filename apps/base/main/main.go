@@ -185,10 +185,10 @@ func Settings() {
 
 				SA_DivStart(1, 0, 1, 1)
 				{
-					SA_Div_SetDrag("lang", i, true, false, false)
-					src, pos, done := SA_Div_IsDrop("lang")
+					SA_Div_SetDrag("lang", uint64(i))
+					src, pos, done := SA_Div_IsDrop("lang", true, false, false)
 					if done {
-						SA_MoveElement(langs, src, i, pos)
+						SA_MoveElement(&langs, &langs, int(src), i, pos)
 						changed = true
 					}
 					SA_Image(SA_ResourceBuildAssetPath("", "reorder.png")).Margin(0.17).Show(0, 0, 1, 1)
@@ -493,11 +493,39 @@ func Files() {
 				file.Expand = !file.Expand
 			}
 
-			//name
-			if SA_Button(file.Name).Alpha(1).Align(0).Highlight(isSelected).Title("id: "+strconv.Itoa(file.Sts_id)).Show(1, 0, 1, 1).click {
-				store.SelectedFile = file_i
-				store.SelectedApp = -1
+			//drop app on file
+			SA_DivStart(1, 0, 1, 1)
+			{
+				src, _, done := SA_Div_IsDrop("app", false, false, true)
+				if done {
+					src_file_i := uint32(src >> 32)
+					src_app_i := uint32(src)
+
+					backup := store.Files[src_file_i].Apps[src_app_i]
+					//remove
+					store.Files[src_file_i].Apps = append(store.Files[src_file_i].Apps[:src_app_i], store.Files[src_file_i].Apps[src_app_i+1:]...)
+					//add
+					file.Apps = append(file.Apps, backup)
+					file.Expand = true
+				}
 			}
+			SA_DivEnd()
+
+			//name
+			SA_DivStart(1, 0, 1, 1)
+			{
+				SA_ColMax(0, 100)
+				if SA_Button(file.Name).Alpha(1).Align(0).Highlight(isSelected).Title("id: "+strconv.Itoa(file.Sts_id)).Show(0, 0, 1, 1).click {
+					store.SelectedFile = file_i
+					store.SelectedApp = -1
+				}
+				SA_Div_SetDrag("file", uint64(file_i))
+				src, pos, done := SA_Div_IsDrop("file", true, false, false)
+				if done {
+					SA_MoveElement(&store.Files, &store.Files, int(src), file_i, pos)
+				}
+			}
+			SA_DivEnd()
 
 			//add app
 			appDialog := SA_Button("+").Alpha(1).Show(2, 0, 1, 1).click
@@ -572,10 +600,24 @@ func Files() {
 					}
 
 					//name
-					if SA_Button(app.Label).Alpha(1).Align(0).Highlight(isSelected).Title("app: "+app.Name+", id: "+strconv.Itoa(app.Sts_id)).Show(1, 0, 1, 1).click {
-						store.SelectedFile = file_i
-						store.SelectedApp = app_i
+					SA_DivStart(1, 0, 1, 1)
+					{
+						SA_ColMax(0, 100)
+						if SA_Button(app.Label).Alpha(1).Align(0).Highlight(isSelected).Title("app: "+app.Name+", id: "+strconv.Itoa(app.Sts_id)).Show(0, 0, 1, 1).click {
+							store.SelectedFile = file_i
+							store.SelectedApp = app_i
+						}
+
+						id := (uint64(file_i) << uint64(32)) | uint64(app_i)
+						SA_Div_SetDrag("app", id)
+						src, pos, done := SA_Div_IsDrop("app", true, false, false)
+						if done {
+							src_file_i := uint32(src >> 32)
+							src_app_i := uint32(src)
+							SA_MoveElement(&store.Files[src_file_i].Apps, &file.Apps, int(src_app_i), app_i, pos)
+						}
 					}
+					SA_DivEnd()
 
 					//context
 					appContextDialog := false
