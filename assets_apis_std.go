@@ -203,7 +203,7 @@ func (asset *Asset) info_setString(key string, value string) int64 {
 	switch strings.ToLower(key) {
 	case "languages":
 		asset.app.root.ui.io.ini.Languages = strings.Split(value, "/")
-		asset.app.ReloadTranslations()
+		asset.app.root.ReloadTranslations()
 		return 1
 
 	case "new_file":

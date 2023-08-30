@@ -202,12 +202,16 @@ func (root *Root) Destroy() {
 }
 
 func (root *Root) SetLevel(act *LayoutLevel) {
-
 	root.stack = act
 	act.stack = act.div
 
 	act.stack.data.touch_enabled = act.IsTop()
+}
 
+func (root *Root) ReloadTranslations() {
+	for _, app := range root.apps {
+		app.ReloadTranslations()
+	}
 }
 
 func (root *Root) GetSettingsPaths() (string, string, error) {
