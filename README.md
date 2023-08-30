@@ -31,7 +31,7 @@ Most of today's apps run in a browser as Software as a Service. Here's the list 
 - 3rd party can access your data
 <br/><br/>
 
-SkyAlt solves them with Local-first software(https://www.inkandswitch.com/local-first/). The biggest advantages can be summarized as:
+SkyAlt solves them with [Local-first software](https://www.inkandswitch.com/local-first/). The biggest advantages can be summarized as:
 - quick responses
 - works offline
 - ownership
@@ -45,7 +45,7 @@ SkyAlt solves them with Local-first software(https://www.inkandswitch.com/local-
 There are few implementations of local-first platforms and most of them use Webkit. Webkit is huge and browsers are most complex things humans build and maintain. SkyAlt is heading in oposite direction, simplicity.
 <br/><br/>
 
-**Front-end**: Instead of writing app in HTML/CSS/JS, you pick up from many languages which compile to WASM and you use SkyAlt's apis() to draw on screen through Immediate mode GUI(https://en.wikipedia.org/wiki/Immediate_mode_GUI) model. Every WASM file is asset so you can compose them together into one app.
+**Front-end**: Instead of writing app in HTML/CSS/JS, you pick up from many languages which compile to WASM and you use SkyAlt's apis() to draw on screen through [Immediate mode GUI](https://en.wikipedia.org/wiki/Immediate_mode_GUI) model. Every WASM file is asset so you can compose them together into one app.
 <br/><br/>
 
 **Back-end**: There is no back-end. Front-end uses SQL to read/write data from local .sqlite files.
@@ -65,10 +65,10 @@ Overall, We hope that in time SkyAlt achieve 'Minecraft feel' - build large and 
 
 
 ## Apps
-- 6Gui: https://github.com/milansuk/skyalt/blob/main/apps/6gui/main/main.go
-- Calendar: https://github.com/milansuk/skyalt/blob/main/apps/calendar/main/main.go
-- Map: https://github.com/milansuk/skyalt/blob/main/apps/map/main/main.go
-- Database: https://github.com/milansuk/skyalt/blob/main/apps/db/main/main.go
+- [6Gui](https://github.com/milansuk/skyalt/blob/main/apps/6gui/main/main.go)
+- [Calendar](https://github.com/milansuk/skyalt/blob/main/apps/calendar/main/main.go)
+- [Map](https://github.com/milansuk/skyalt/blob/main/apps/map/main/main.go)
+- [Database](https://github.com/milansuk/skyalt/blob/main/apps/db/main/main.go)
 
 
 
@@ -132,6 +132,6 @@ Twitter: https://twitter.com/milansuk/
 ## Contributing
 Your feedback and code are welcome!
 
-For bug reports or questions, please use GitHub's issues: https://github.com/MilanSuk/skyalt/issues
+For bug reports or questions, please use [GitHub's issues](https://github.com/MilanSuk/skyalt/issues)
 
 SkyAlt is licensed under **Apache v2.0** license. This repository includes 100% of the code.
