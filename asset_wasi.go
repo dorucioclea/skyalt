@@ -34,6 +34,8 @@ type AssetWasm struct {
 	mod    api.Module
 	malloc api.Function
 	free   api.Function
+
+	load_tm int64
 }
 
 func NewAssetWasm(asset *Asset) (*AssetWasm, error) {
@@ -282,10 +284,9 @@ func (aw *AssetWasm) Tick() bool {
 
 	stat, err := os.Stat(aw.asset.getWasmPath())
 	if err == nil && !stat.IsDir() {
-		if aw.mod == nil || stat.ModTime().UnixMilli() != aw.asset.app.root.GetFileTime(aw.asset.getWasmPath()) {
-
+		if aw.mod == nil || stat.ModTime().UnixMilli() != aw.load_tm {
 			aw.LoadModule()
-			aw.asset.app.root.SetFileTime(aw.asset.getWasmPath(), stat.ModTime().UnixMilli())
+			aw.load_tm = stat.ModTime().UnixMilli()
 			return true
 		}
 	}

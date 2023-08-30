@@ -18,7 +18,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -139,9 +138,6 @@ func NewRoot(debugPORT int, folderApps string, folderDbs string, folderDevice st
 	root.baseApp = "base"
 	root.baseDb = "base"
 
-	root.ClearFileTimes()
-	root.ReadFileTimes()
-
 	root.updateDbsList()
 	root.updateAppsList()
 
@@ -153,9 +149,6 @@ func NewRoot(debugPORT int, folderApps string, folderDbs string, folderDevice st
 	return &root, nil
 }
 func (root *Root) Destroy() {
-
-	//save data(json)
-	root.WriteFileTimes()
 
 	for _, app := range root.apps {
 		app.Destroy()
@@ -221,54 +214,6 @@ func (root *Root) GetSettingsPaths() (string, string, error) {
 		return "", "", fmt.Errorf("Hostname() failed: %w", err)
 	}
 	return root.folderDevice + "/" + dev + "_ini.json", "device/" + dev + "_scroll.json", nil
-}
-
-func (root *Root) getPathFileTimes() string {
-	return root.folderApps + "/files.json"
-}
-
-func (root *Root) ClearFileTimes() {
-	root.file_times = make(map[string]int64)
-}
-
-func (root *Root) GetFileTime(name string) int64 {
-	tm, is := root.file_times[name]
-	if is {
-		return tm
-	}
-	return 0
-}
-func (root *Root) SetFileTime(name string, tm int64) {
-	root.file_times[name] = tm
-}
-
-func (root *Root) WriteFileTimes() error {
-	js, err := json.Marshal(root.file_times)
-	if err != nil {
-		return fmt.Errorf("Marshal() failed: %w", err)
-	}
-
-	err = os.WriteFile(root.getPathFileTimes(), js, 0644)
-	if err != nil {
-		return fmt.Errorf("WriteFile() failed: %w", err)
-	}
-	return nil
-}
-func (root *Root) ReadFileTimes() {
-
-	js, err := os.ReadFile(root.getPathFileTimes())
-	if err != nil {
-		fmt.Printf("ReadFile() failed: %v\n", err)
-		return
-	}
-
-	if len(js) > 0 {
-		err = json.Unmarshal(js, &root.file_times)
-		if err != nil {
-			fmt.Printf("Unmarshal() failed: %v\n", err)
-			return
-		}
-	}
 }
 
 func (root *Root) FindApp(appName string, dbName string, sts_id int) *App {
