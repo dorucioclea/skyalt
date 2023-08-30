@@ -596,7 +596,7 @@ func (asset *Asset) _VmDraw_Text_line(coord OsV4, lineY int, lineEnd OsV2,
 	cursorPos := OsV2{-1, -1}
 	if selection || editable {
 
-		if coord.Inside(root.ui.io.touch.pos) {
+		if coord.Inside(root.ui.io.touch.pos) || edit.setFirstEditbox {
 			asset._VmDraw_TextSelectTouch(value, OsV2{touchPos, lineY}, lineEnd, editable, font, textH, lineH, margin, marginX)
 		}
 

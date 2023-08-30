@@ -166,6 +166,8 @@ func NewIO() (*IO, error) {
 		return nil, fmt.Errorf("_IO_setDefault() failed: %w", err)
 	}
 
+	io.edit.setFirstEditbox = true
+
 	return &io, nil
 }
 

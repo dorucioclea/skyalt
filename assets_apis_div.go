@@ -386,6 +386,7 @@ func (asset *Asset) div_dialogStart(name string, tp uint64, openIt bool) int64 {
 
 		root.touch.Reset()
 		root.ui.io.ResetTouchAndKeys()
+		root.ui.io.edit.setFirstEditbox = true
 	}
 
 	lev := st.next
