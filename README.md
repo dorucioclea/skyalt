@@ -10,9 +10,8 @@ https://www.skyalt.com/
 <br/>
 <br/>
 <p align="center">
-<img src="https://raw.githubusercontent.com/MilanSuk/skyalt/main/screenshots/screenshot_1.png" />
+<img src="https://raw.githubusercontent.com/MilanSuk/skyalt/main/screenshots/screenshot_2.png" />
 </p>
-
 <br/>
 
 
@@ -42,10 +41,10 @@ SkyAlt solves them with [Local-first software](https://www.inkandswitch.com/loca
 
 
 # From Webkit to WASM
-There are few implementations of local-first platforms and most of them use Webkit. Webkit is huge and browsers are most complex things humans build and maintain. SkyAlt is heading in oposite direction, simplicity.
+There are few implementations of local-first platforms and most of them use Webkit. Webkit is huge and browsers are most complex things humans build and maintain. SkyAlt is heading in oposite direction - build large and complex worlds with few simple tools.
 <br/><br/>
 
-**Front-end**: Instead of writing app in HTML/CSS/JS, you pick up from many languages which compile to WASM and you use SkyAlt's apis() to draw on screen through [Immediate mode GUI](https://en.wikipedia.org/wiki/Immediate_mode_GUI) model. Every WASM file is asset so you can compose them together into one app.
+**Front-end**: Instead of writing app in HTML/CSS/JS, you pick up from many languages which compile to WASM and you use SkyAlt's apis() to draw on screen through [Immediate mode GUI](https://en.wikipedia.org/wiki/Immediate_mode_GUI) model. Every WASM file is an asset, which can be compose with other assets together into an app.
 <br/><br/>
 
 **Back-end**: There is no back-end. Front-end uses SQL to read/write data from local .sqlite files.
@@ -60,11 +59,9 @@ There are few implementations of local-first platforms and most of them use Webk
 - Json for settings
 <br/><br/>
 
-Overall, We hope that in time SkyAlt achieve 'Minecraft feel' - build large and complex world with few simple tools.
 
 
-
-## Apps
+## App examples
 - [6Gui](https://github.com/milansuk/skyalt/blob/main/apps/6gui/main/main.go)
 - [Calendar](https://github.com/milansuk/skyalt/blob/main/apps/calendar/main/main.go)
 - [Map](https://github.com/milansuk/skyalt/blob/main/apps/map/main/main.go)
