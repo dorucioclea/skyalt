@@ -65,8 +65,6 @@ type Root struct {
 
 	editbox_history VmTextHistoryArray
 
-	file_times map[string]int64 //monitor changes to files
-
 	server *DebugServer
 
 	settings *DbSettings
@@ -276,13 +274,13 @@ func (root *Root) CreateDb(name string) bool {
 
 	f, err := os.Create(newPath)
 	if err != nil {
-		fmt.Printf("Create(%s) failed: %v\n", name)
+		fmt.Printf("Create(%s) failed: %v\n", newPath, name)
 		return false
 	}
 
 	err = f.Close()
 	if err != nil {
-		fmt.Printf("Close(%s) failed: %v\n", name)
+		fmt.Printf("Close(%s) failed: %v\n", newPath, name)
 		return false
 	}
 
