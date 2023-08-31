@@ -383,7 +383,7 @@ func (qA OsV4) GetIntersect(qB OsV4) OsV4 {
 
 		return OsV4{v_start, v_end.Sub(v_start)}
 	}
-	return OsV4{}
+	return OsV4{Start: qA.Start}
 }
 
 func (qA OsV4) HasIntersect(qB OsV4) bool {
