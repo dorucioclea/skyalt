@@ -137,7 +137,10 @@ func (arr *LayoutArray) ConvertMax(cell int, start int, end int) OsV2 {
 	return ret
 }
 
-func (arr *LayoutArray) GetCloseCell(pos int, cell int) int {
+func (arr *LayoutArray) GetCloseCell(pos int) int {
+	if pos < 0 {
+		return -1
+	}
 	allPixels := 0
 	allPixelsLast := 0
 	for i := 0; i < len(arr.outputs); i++ {
@@ -150,11 +153,7 @@ func (arr *LayoutArray) GetCloseCell(pos int, cell int) int {
 		allPixelsLast = allPixels
 	}
 
-	if len(arr.outputs) == 0 {
-		return 0
-	}
-
-	return len(arr.outputs) + (pos-allPixelsLast)/cell
+	return len(arr.outputs)
 }
 
 func (arr *LayoutArray) GetResizerPos(i int, cell int) int {
@@ -311,7 +310,7 @@ func (arr *LayoutArray) GetOutput(i int) int {
 	if i < len(arr.outputs) {
 		return int(arr.outputs[i])
 	}
-	return 0
+	return -1
 }
 
 func (arr *LayoutArray) findOrAdd(pos int) *LayoutArrayItem {
