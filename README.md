@@ -4,7 +4,7 @@
 
 <br/><br/>
 <p align="center">
-<img src="https://raw.githubusercontent.com/MilanSuk/skyalt/main/screenshots/screenshot_2.png" />
+<img src="https://raw.githubusercontent.com/MilanSuk/skyalt/main/screenshots/screenshot_2.png" style="border:1px solid LightGrey" />
 </p>
 
 
