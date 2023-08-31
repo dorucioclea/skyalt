@@ -940,6 +940,11 @@ func (b *_SA_Editbox) Enable(v bool) *_SA_Editbox {
 	return b
 }
 
+func (b *_SA_Editbox) DrawBorder(v bool) *_SA_Editbox {
+	b.drawBorder = v
+	return b
+}
+
 func (b *_SA_Editbox) DrawBack(v bool) *_SA_Editbox {
 	b.drawBack = v
 	return b
