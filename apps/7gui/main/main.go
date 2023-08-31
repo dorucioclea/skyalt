@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -53,6 +54,8 @@ type Storage struct {
 	snapshots        [][]Circle
 	snapshots_pos    int
 	circles_selected int
+
+	Cells map[string]string
 }
 
 type Translations struct {
@@ -378,6 +381,61 @@ func CircleDrawer() {
 	SA_DivEnd()
 }
 
+func Cells() {
+
+	n_cols := int(('Z' - 'A') + 1)
+	n_rows := 100
+
+	for c := 0; c <= n_cols; c++ {
+		SA_ColResize(1+c, 2)
+	}
+
+	for r := 0; r <= n_rows; r++ {
+		SA_RowResize(r+1, 1)
+	}
+
+	//columns header
+	headerBackCd := SA_ThemeGrey(0.9)
+	for c := 0; c < n_cols; c++ {
+		SA_Text(string(rune('A'+c))).BackCd(headerBackCd, 0.0).Show(1+c, 0, 1, 1)
+	}
+
+	//rows header
+	stRow := int(SA_DivInfo("startRow"))
+	enRow := int(SA_DivInfo("endRow"))
+	if enRow > n_rows {
+		enRow = n_rows
+	}
+	for r := stRow; r <= enRow; r++ {
+		if r > 0 {
+			SA_Text(strconv.Itoa(r-1)).BackCd(headerBackCd, 0).Show(0, r, 1, 1)
+		}
+	}
+
+	//content
+	for r := stRow; r <= enRow; r++ {
+		if r > 0 {
+			for c := 0; c <= n_cols; c++ {
+				if c > 0 {
+					id := fmt.Sprintf("%d %d", c-1, r-1)
+					v := store.Cells[id]
+					if SA_Editbox(&v).DrawBorder(false).Show(c, r, 1, 1).finished {
+						if len(v) > 0 {
+							store.Cells[id] = v
+						} else {
+							delete(store.Cells, id)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	//bug: header scroll ouside of screen ...
+	//bug: resizer should be only in header(not content) ...
+	//todo: formulas ...
+}
+
 //export render
 func render() uint32 {
 
@@ -437,17 +495,29 @@ func render() uint32 {
 	SA_RowSpacer(0, y+n, 3, 1)
 	y += n + 1
 
+	n = 8
+	SA_Text("Cells()").Show(0, y, 1, 1)
+	SA_DivStart(1, y, 1, n)
+	Cells()
+	SA_DivEnd()
+	SA_RowSpacer(0, y+n, 3, 1)
+	y += n + 1
+
 	return 0
 }
 
 func open(buff []byte) bool {
+
+	//init
+	store.Cells = make(map[string]string)
+
 	return false //default json
 }
 func save() ([]byte, bool) {
 	return nil, false //default json
 }
 func debug() (int, int, string) {
-	return -1, 00, "main"
+	return -1, 11, "main"
 }
 
 //work-in-progress ...
