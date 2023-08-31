@@ -182,6 +182,9 @@ func (div *LayoutDiv) GetGridMax(minSize OsV2) OsV2 {
 	for _, it := range div.childs {
 		mx = mx.Max(it.grid.End())
 	}
+
+	mx = mx.Max(OsV2{div.data.cols.NumIns(), div.data.rows.NumIns()})
+
 	return mx
 }
 
@@ -305,22 +308,18 @@ func (div *LayoutDiv) RenderResizeDraw(layoutScreen OsV4, i int, cd OsCd, vertic
 
 func (div *LayoutDiv) RenderResizeSpliter(root *Root, buff *PaintBuff) {
 
-	//active := false
-	crop := div.crop
 	enableInput := div.enableInput
 
 	cell := root.ui.Cell()
-	touchPos := root.ui.io.touch.pos
-	touchPos.X += div.data.scrollH.GetWheel()
-	touchPos.Y += div.data.scrollV.GetWheel()
+	tpos := div.GetRelativePos(root.ui.io.touch.pos)
 
 	vHighlight := false
 	hHighlight := false
 	col := -1
 	row := -1
-	if enableInput && crop.Inside(touchPos) {
-		col = div.data.cols.IsResizerTouch((touchPos.X - crop.Start.X), cell)
-		row = div.data.rows.IsResizerTouch((touchPos.Y - crop.Start.Y), cell)
+	if enableInput && div.crop.Inside(root.ui.io.touch.pos) {
+		col = div.data.cols.IsResizerTouch((tpos.X), cell)
+		row = div.data.rows.IsResizerTouch((tpos.Y), cell)
 
 		vHighlight = (col >= 0)
 		hHighlight = (row >= 0)
@@ -356,9 +355,9 @@ func (div *LayoutDiv) RenderResizeSpliter(root *Root, buff *PaintBuff) {
 				vHighlight = true
 
 				if div.data.cols.IsLastResizeValid() && int(col) == div.data.cols.NumIns()-2 {
-					r = float64((crop.Start.X + crop.Size.X) - touchPos.X) // last
+					r = float64(div.canvas.Size.X - tpos.X) // last
 				} else {
-					r = float64(touchPos.X - (crop.Start.X + div.data.cols.GetResizerPos(int(col)-1, cell)))
+					r = float64(tpos.X - div.data.cols.GetResizerPos(int(col)-1, cell))
 				}
 
 				div.SetResizer(int(col), r, true, root.ui)
@@ -367,9 +366,9 @@ func (div *LayoutDiv) RenderResizeSpliter(root *Root, buff *PaintBuff) {
 				hHighlight = true
 
 				if div.data.rows.IsLastResizeValid() && int(row) == div.data.rows.NumIns()-2 {
-					r = float64((crop.Start.Y + crop.Size.Y) - touchPos.Y) // last
+					r = float64(div.canvas.Size.Y - tpos.Y) // last
 				} else {
-					r = float64(touchPos.Y - (crop.Start.Y + div.data.rows.GetResizerPos(int(row)-1, cell)))
+					r = float64(tpos.Y - (div.data.rows.GetResizerPos(int(row)-1, cell)))
 				}
 
 				div.SetResizer(int(row), r, false, root.ui)
@@ -387,9 +386,9 @@ func (div *LayoutDiv) RenderResizeSpliter(root *Root, buff *PaintBuff) {
 		for i := 0; i < div.data.cols.NumIns(); i++ {
 			if div.data.cols.GetResizeIndex(i) >= 0 {
 				if vHighlight && i == int(col) {
-					div.RenderResizeDraw(crop, i, activeCd, true, buff)
+					div.RenderResizeDraw(div.canvas, i, activeCd, true, buff)
 				} else {
-					div.RenderResizeDraw(crop, i, defaultCd, true, buff)
+					div.RenderResizeDraw(div.canvas, i, defaultCd, true, buff)
 				}
 			}
 		}
@@ -397,9 +396,9 @@ func (div *LayoutDiv) RenderResizeSpliter(root *Root, buff *PaintBuff) {
 		for i := 0; i < div.data.rows.NumIns(); i++ {
 			if div.data.rows.GetResizeIndex(i) >= 0 {
 				if hHighlight && i == int(row) {
-					div.RenderResizeDraw(crop, i, activeCd, false, buff)
+					div.RenderResizeDraw(div.canvas, i, activeCd, false, buff)
 				} else {
-					div.RenderResizeDraw(crop, i, defaultCd, false, buff)
+					div.RenderResizeDraw(div.canvas, i, defaultCd, false, buff)
 				}
 			}
 		}
@@ -424,13 +423,6 @@ func (div *LayoutDiv) Save(infoLayout *RS_LScroll) {
 		it.Save(infoLayout)
 	}
 }
-
-/*func (layPack *LayoutPack) CopyProps(dst *RS_LPacks) {
-	dst.items = nil
-	for _, ch := range layPack.childs {
-		dst.items = append(dst.items, RS_LPack{Coord: ch.grid})
-	}
-}*/
 
 func (div *LayoutDiv) SetResizer(i int, value float64, isCol bool, ui *Ui) {
 	value = math.Max(0.3, value/float64(ui.Cell()))
@@ -457,21 +449,9 @@ func (div *LayoutDiv) GetInputRow(pos int) *LayoutArrayItem {
 	return div.data.rows.findOrAdd(pos)
 }
 
-/*func (div *LayoutPack) GetScrollRange(itemSizePx int, horizontal bool) (int, int) {
-
-	var wheel int
-	var screen int
-
-	if horizontal {
-		wheel = div.crop.Start.X - div.canvas.Start.X
-		screen = div.crop.Size.X
-	} else {
-		wheel = div.crop.Start.Y - div.canvas.Start.Y
-		screen = div.crop.Size.Y
-	}
-
-	s := wheel / itemSizePx
-	e := (wheel + screen) / itemSizePx
-
-	return s, e
-}*/
+func (div *LayoutDiv) GetRelativePos(abs_pos OsV2) OsV2 {
+	rpos := abs_pos.Sub(div.canvas.Start)
+	rpos.Y += div.data.scrollV.GetWheel()
+	rpos.X += div.data.scrollH.GetWheel()
+	return rpos
+}
