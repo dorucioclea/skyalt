@@ -205,7 +205,6 @@ func (asset *Asset) div_start(x, y, w, h uint64, name string) int64 {
 
 		// cols/rows resizer
 		st.stack.RenderResizeSpliter(root, st.buff)
-
 		st.stack.UpdateGrid(root.ui)
 		st.stack.lastChild = nil
 		st.stack.gridLock = true
@@ -228,6 +227,19 @@ func (asset *Asset) _sa_div_start(x, y, w, h uint64, nameMem uint64) int64 {
 }
 
 func (asset *Asset) _sa_div_end() {
+
+	root := asset.app.root
+	st := root.stack
+
+	//if grid is empty
+	if !st.stack.gridLock {
+		// cols/rows resizer
+		st.stack.RenderResizeSpliter(root, st.buff)
+		st.stack.UpdateGrid(root.ui)
+		st.stack.lastChild = nil
+		st.stack.gridLock = true
+	}
+
 	asset.renderEnd(false)
 }
 
@@ -491,13 +503,13 @@ func (asset *Asset) div_get_info(id string, x int64, y int64) float64 {
 	case "touchX":
 		rpos := OsV2{-1, -1}
 		if div.enableInput {
-			rpos = root.ui.io.touch.pos.Sub(div.canvas.Start)
+			rpos = div.GetRelativePos(root.ui.io.touch.pos)
 		}
 		return float64(rpos.X) / float64(div.canvas.Size.X)
 	case "touchY":
 		rpos := OsV2{-1, -1}
 		if div.enableInput {
-			rpos = root.ui.io.touch.pos.Sub(div.canvas.Start)
+			rpos = div.GetRelativePos(root.ui.io.touch.pos)
 		}
 		return float64(rpos.Y) / float64(div.canvas.Size.Y)
 
@@ -539,6 +551,21 @@ func (asset *Asset) div_get_info(id string, x int64, y int64) float64 {
 		return OsTrnFloat(div.data.touch_active, 1, 0)
 	case "touchEnd":
 		return OsTrnFloat(div.data.touch_end, 1, 0)
+
+	case "touchCol":
+		return float64(div.data.cols.GetCloseCell(div.GetRelativePos(root.ui.io.touch.pos).X))
+	case "touchRow":
+		return float64(div.data.rows.GetCloseCell(div.GetRelativePos(root.ui.io.touch.pos).Y))
+
+	case "startCol":
+		return float64(div.data.cols.GetCloseCell(div.GetRelativePos(div.crop.Start).X))
+	case "startRow":
+		return float64(div.data.rows.GetCloseCell(div.GetRelativePos(div.crop.Start).Y))
+
+	case "endCol":
+		return float64(div.data.cols.GetCloseCell(div.GetRelativePos(div.crop.End()).X))
+	case "endRow":
+		return float64(div.data.rows.GetCloseCell(div.GetRelativePos(div.crop.End()).Y))
 
 	case "scrollVpos":
 		return float64(div.data.scrollV.GetWheel()) / float64(root.ui.Cell())
