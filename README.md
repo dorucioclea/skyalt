@@ -2,17 +2,17 @@
 <img src="https://raw.githubusercontent.com/MilanSuk/skyalt/main/screenshots/logo.png" />
 </p>
 
+<br/><br/>
+<p align="center">
+<img src="https://raw.githubusercontent.com/MilanSuk/skyalt/main/screenshots/screenshot_2.png" />
+</p>
+
+
 
 # SkyAlt
 Build local-first apps on top of .sqlite files.
 
 https://www.skyalt.com/
-<br/>
-<br/>
-<p align="center">
-<img src="https://raw.githubusercontent.com/MilanSuk/skyalt/main/screenshots/screenshot_2.png" />
-</p>
-<br/>
 
 
 
@@ -36,33 +36,27 @@ SkyAlt solves them with [Local-first software](https://www.inkandswitch.com/loca
 - ownership
 - privacy(E2EE everywhere)
 - works 'forever' + run any version
-<br/><br/>
 
 
 
 # From Webkit to WASM
 There are few implementations of local-first platforms and most of them use Webkit. Webkit is huge and browsers are most complex things humans build and maintain. SkyAlt is heading in oposite direction - build large and complex worlds with few simple tools.
-<br/><br/>
 
 **Front-end**: Instead of writing app in HTML/CSS/JS, you pick up from many languages which compile to WASM and you use SkyAlt's apis() to draw on screen through [Immediate mode GUI](https://en.wikipedia.org/wiki/Immediate_mode_GUI) model. Every WASM file is an asset, which can be compose with other assets together into an app.
-<br/><br/>
 
 **Back-end**: There is no back-end. Front-end uses SQL to read/write data from local .sqlite files.
-<br/><br/>
 
 **Debugging**: The best tools to write and debug code are the ones developers already use. Every SkyAlt app can be compile into WASM *or* can be run as binary in separate process, which connects to SkyAlt and communicate over TCP socket. That means that developer can use any IDE and debugger, iterate quickly and compile app into wasm for final shipping.
-<br/><br/>
 
 **Formats**: For durability, SkyAlt uses only well-known and open formats:
 - WASM for binaries
 - SQLite for storages
 - Json for settings
-<br/><br/>
 
 
 
 ## App examples
-- [6Gui](https://github.com/milansuk/skyalt/blob/main/apps/6gui/main/main.go)
+- [7Gui](https://github.com/milansuk/skyalt/blob/main/apps/7gui/main/main.go)
 - [Calendar](https://github.com/milansuk/skyalt/blob/main/apps/calendar/main/main.go)
 - [Map](https://github.com/milansuk/skyalt/blob/main/apps/map/main/main.go)
 - [Database](https://github.com/milansuk/skyalt/blob/main/apps/db/main/main.go)
@@ -73,6 +67,7 @@ There are few implementations of local-first platforms and most of them use Webk
 - **Experimental**
 - Linux / Windows / Mac(untested)
 - ~12K LOC
+- go-lang SDK only
 
 SkyAlt is ~40 days old. Right now, highest priority is providing best developer experience through high range of use-cases so we iterate and change apis() a lot => apps need to be edited and recompiled to wasm!
 
