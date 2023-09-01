@@ -27,8 +27,6 @@ type Storage struct {
 	Tables        []*Table
 	SelectedTable int
 
-	//ShowViewPanel bool
-
 	renameTable  string
 	createTable  string
 	createColumn string
@@ -62,8 +60,16 @@ type Translations struct {
 	AND string
 	OR  string
 
-	TEXT  string
-	FLOAT string
+	TEXT      string
+	INTEGER   string
+	FLOAT     string
+	BLOB      string
+	CHECK_BOX string
+	DATE      string
+	PERCENT   string
+	RATING    string
+
+	MAX_STARS string
 
 	HIDE string
 
@@ -172,6 +178,8 @@ type Column struct {
 
 	Render string //checkbox, etc.
 
+	Prop_rating_max_stars int
+
 	StatFunc string
 }
 
@@ -196,27 +204,6 @@ func (table *Table) UpdateColumn(old string, new string) {
 	table.Sort.UpdateColumn(old, new)
 	//}
 }
-
-/*func (table *Table) AddView(name string) *View {
-	vw := &View{Name: name}
-	vw.Filter.Enable = true
-	vw.Sort.Enable = true
-
-	// rowid column
-	vw.Columns = append(vw.Columns, &Column{Name: "rowid", Type: "INTEGER"})
-
-	table.Views = append(table.Views, vw)
-	return vw
-}*/
-
-/*func (table *Table) Check() {
-	if len(table.Views) == 0 {
-		table.AddView("View_0")
-	}
-	if table.SelectedView >= len(table.Views) {
-		table.SelectedView = 0
-	}
-}*/
 
 func GetDbStructure() []*Table {
 	var tables []*Table
@@ -251,7 +238,7 @@ func GetDbStructure() []*Table {
 	return tables
 }
 
-func (table *Table) GetRender(columnName string) string {
+/*func (table *Table) GetRender(columnName string) string {
 	//for _, view := range table.Views {
 	for _, cl := range table.Columns {
 		if cl.Name == columnName && len(cl.Render) > 0 {
@@ -270,7 +257,7 @@ func (table *Table) SetRender(columnName string, render string) {
 		}
 	}
 	//}
-}
+}*/
 
 func FindTable(tables []*Table, tname string) *Table {
 	for _, tb := range tables {
@@ -289,15 +276,6 @@ func (table *Table) FindColumn(cname string) *Column {
 	}
 	return nil
 }
-
-/*func (table *Table) FindView(wname string) *View {
-	for _, vw := range table.Views {
-		if vw.Name == wname {
-			return vw
-		}
-	}
-	return nil
-}*/
 
 func UpdateViews() {
 
@@ -325,7 +303,7 @@ func UpdateViews() {
 					table.Columns = append(table.Columns, column)
 				}
 				column.Type = db_cl.Type
-				column.Render = table.GetRender(column.Name)
+				//column.Render = table.GetRender(column.Name)
 			}
 			//}
 		}
@@ -783,15 +761,45 @@ func ColumnDetail(table *Table, column *Column) {
 			table.UpdateColumn(origName, column.Name)
 		}
 
-		if SA_Button(column.Type).Show(1, 0, 1, 1).click {
-
-			//convert types ...
-			if column.Type == "REAL" {
-				//dialog checkbox, etc. ...
-				//table.SetRender(column.Name, "CHECK_BOX")
-			}
-
+		changeTypeDialog := false
+		changeType := (column.Type == "INTEGER")
+		if SA_Button(column.Type).Enable(changeType).Show(1, 0, 1, 1).click {
+			changeTypeDialog = true
 		}
+
+		//convert column type
+		if SA_DialogStart("changeType", 1, changeTypeDialog) {
+
+			SA_ColMax(0, 5)
+			if column.Type == "INTEGER" {
+				y := 0
+
+				if SA_Button(trns.INTEGER).Alpha(1).Align(0).Enable(column.Render != "").Show(0, y, 1, 1).click {
+					column.Render = ""
+				}
+				y++
+
+				if SA_Button(trns.CHECK_BOX).Alpha(1).Align(0).Enable(column.Render != "CHECK_BOX").Show(0, y, 1, 1).click {
+					column.Render = "CHECK_BOX"
+				}
+				y++
+
+				if SA_Button(trns.DATE).Alpha(1).Align(0).Enable(column.Render != "DATE").Show(0, y, 1, 1).click {
+					column.Render = "DATE"
+				}
+				y++
+
+				if SA_Button(trns.RATING).Alpha(1).Align(0).Enable(column.Render != "RATING").Show(0, y, 1, 1).click {
+					column.Render = "RATING"
+					if column.Prop_rating_max_stars == 0 {
+						column.Prop_rating_max_stars = 5
+					}
+				}
+				y++
+			}
+			SA_DialogEnd()
+		}
+
 	}
 	SA_DivEnd()
 
@@ -827,9 +835,9 @@ func ColumnDetail(table *Table, column *Column) {
 	//properties
 	SA_DivStart(0, 5, 1, 3)
 	{
-		SA_ColMax(0, 100)
 		if column.Render == "RATING" {
-			//	...Gui.EditboxDesc(0, 0, 1, 1, _value: _column.render.max_stars, maxWidth: 3, asNumber: 1, description:{MAX_STARS})
+			SA_ColMax(0, 100)
+			SA_Editbox(&column.Prop_rating_max_stars).ShowDescription(0, 0, 1, 1, trns.MAX_STARS, 3, 0)
 		}
 
 	}
@@ -859,10 +867,6 @@ func ColumnDetail(table *Table, column *Column) {
 
 func Tablee(table *Table) {
 
-	//table.Check()
-
-	//view := table.Views[table.SelectedView]
-
 	sumWidth := 1.5 //"+"
 	for _, col := range table.Columns {
 		if col.Show {
@@ -875,336 +879,425 @@ func Tablee(table *Table) {
 
 	//columns header
 	SA_DivStart(0, 0, 1, 1)
-	{
-		x := 0
-		for _, col := range table.Columns {
-			if !col.Show {
-				continue
-			}
-			SA_Col(x, 1.5) //minimum
-			col.Resize = SA_ColResizeName(x, col.Name, col.Resize)
-			x++
+	TableColumns(table)
+	SA_DivEnd()
+
+	//rows
+	SA_DivStart(0, 1, 1, 1)
+	TableRows(table)
+	SA_DivEnd()
+
+	// add row + column stats
+	SA_DivStart(0, 2, 1, 1)
+	TableStats(table)
+	SA_DivEnd()
+}
+
+func TableColumns(table *Table) {
+	x := 0
+	for _, col := range table.Columns {
+		if !col.Show {
+			continue
 		}
-		SA_Col(x, 1) //"+"
+		SA_Col(x, 1.5) //minimum
+		col.Resize = SA_ColResizeName(x, col.Name, col.Resize)
+		x++
+	}
+	SA_Col(x, 1) //"+"
 
-		x = 0
-		for _, col := range table.Columns {
-			if !col.Show {
-				continue
+	x = 0
+	for _, col := range table.Columns {
+		if !col.Show {
+			continue
+		}
+
+		nm := col.Name
+		if col.isRowId() {
+			nm = "#"
+		}
+
+		openDetail := false
+
+		SA_DivStart(x, 0, 1, 1)
+		{
+			SA_ColMax(0, 100)
+			if SA_Button(nm).Show(0, 0, 1, 1).click && !col.isRowId() {
+				openDetail = true
 			}
 
-			nm := col.Name
-			if col.isRowId() {
-				nm = "#"
+			if !col.isRowId() {
+				DragAndDropColumn(x, table)
+			}
+		}
+		SA_DivEnd()
+
+		if SA_DialogStart("columnDetail_"+nm, 1, openDetail) {
+			ColumnDetail(table, col)
+			SA_DialogEnd()
+		}
+
+		x++
+	}
+
+	//create column
+	createColumn := false
+	if SA_Button("+").Show(x, 0, 1, 1).click {
+		createColumn = true
+	}
+
+	if SA_DialogStart("createColumn", 1, createColumn) {
+
+		SA_ColMax(0, 5)
+		y := 0
+		add_type := ""
+		defValue := ""
+		render := ""
+
+		//name
+		err := CheckName(store.createColumn, table.FindColumn(store.createColumn) != nil)
+		SA_Editbox(&store.createColumn).Error(err).TempToValue(true).ShowDescription(0, y, 1, 1, trns.NAME, 2, 0)
+		y++
+
+		//types
+		if SA_Button(trns.TEXT).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "type_text.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+			add_type = "TEXT"
+			defValue = "''"
+		}
+		y++
+
+		if SA_Button(trns.INTEGER).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "type_number.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+			add_type = "INTEGER"
+			defValue = "0"
+		}
+		y++
+
+		if SA_Button(trns.FLOAT).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "type_number.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+			add_type = "REAL"
+			defValue = "0"
+		}
+		y++
+
+		if SA_Button(trns.BLOB).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "star.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+			add_type = "BLOB"
+			defValue = "0"
+		}
+		y++
+
+		//icons ...
+		if SA_Button(trns.CHECK_BOX).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "star.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+			add_type = "INTEGER"
+			defValue = "0"
+			render = "CHECK_BOX"
+		}
+		y++
+
+		if SA_Button(trns.DATE).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "star.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+			add_type = "INTEGER"
+			defValue = "0"
+			render = "DATE"
+		}
+		y++
+
+		if SA_Button(trns.PERCENT).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "star.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+			add_type = "REAL"
+			defValue = "0"
+			render = "PERCENT"
+		}
+		y++
+
+		if SA_Button(trns.RATING).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "star.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+			add_type = "INTEGER"
+			defValue = "0"
+			render = "RATING"
+
+		}
+		y++
+
+		if len(add_type) > 0 {
+			add_def := "DEFAULT " + defValue + " NOT NULL"
+
+			SA_SqlWrite("", "ALTER TABLE "+table.Name+" ADD "+store.createColumn+" "+add_type+" "+add_def+";")
+
+			if len(render) > 0 {
+				column := &Column{Name: store.createColumn, Type: add_type, Show: true, Resize: 4, Render: render}
+				table.Columns = append(table.Columns, column)
+				//others will copy 'render' from here
+
+				if render == "RATING" {
+					column.Prop_rating_max_stars = 5
+				}
 			}
 
-			openDetail := false
+			store.createColumn = ""
+			SA_DialogClose()
+		}
 
-			SA_DivStart(x, 0, 1, 1)
+		SA_DialogEnd()
+	}
+
+}
+
+func TableRows(table *Table) {
+	var count int
+	{
+		query := GetQueryCount(table)
+		q := SA_SqlRead("", query)
+		q.Next(&count)
+	}
+
+	SA_DivSetInfo("scrollOnScreen", 1)
+	if table.scrollDown {
+		SA_DivSetInfo("scrollVpos", 100000000)
+		table.scrollDown = false
+	}
+
+	rowSize := table.RowSize + 1
+
+	SA_ColMax(0, 100)
+	SA_Row(0, float64(count*rowSize))
+	SA_DivStart(0, 0, 1, 1)
+	{
+		SA_ColMax(0, 100)
+
+		st, en := SA_DivRangeVer(float64(rowSize), -1, -1)
+
+		query, ncols := GetQueryBasic(table)
+		var stat *SA_Sql
+		if len(query) > 0 {
+			stat = SA_SqlRead("", query)
+			if stat != nil {
+				stat.row_i = uint64(st)
+			}
+		}
+		values := make([]string, ncols)
+		args := make([]interface{}, ncols)
+		for i := range values {
+			args[i] = &values[i]
+		}
+
+		for st < en && stat.Next(args...) {
+
+			SA_DivStart(0, st*rowSize, 1, rowSize)
 			{
-				SA_ColMax(0, 100)
-				if SA_Button(nm).Show(0, 0, 1, 1).click && !col.isRowId() {
-					openDetail = true
+				//columns sizes
+				x := 0
+				for _, col := range table.Columns {
+					if col.Show {
+						SA_Col(x, col.Resize)
+						x++
+					}
 				}
 
-				if !col.isRowId() {
-					DragAndDropColumn(x, table)
+				x = 0
+				for _, col := range table.Columns {
+					if !col.Show {
+						continue
+					}
+
+					writeCell := false
+					if col.isRowId() {
+
+						rowidDialog := SA_Button(values[x]).Show(0, 0, 1, rowSize).click
+
+						if SA_DialogStart("RowId_"+values[x], 1, rowidDialog) {
+							SA_ColMax(0, 5)
+
+							if SA_Button(trns.REMOVE).BackCd(SA_ThemeWarning()).Show(0, 0, 1, 1).click {
+								SA_SqlWrite("", "DELETE FROM "+table.Name+" WHERE rowid="+values[x]+";")
+								SA_DialogClose()
+							}
+
+							SA_DialogEnd()
+						}
+
+					} else if col.Type == "BLOB" {
+
+						r, err := strconv.Atoi(values[x])
+						if r > 0 && err == nil {
+
+							res := SA_ResourceBuildDbPath("", table.Name, col.Name, r)
+							SA_DivStart(x, 0, 1, rowSize)
+							{
+								SAPaint_File(0, 0, 1, 1, res, "", 0.03, 0, 0, SA_ThemeWhite(), 1, 1, false, false)
+								SAPaint_Rect(0, 0, 1, 1, 0, SA_ThemeGrey(0.3), 0.03)
+
+								inside := SA_DivInfo("touchInside") > 0
+								end := SA_DivInfo("touchEnd") > 0
+								if r > 0 && inside {
+									SAPaint_Cursor("hand")
+								}
+								showImageDialog := r > 0 && inside && end
+
+								if SA_DialogStart("Image_"+values[x], 1, showImageDialog) {
+									SA_ColMax(0, 15)
+									SA_RowMax(0, 15)
+									SAPaint_File(0, 0, 1, 1, res, "", 0.03, 0, 0, SA_ThemeWhite(), 1, 1, false, false)
+									if SA_DivInfo("touchInside") > 0 && SA_DivInfo("touchEnd") > 0 {
+										SA_DialogClose()
+									}
+									SA_DialogEnd()
+								}
+							}
+							SA_DivEnd()
+						}
+					} else if col.Type == "INTEGER" {
+
+						switch col.Render {
+						case "":
+							if SA_Editbox(&values[x]).Margin(0.02).Show(x, 0, 1, rowSize).finished {
+								writeCell = true
+							}
+						case "CHECK_BOX":
+							bv := values[x] != "0"
+							if SA_Checkbox(&bv, "").Show(x, 0, 1, rowSize) { //.Align(1) ...
+								if bv {
+									values[x] = "1"
+								} else {
+									values[x] = "0"
+								}
+								writeCell = true
+							}
+						case "DATE":
+							//picker ...
+
+						case "PERCENT":
+							//add settings(rounding) ...
+							// ...
+
+						case "RATING":
+							if SA_DivStart(x, 0, 1, rowSize) {
+								act, _ := strconv.Atoi(values[x])
+								act, writeCell = SA_Rating(act, col.Prop_rating_max_stars, SA_ThemeCd(), SA_ThemeGrey(0.8), SA_ResourceBuildAssetPath("", "star.png"))
+								if writeCell {
+									values[x] = strconv.Itoa(act)
+								}
+							}
+							SA_DivEnd()
+						}
+
+					} else if col.Type == "TEXT" {
+						if SA_Editbox(&values[x]).Margin(0.02).Show(x, 0, 1, rowSize).finished {
+							writeCell = true
+						}
+					} else if col.Type == "REAL" {
+						if SA_Editbox(&values[x]).Margin(0.02).Show(x, 0, 1, rowSize).finished {
+							writeCell = true
+						}
+					} else {
+						SA_Text("Error: Unknown type").FrontCd(SA_ThemeError()).Show(x, 0, 1, rowSize)
+					}
+
+					if writeCell {
+						v := values[x]
+						if col.Type == "TEXT" {
+							v = "'" + v + "'"
+						}
+						SA_SqlWrite("", fmt.Sprintf("UPDATE %s SET %s=%s WHERE rowid=%s;", table.Name, col.Name, v, values[0]))
+					}
+					x++
 				}
 			}
 			SA_DivEnd()
 
-			if SA_DialogStart("columnDetail_"+nm, 1, openDetail) {
-				ColumnDetail(table, col)
-				SA_DialogEnd()
-			}
-
-			x++
+			st++
 		}
-
-		//create column
-		createColumn := false
-		if SA_Button("+").Show(x, 0, 1, 1).click {
-			createColumn = true
-		}
-
-		if SA_DialogStart("createColumn", 1, createColumn) {
-
-			SA_ColMax(0, 5)
-			y := 0
-			add_type := ""
-			def := ""
-			render := ""
-
-			//name
-			err := CheckName(store.createColumn, table.FindColumn(store.createColumn) != nil)
-			SA_Editbox(&store.createColumn).Error(err).TempToValue(true).ShowDescription(0, y, 1, 1, trns.NAME, 2, 0)
-			y++
-
-			//types
-			if SA_Button(trns.TEXT).Alpha(1).Align(0).Enable(err == nil).Show(0, y, 1, 1).click { //add icons ...
-				add_type = "TEXT"
-				def = "''"
-			}
-			y++
-
-			if SA_Button(trns.FLOAT).Alpha(1).Align(0).Enable(err == nil).Show(0, y, 1, 1).click { //add icons ...
-				add_type = "REAL"
-				def = "0"
-			}
-			y++
-
-			//many more column types ...
-
-			if len(add_type) > 0 {
-				add_def := "DEFAULT " + def + " NOT NULL"
-
-				SA_SqlWrite("", "ALTER TABLE "+table.Name+" ADD "+store.createColumn+" "+add_type+" "+add_def+";")
-
-				if len(render) > 0 {
-					table.Columns = append(table.Columns, &Column{Name: store.createColumn, Type: add_type, Show: true, Resize: 4, Render: render})
-					//others will copy 'render' from here
-				}
-
-				store.createColumn = ""
-				SA_DialogClose()
-			}
-
-			SA_DialogEnd()
-		}
-
 	}
 	SA_DivEnd()
+}
+func TableStats(table *Table) {
 
-	//rows - extra function ...
-	SA_DivStart(0, 1, 1, 1)
+	//columns sizes
 	{
-		var count int
-		{
-			query := GetQueryCount(table)
-			q := SA_SqlRead("", query)
-			q.Next(&count)
-		}
-
-		SA_DivSetInfo("scrollOnScreen", 1)
-		if table.scrollDown {
-			SA_DivSetInfo("scrollVpos", 100000000)
-			table.scrollDown = false
-		}
-
-		rowSize := table.RowSize + 1
-
-		SA_ColMax(0, 100)
-		SA_Row(0, float64(count*rowSize))
-		SA_DivStart(0, 0, 1, 1)
-		{
-			SA_ColMax(0, 100)
-
-			st, en := SA_DivRangeVer(float64(rowSize), -1, -1)
-
-			query, ncols := GetQueryBasic(table)
-			var stat *SA_Sql
-			if len(query) > 0 {
-				stat = SA_SqlRead("", query)
-				if stat != nil {
-					stat.row_i = uint64(st)
-				}
-			}
-			values := make([]string, ncols)
-			args := make([]interface{}, ncols)
-			for i := range values {
-				args[i] = &values[i]
-			}
-
-			for st < en && stat.Next(args...) {
-
-				SA_DivStart(0, st*rowSize, 1, rowSize)
-				{
-					//columns sizes
-					x := 0
-					for _, col := range table.Columns {
-						if col.Show {
-							SA_Col(x, col.Resize)
-							x++
-						}
-					}
-
-					x = 0
-					for _, col := range table.Columns {
-						if !col.Show {
-							continue
-						}
-
-						writeCell := false
-						if col.isRowId() {
-
-							rowidDialog := SA_Button(values[x]).Show(0, 0, 1, rowSize).click
-
-							if SA_DialogStart("RowId_"+values[x], 1, rowidDialog) {
-								SA_ColMax(0, 5)
-
-								//duplicate row ...
-
-								if SA_Button(trns.REMOVE).BackCd(SA_ThemeWarning()).Show(0, 0, 1, 1).click {
-									SA_SqlWrite("", "DELETE FROM "+table.Name+" WHERE rowid="+values[x]+";")
-									SA_DialogClose()
-								}
-
-								SA_DialogEnd()
-							}
-
-						} else if col.Type == "BLOB" {
-
-							r, err := strconv.Atoi(values[x])
-							if r > 0 && err == nil {
-
-								res := SA_ResourceBuildDbPath("", table.Name, col.Name, r)
-								SA_DivStart(x, 0, 1, rowSize)
-								{
-									SAPaint_File(0, 0, 1, 1, res, "", 0.03, 0, 0, SA_ThemeWhite(), 1, 1, false, false)
-									SAPaint_Rect(0, 0, 1, 1, 0, SA_ThemeGrey(0.3), 0.03)
-
-									inside := SA_DivInfo("touchInside") > 0
-									end := SA_DivInfo("touchEnd") > 0
-									if r > 0 && inside {
-										SAPaint_Cursor("hand")
-									}
-									showImageDialog := r > 0 && inside && end
-
-									if SA_DialogStart("Image_"+values[x], 1, showImageDialog) {
-										SA_ColMax(0, 15)
-										SA_RowMax(0, 15)
-										SAPaint_File(0, 0, 1, 1, res, "", 0.03, 0, 0, SA_ThemeWhite(), 1, 1, false, false)
-										if SA_DivInfo("touchInside") > 0 && SA_DivInfo("touchEnd") > 0 {
-											SA_DialogClose()
-										}
-										SA_DialogEnd()
-									}
-								}
-								SA_DivEnd()
-							}
-
-						} else {
-							if SA_Editbox(&values[x]).Margin(0.02).Show(x, 0, 1, rowSize).finished {
-								writeCell = true
-							}
-						}
-						//other types ...
-
-						if writeCell {
-							v := values[x]
-							if col.Type == "TEXT" {
-								v = "'" + v + "'"
-							}
-							SA_SqlWrite("", fmt.Sprintf("UPDATE %s SET %s=%s WHERE rowid=%s;", table.Name, col.Name, v, values[0]))
-						}
-						x++
-					}
-				}
-				SA_DivEnd()
-
-				st++
-			}
-		}
-		SA_DivEnd()
-	}
-	SA_DivEnd()
-
-	//add row + column stats - put into extra function ...
-	SA_DivStart(0, 2, 1, 1)
-	{
-		//columns sizes
-		{
-			x := 0
-			for _, col := range table.Columns {
-				if col.Show {
-					SA_Col(x, col.Resize)
-					x++
-				}
-			}
-		}
-
-		var stat *SA_Sql
-		q, num_cols := GetQueryStats(table)
-		values := make([]string, num_cols)
-		if len(q) > 0 {
-			stat = SA_SqlRead("", q)
-
-			args := make([]interface{}, num_cols)
-			for i := range values {
-				args[i] = &values[i]
-			}
-			stat.Next(args...)
-		}
-
-		stat_i := 0
 		x := 0
 		for _, col := range table.Columns {
-			if !col.Show {
-				continue
+			if col.Show {
+				SA_Col(x, col.Resize)
+				x++
 			}
-
-			if col.isRowId() {
-				//add row
-				if SA_Button("+").Align(1).Title(trns.ADD_ROW).Show(x, 0, 1, 1).click {
-					SA_SqlWrite("", "INSERT INTO "+table.Name+" DEFAULT VALUES;")
-					table.scrollDown = true
-				}
-			} else {
-				//column stat
-				text := ""
-				if len(col.StatFunc) > 0 {
-					text = col.StatFunc + ": " + values[stat_i]
-					stat_i++
-				}
-				dialogStat := false
-				if SA_Button(text).BackCd(SA_ThemeWhite().Aprox(SA_ThemeBack(), 0.4)).Align(0).Show(x, 0, 1, 1).click { //show result
-					dialogStat = true
-				}
-				if SA_DialogStart("Stat_"+strconv.Itoa(x), 1, dialogStat) {
-
-					SA_ColMax(0, 5)
-					y := 0
-					if col.Type == "INTEGER" || col.Type == "REAL" {
-
-						if SA_Button(trns.MIN).Alpha(1).Align(0).Show(0, y, 1, 1).click {
-							col.StatFunc = "min"
-							SA_DialogClose()
-						}
-						y++
-
-						if SA_Button(trns.MAX).Alpha(1).Align(0).Show(0, y, 1, 1).click {
-							col.StatFunc = "max"
-							SA_DialogClose()
-						}
-						y++
-
-						if SA_Button(trns.AVG).Alpha(1).Align(0).Show(0, y, 1, 1).click {
-							col.StatFunc = "avg"
-							SA_DialogClose()
-						}
-						y++
-
-						if SA_Button(trns.SUM).Alpha(1).Align(0).Show(0, y, 1, 1).click {
-							col.StatFunc = "sum"
-							SA_DialogClose()
-						}
-						y++
-
-						if SA_Button(trns.COUNT).Alpha(1).Align(0).Show(0, y, 1, 1).click {
-							col.StatFunc = "count"
-							SA_DialogClose()
-						}
-						y++
-
-					}
-
-					SA_DialogEnd()
-				}
-			}
-			x++
 		}
 	}
-	SA_DivEnd()
+
+	var stat *SA_Sql
+	q, num_cols := GetQueryStats(table)
+	values := make([]string, num_cols)
+	if len(q) > 0 {
+		stat = SA_SqlRead("", q)
+
+		args := make([]interface{}, num_cols)
+		for i := range values {
+			args[i] = &values[i]
+		}
+		stat.Next(args...)
+	}
+
+	stat_i := 0
+	x := 0
+	for _, col := range table.Columns {
+		if !col.Show {
+			continue
+		}
+
+		if col.isRowId() {
+			//add row
+			if SA_Button("+").Align(1).Title(trns.ADD_ROW).Show(x, 0, 1, 1).click {
+				SA_SqlWrite("", "INSERT INTO "+table.Name+" DEFAULT VALUES;")
+				table.scrollDown = true
+			}
+		} else {
+			//column stat
+			text := ""
+			if len(col.StatFunc) > 0 {
+				text = col.StatFunc + ": " + values[stat_i]
+				stat_i++
+			}
+			dialogStat := false
+			if SA_Button(text).BackCd(SA_ThemeWhite().Aprox(SA_ThemeBack(), 0.4)).Align(0).Show(x, 0, 1, 1).click { //show result
+				dialogStat = true
+			}
+			if SA_DialogStart("Stat_"+strconv.Itoa(x), 1, dialogStat) {
+
+				SA_ColMax(0, 5)
+				y := 0
+				if col.Type == "INTEGER" || col.Type == "REAL" {
+
+					if SA_Button(trns.MIN).Alpha(1).Align(0).Show(0, y, 1, 1).click {
+						col.StatFunc = "min"
+						SA_DialogClose()
+					}
+					y++
+
+					if SA_Button(trns.MAX).Alpha(1).Align(0).Show(0, y, 1, 1).click {
+						col.StatFunc = "max"
+						SA_DialogClose()
+					}
+					y++
+
+					if SA_Button(trns.AVG).Alpha(1).Align(0).Show(0, y, 1, 1).click {
+						col.StatFunc = "avg"
+						SA_DialogClose()
+					}
+					y++
+
+					if SA_Button(trns.SUM).Alpha(1).Align(0).Show(0, y, 1, 1).click {
+						col.StatFunc = "sum"
+						SA_DialogClose()
+					}
+					y++
+
+					if SA_Button(trns.COUNT).Alpha(1).Align(0).Show(0, y, 1, 1).click {
+						col.StatFunc = "count"
+						SA_DialogClose()
+					}
+					y++
+
+				}
+
+				SA_DialogEnd()
+			}
+		}
+		x++
+	}
+
 }
 
 func GetQueryWHERE(table *Table) string {
@@ -1393,21 +1486,10 @@ func render() uint32 {
 			SA_ColMax(0, 100)
 			SA_RowMax(0, 100)
 
-			/*if store.ShowViewPanel {
-				SA_Col(1, 1) //minimum
-				SA_ColResize(1, 7)
-			}*/
-
 			//table
 			SA_DivStart(0, 0, 1, 1)
 			TableView(selectedTable)
 			SA_DivEnd()
-
-			/*if store.ShowViewPanel {
-				SA_DivStart(1, 0, 1, 1)
-				ViewList(selectedTable)
-				SA_DivEnd()
-			}*/
 		}
 		SA_DivEnd()
 	}
@@ -1421,5 +1503,5 @@ func save() ([]byte, bool) {
 	return nil, false //default json
 }
 func debug() (int, int, string) {
-	return -1, 00, "main"
+	return -1, 10, "main"
 }
