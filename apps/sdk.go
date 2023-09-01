@@ -1513,7 +1513,7 @@ func SA_ColSpacer(x, y, w, h int) {
 func SA_DialogConfirm(x, y, w, h int) bool {
 	SA_ColMax(0, 5)
 
-	click := SA_Button("Confirm").BackCd(SA_ThemeWarning()).Show(0, 0, 1, 1).click //translations ...
+	click := SA_Button("Confirm").BackCd(SA_ThemeWarning()).Show(0, 0, 1, 1).click //translations ... maybe add 'confirm string' do args ...
 	if click {
 		SA_DialogClose()
 	}
@@ -1582,4 +1582,63 @@ func SA_MoveElement[T any](array_src *[]T, array_dst *[]T, src int, dst int, pos
 
 func SA_RenderApp(app string, db string, sts_id int) bool {
 	return _sa_render_app(_SA_stringToPtr(app), _SA_stringToPtr(db), uint64(sts_id)) >= 0
+}
+
+func SA_Rating(value int, max_value int, cdActive SACd, cdDeactive SACd, icon string) (int, bool) {
+
+	changed := false
+
+	SA_DivSetInfo("scrollHnarrow", 1)
+	SA_DivSetInfo("scrollVshow", 0)
+
+	w := SA_DivInfo("layoutWidth") / float64(max_value)
+	h := SA_DivInfo("layoutHeight")
+
+	if w < 0.9 {
+		w = 0.9
+	}
+
+	SA_Row(0, h)
+	for i := 0; i < max_value; i++ {
+		SA_Col(i, w) //1
+	}
+
+	for i := 0; i < max_value; i++ {
+		SA_DivStart(i, 0, 1, 1)
+		{
+			cd := cdActive
+			if i >= value {
+				cd = cdDeactive
+			}
+
+			active := SA_DivInfo("touchActive") > 0
+			inside := SA_DivInfo("touchInside") > 0
+			end := SA_DivInfo("touchEnd") > 0
+			touch_x := SA_DivInfo("touchX")
+
+			if active || inside {
+				cd = cd.Aprox(cdActive, 0.4)
+				SAPaint_Cursor("hand")
+			}
+
+			if active && inside {
+				cd = cd.Aprox(cdActive, 0.7)
+			}
+
+			if inside && end {
+				old_value := value
+				if i == 0 && touch_x < 0.25 {
+					value = 0
+				} else {
+					value = i + 1
+				}
+				changed = (value != old_value)
+			}
+
+			SAPaint_File(0, 0, 1, 1, icon, "", 0.25, 0, 0, cd, 1, 1, false, false)
+		}
+		SA_DivEnd()
+	}
+
+	return value, changed
 }
