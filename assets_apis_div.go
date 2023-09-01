@@ -49,26 +49,16 @@ func (asset *Asset) _VmBasic_touchScroll(packLayout *LayoutDiv, enableInput bool
 	hasScrollH := packLayout.data.scrollH.Is()
 
 	if hasScrollV {
-		scrollQuad := packLayout.data.scrollV.GetScrollBackCoordV(packLayout.crop, root.ui)
 		if enableInput {
-			if packLayout.data.scrollV.TouchV(packLayout.CropWithScroll(root.ui), scrollQuad, root.touch.IsFnMove(nil, packLayout, nil, nil), root) {
-				root.touch.Set(nil, packLayout, nil, nil)
-			}
+			packLayout.data.scrollV.TouchV(packLayout, root)
 		}
-	} //else {
-	//packLayout.data.scrollV.SetWheel(packLayout.data.scrollV.GetWheel())
-	//}
+	}
 
 	if hasScrollH {
-		scrollQuad := packLayout.data.scrollH.GetScrollBackCoordH(packLayout.crop, root.ui)
 		if enableInput {
-			if packLayout.data.scrollH.TouchH(packLayout.CropWithScroll(root.ui), scrollQuad, hasScrollV, root.touch.IsFnMove(nil, nil, packLayout, nil), root) {
-				root.touch.Set(nil, nil, packLayout, nil)
-			}
+			packLayout.data.scrollH.TouchH(hasScrollV, packLayout, root)
 		}
-	} //else {
-	//packLayout.data.scrollH.SetWheel(packLayout.data.scrollH.GetWheel())
-	//}
+	}
 }
 
 func (asset *Asset) _VmBasic_RenderScroll(packLayout *LayoutDiv, showBackground bool, buff *PaintBuff) {
@@ -530,7 +520,7 @@ func (asset *Asset) div_get_info(id string, x int64, y int64) float64 {
 		}
 	case "touchWheel":
 		if div.enableInput {
-			return float64(root.ui.io.touch.wheelPos)
+			return float64(root.ui.io.touch.wheel)
 		} else {
 			return 0
 		}

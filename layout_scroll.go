@@ -41,12 +41,16 @@ func (scroll *LayerScroll) Init() {
 	scroll.narrow = false
 }
 
-func (scroll *LayerScroll) GetWheel() int {
+func (scroll *LayerScroll) _getWheel(wheel int) int {
 
 	if scroll.data_height > scroll.screen_height {
-		return OsClamp(scroll.wheel, 0, (scroll.data_height - scroll.screen_height))
+		return OsClamp(wheel, 0, (scroll.data_height - scroll.screen_height))
 	}
 	return 0
+}
+
+func (scroll *LayerScroll) GetWheel() int {
+	return scroll._getWheel(scroll.wheel)
 }
 
 func (scroll *LayerScroll) SetWheel(wheelPixel int) bool {
@@ -55,16 +59,6 @@ func (scroll *LayerScroll) SetWheel(wheelPixel int) bool {
 
 	scroll.wheel = wheelPixel
 	scroll.wheel = scroll.GetWheel() //clamp by boundaries
-
-	/*if scroll.data_height > scroll.screen_height {
-		scroll.wheel = OsClamp(wheelPixel, 0, (scroll.data_height - scroll.screen_height))
-	} else {
-		scroll.wheel = 0
-	}*/
-
-	/*if scroll.data_height == 0 { // otherwise saved scroll is reset!
-		scroll.wheel = oldWheel
-	}*/
 
 	if oldWheel != scroll.wheel {
 		scroll.timeWheel = OsTicks()
@@ -191,53 +185,78 @@ func (scroll *LayerScroll) _GetTempScroll(srcl int, ui *Ui) int {
 	return ui.Cell() * srcl
 }
 
-func (scroll *LayerScroll) TouchV(parentCoord OsV4, scrollCoord OsV4, isTouched bool, root *Root) bool {
+func (scroll *LayerScroll) IsTopMove(packLayout *LayoutDiv, root *Root, wheel_add int) bool {
+	inside := packLayout.CropWithScroll(root.ui).Inside(root.ui.io.touch.pos)
+	if !inside {
+		return false
+	}
+
+	//test childs
+	for _, div := range packLayout.childs {
+		if div.data.scrollV.IsTopMove(div, root, wheel_add) {
+			return false
+		}
+		if div.data.scrollH.IsTopMove(div, root, wheel_add) {
+			return false
+		}
+	}
+
+	if inside && scroll.show {
+		curr := scroll.GetWheel()
+		return scroll._getWheel(curr+wheel_add) != curr
+	}
+
+	return false
+}
+
+func (scroll *LayerScroll) TouchV(packLayout *LayoutDiv, root *Root) {
 
 	ui := root.ui
 
-	//scroll.SetWheel(scroll.wheel) //refresh
-
+	scrollCoord := packLayout.data.scrollV.GetScrollBackCoordV(packLayout.crop, ui)
 	if scrollCoord.Inside(ui.io.touch.pos) {
 		ui.PaintCursor("default")
 	}
 
-	insideParent := parentCoord.Inside(ui.io.touch.pos)
-	//fmt.Println(insideParent)
-	if ui.io.touch.wheel && insideParent && !ui.io.keys.shift {
-		if scroll.SetWheel(scroll.GetWheel() + scroll._GetTempScroll(ui.io.touch.wheelPos, ui)) {
-			ui.io.touch.wheelPos = 0 // let parent scroll
+	canUp := scroll.IsTopMove(packLayout, root, -1)
+	canDown := scroll.IsTopMove(packLayout, root, +1)
+	if ui.io.touch.wheel != 0 && !ui.io.keys.shift {
+		if (ui.io.touch.wheel < 0 && canUp) || (ui.io.touch.wheel > 0 && canDown) {
+			if scroll.SetWheel(scroll.GetWheel() + scroll._GetTempScroll(ui.io.touch.wheel, ui)) {
+				ui.io.touch.wheel = 0 // let child scroll
+			}
 		}
 	}
 
-	if !root.touch.IsAnyActive() && !ui.io.keys.shift && insideParent {
-		if ui.io.keys.arrowU {
+	if !root.touch.IsAnyActive() && !ui.io.keys.shift {
+		if ui.io.keys.arrowU && canUp {
 			if scroll.SetWheel(scroll.GetWheel() - ui.Cell()) {
 				ui.io.keys.arrowU = false
 			}
 		}
-		if ui.io.keys.arrowD {
+		if ui.io.keys.arrowD && canDown {
 			if scroll.SetWheel(scroll.GetWheel() + ui.Cell()) {
 				ui.io.keys.arrowD = false
 			}
 		}
 
-		if ui.io.keys.home {
+		if ui.io.keys.home && canUp {
 			if scroll.SetWheel(0) {
 				ui.io.keys.home = false
 			}
 		}
-		if ui.io.keys.end {
+		if ui.io.keys.end && canDown {
 			if scroll.SetWheel(scroll.data_height) {
 				ui.io.keys.end = false
 			}
 		}
 
-		if ui.io.keys.pageU {
+		if ui.io.keys.pageU && canUp {
 			if scroll.SetWheel(scroll.GetWheel() - scroll.screen_height) {
 				ui.io.keys.pageU = false
 			}
 		}
-		if ui.io.keys.pageD {
+		if ui.io.keys.pageD && canDown {
 			if scroll.SetWheel(scroll.GetWheel() + scroll.screen_height) {
 				ui.io.keys.pageD = false
 			}
@@ -245,15 +264,15 @@ func (scroll *LayerScroll) TouchV(parentCoord OsV4, scrollCoord OsV4, isTouched 
 	}
 
 	if !scroll.Is() {
-		return false
+		return
 	}
 
 	sliderFront := scroll._UpdateV(scrollCoord, ui)
 	midSlider := sliderFront.Size.Y / 2
 
-	inside := sliderFront.Inside(ui.io.touch.pos)
+	isTouched := root.touch.IsFnMove(nil, packLayout, nil, nil)
 	if ui.io.touch.start {
-		isTouched = inside
+		isTouched = sliderFront.Inside(ui.io.touch.pos)
 		scroll.clickRel = ui.io.touch.pos.Y - sliderFront.Start.Y - midSlider // rel to middle of front slide
 	}
 
@@ -270,54 +289,58 @@ func (scroll *LayerScroll) TouchV(parentCoord OsV4, scrollCoord OsV4, isTouched 
 		scroll.clickRel = 0
 	}
 
-	return isTouched
+	if isTouched {
+		root.touch.Set(nil, packLayout, nil, nil)
+	}
 }
 
-func (scroll *LayerScroll) TouchH(parentCoord OsV4, scrollCoord OsV4, needShiftWheel bool, isTouched bool, root *Root) bool {
+func (scroll *LayerScroll) TouchH(needShiftWheel bool, packLayout *LayoutDiv, root *Root) {
 	ui := root.ui
 
-	//scroll.SetWheel(scroll.wheel) //refresh
-
+	scrollCoord := packLayout.data.scrollV.GetScrollBackCoordH(packLayout.crop, ui)
 	if scrollCoord.Inside(ui.io.touch.pos) {
 		ui.PaintCursor("default")
 	}
 
-	insideParent := parentCoord.Inside(ui.io.touch.pos)
-	if ui.io.touch.wheel && insideParent && (!needShiftWheel || ui.io.keys.shift) {
-		if scroll.SetWheel(scroll.GetWheel() + scroll._GetTempScroll(ui.io.touch.wheelPos, ui)) {
-			ui.io.touch.wheelPos = 0 // let parent scroll
+	canUp := scroll.IsTopMove(packLayout, root, -1)
+	canDown := scroll.IsTopMove(packLayout, root, +1)
+	if ui.io.touch.wheel != 0 && (!needShiftWheel || ui.io.keys.shift) {
+		if (ui.io.touch.wheel < 0 && canUp) || (ui.io.touch.wheel > 0 && canDown) {
+			if scroll.SetWheel(scroll.GetWheel() + scroll._GetTempScroll(ui.io.touch.wheel, ui)) {
+				ui.io.touch.wheel = 0 // let child scroll
+			}
 		}
 	}
 
-	if !root.touch.IsAnyActive() && (!needShiftWheel || ui.io.keys.shift) && insideParent {
-		if ui.io.keys.arrowL {
+	if !root.touch.IsAnyActive() && (!needShiftWheel || ui.io.keys.shift) {
+		if ui.io.keys.arrowL && canUp {
 			if scroll.SetWheel(scroll.GetWheel() - ui.Cell()) {
 				ui.io.keys.arrowL = false
 			}
 		}
-		if ui.io.keys.arrowR {
+		if ui.io.keys.arrowR && canDown {
 			if scroll.SetWheel(scroll.GetWheel() + ui.Cell()) {
 				ui.io.keys.arrowR = false
 			}
 		}
 
-		if ui.io.keys.home {
+		if ui.io.keys.home && canUp {
 			if scroll.SetWheel(0) {
 				ui.io.keys.home = false
 			}
 		}
-		if ui.io.keys.end {
+		if ui.io.keys.end && canDown {
 			if scroll.SetWheel(scroll.data_height) {
 				ui.io.keys.end = false
 			}
 		}
 
-		if ui.io.keys.pageU {
+		if ui.io.keys.pageU && canUp {
 			if scroll.SetWheel(scroll.GetWheel() - scroll.screen_height) {
 				ui.io.keys.pageU = false
 			}
 		}
-		if ui.io.keys.pageD {
+		if ui.io.keys.pageD && canDown {
 			if scroll.SetWheel(scroll.GetWheel() + scroll.screen_height) {
 				ui.io.keys.pageD = false
 			}
@@ -325,15 +348,15 @@ func (scroll *LayerScroll) TouchH(parentCoord OsV4, scrollCoord OsV4, needShiftW
 	}
 
 	if !scroll.Is() {
-		return false
+		return
 	}
 
 	sliderFront := scroll._UpdateH(scrollCoord.Start, ui)
 	midSlider := sliderFront.Size.X / 2
 
-	inside := sliderFront.Inside(ui.io.touch.pos)
+	isTouched := root.touch.IsFnMove(nil, nil, packLayout, nil)
 	if ui.io.touch.start {
-		isTouched = inside
+		isTouched = sliderFront.Inside(ui.io.touch.pos)
 		scroll.clickRel = ui.io.touch.pos.X - sliderFront.Start.X - midSlider // rel to middle of front slide
 	}
 
@@ -349,7 +372,10 @@ func (scroll *LayerScroll) TouchH(parentCoord OsV4, scrollCoord OsV4, needShiftW
 		scroll.clickRel = 0
 	}
 
-	return isTouched
+	if isTouched {
+		root.touch.Set(nil, nil, packLayout, nil)
+	}
+
 }
 
 func (scroll *LayerScroll) TryDragScroll(fast_dt int, sign int, ui *Ui) bool {

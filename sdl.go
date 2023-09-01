@@ -448,8 +448,7 @@ func (ui *Ui) Event() (bool, error) {
 					io.SetDPI(io.GetDPI() - 3)
 				}
 			} else {
-				io.touch.wheel = true
-				io.touch.wheelPos = -int(val.Y) // divide by -WHEEL_DELTA
+				io.touch.wheel = -int(val.Y) // divide by -WHEEL_DELTA
 			}
 
 			ui.ResendInput()

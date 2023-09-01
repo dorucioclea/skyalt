@@ -91,12 +91,11 @@ type Keys struct {
 
 type Touch struct {
 	pos       OsV2
-	wheelPos  int
+	wheel     int
 	numClicks uint8
 	start     bool
 	end       bool
 	rm        bool // right/middle button
-	wheel     bool
 
 	drop_name string
 	drop_path string
