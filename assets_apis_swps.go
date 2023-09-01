@@ -77,11 +77,6 @@ func (asset *Asset) swp_drawButton(backCd OsCd, frontCd OsCd,
 		backCd = asset.themeCd()
 	}
 
-	if enable == 0 {
-		backCd = OsCd_Aprox(themeWhite(), backCd, 0.5)
-		frontCd = OsCd_Aprox(themeWhite(), frontCd, 0.8)
-	}
-
 	var click, rclick bool
 	if enable > 0 {
 		active := st.stack.data.touch_active
@@ -114,30 +109,31 @@ func (asset *Asset) swp_drawButton(backCd OsCd, frontCd OsCd,
 		}
 	}
 
+	iconCd := frontCd
+	if enable == 0 {
+		backCd = OsCd_Aprox(themeWhite(), backCd, 0.5)
+		iconCd = OsCd_Aprox(themeWhite(), iconCd, 0.3)
+	}
+
 	if drawBack {
 		st.buff.AddRect(asset.getCoord(0, 0, 1, 1, margin, 0, 0), backCd, 0)
 
 		if drawBorder > 0 {
-			st.buff.AddRect(asset.getCoord(0, 0, 1, 1, 0, 0, 0), frontCd, asset.getCellWidth(0.03))
+			st.buff.AddRect(asset.getCoord(0, 0, 1, 1, 0, 0, 0), iconCd, asset.getCellWidth(0.03))
 		}
 	}
 
 	if len(value) > 0 && len(icon) > 0 {
 
-		width := float64(st.stack.canvas.Size.X) / float64(root.ui.Cell())
-		height := float64(st.stack.canvas.Size.Y) / float64(root.ui.Cell())
-
-		var w float64
-		if height > 0 && width/height > 0 {
-			w = 1 / height
-		}
+		w := float64(root.ui.Cell()) / float64(st.stack.canvas.Size.X)
 
 		path, err := InitResourcePath(asset.app.root, icon, asset.app.name)
 		if err != nil {
 			asset.AddLogErr(err)
 			return false, false, -1
 		}
-		st.buff.AddImage(path, iconInverseColor != 0, asset.getCoord(0, 0, w, 1, marginIcon, 0, 0), frontCd, 1, 1, false)
+
+		st.buff.AddImage(path, iconInverseColor != 0, asset.getCoord(0, 0, w, 1, marginIcon, 0, 0), iconCd, 1, 1, false)
 
 		asset.paint_text(w, 0, 1-w, 1,
 			value,
@@ -145,7 +141,7 @@ func (asset *Asset) swp_drawButton(backCd OsCd, frontCd OsCd,
 			frontCd,
 			ratioH, 1,
 			0, align, 1,
-			0, 0, 0, enable)
+			0, 0, 0, enable) //has 'enable' - will shades inside
 
 	} else if len(value) > 0 {
 
@@ -162,11 +158,7 @@ func (asset *Asset) swp_drawButton(backCd OsCd, frontCd OsCd,
 			asset.AddLogErr(err)
 			return false, false, -1
 		}
-
-		if enable == 0 {
-			frontCd = OsCd_Aprox(themeWhite(), frontCd, 0.5) //boost shades
-		}
-		st.buff.AddImage(path, iconInverseColor != 0, asset.getCoord(0, 0, 1, 1, marginIcon, 0, 0), frontCd, 1, 1, false)
+		st.buff.AddImage(path, iconInverseColor != 0, asset.getCoord(0, 0, 1, 1, marginIcon, 0, 0), iconCd, 1, 1, false)
 	}
 
 	if click && len(url) > 0 {
