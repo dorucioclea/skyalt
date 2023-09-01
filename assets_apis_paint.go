@@ -17,7 +17,11 @@ limitations under the License.
 package main
 
 func (asset *Asset) getCellWidth(width float64) int {
-	return int(width * float64(asset.app.root.ui.Cell())) // cell is ~34
+	t := int(width * float64(asset.app.root.ui.Cell())) // cell is ~34
+	if width > 0 && t <= 0 {
+		t = 1 //at least 1px
+	}
+	return t
 }
 
 func (asset *Asset) addCoordMargin(q OsV4, margin float64, marginX float64, marginY float64) OsV4 {
