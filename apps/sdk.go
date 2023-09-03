@@ -1212,6 +1212,10 @@ type _SA_Checkbox struct {
 	backCd  SACd
 	frontCd SACd
 
+	height float64
+	align  uint32
+	alignV uint32
+
 	title string
 }
 
@@ -1221,10 +1225,17 @@ func SA_Checkbox(value *bool, description string) *_SA_Checkbox {
 	b.value = value
 	b.description = description
 
+	b.height = 1
+	b.alignV = 1
 	b.enable = true
 	b.frontCd = SA_ThemeBlack()
 
 	return &b
+}
+
+func (b *_SA_Checkbox) Align(v int) *_SA_Checkbox {
+	b.align = uint32(v)
+	return b
 }
 
 func (b *_SA_Checkbox) Show(x, y, w, h int) bool {
@@ -1239,7 +1250,7 @@ func (b *_SA_Checkbox) Show(x, y, w, h int) bool {
 		}
 
 		v := _sa_swp_drawCheckbox(uint32(b.frontCd.r), uint32(b.frontCd.g), uint32(b.frontCd.b), uint32(b.frontCd.a),
-			val, _SA_stringToPtr(b.description), _SA_stringToPtr(b.title), _SA_boolToUint32(b.enable))
+			val, _SA_stringToPtr(b.description), _SA_stringToPtr(b.title), b.height, b.align, b.alignV, _SA_boolToUint32(b.enable))
 
 		changed = (val != uint64(v))
 		if changed {
@@ -1281,10 +1292,7 @@ func SA_Image(file string) *_SA_Image {
 
 	return &b
 }
-func (b *_SA_Image) Align(v int) *_SA_Image {
-	b.align = uint32(v)
-	return b
-}
+
 func (b *_SA_Image) AlignV(v int) *_SA_Image {
 	b.alignV = uint32(v)
 	return b

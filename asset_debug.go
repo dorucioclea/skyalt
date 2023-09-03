@@ -606,10 +606,15 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			value := ad.ReadUint64()
 			description := string(ad.ReadBytes())
 			title := string(ad.ReadBytes())
+
+			height := ad.ReadFloat64()
+			align := uint32(ad.ReadUint64())
+			alignV := uint32(ad.ReadUint64())
 			enable := uint32(ad.ReadUint64())
 
 			valueOut := asset.swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a,
-				value, description, title, enable)
+				value, description, title,
+				height, align, alignV, enable)
 			ad.WriteUint64(uint64(valueOut))
 
 		case 47:

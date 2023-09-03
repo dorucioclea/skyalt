@@ -605,7 +605,8 @@ func (asset *Asset) _sa_swp_drawCombo(cd_r, cd_g, cd_b, cd_a uint32,
 }
 
 func (asset *Asset) swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32,
-	value uint64, description string, title string, enable uint32) int64 {
+	value uint64, description string, title string,
+	height float64, align uint32, alignV uint32, enable uint32) int64 {
 
 	root := asset.app.root
 	st := root.stack
@@ -631,19 +632,43 @@ func (asset *Asset) swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32,
 		cd = OsCd_Aprox(OsCd_white(), cd, 0.3)
 	}
 
-	width := float64(st.stack.canvas.Size.X) / float64(root.ui.Cell())
-	height := float64(st.stack.canvas.Size.Y) / float64(root.ui.Cell())
-	w := 1 / (width / height)
+	ww := float64(st.stack.canvas.Size.X) / float64(root.ui.Cell())
+	hh := float64(st.stack.canvas.Size.Y) / float64(root.ui.Cell())
 
-	if value > 0 {
-		asset.paint_rect(0, 0, w, 1, 0.22, cd, 0)
-		asset._sa_paint_line(0, 0, w, 1, 0.33, 1.0/3, 0.9, 0.05, 2.0/3, 255, 255, 255, 255, 0.05)
-		asset._sa_paint_line(0, 0, w, 1, 0.33, 1.0/3, 0.9, 0.95, 1.0/4, 255, 255, 255, 255, 0.05)
-	} else {
-		asset.paint_rect(0, 0, w, 1, 0.22, cd, 0.03)
+	h := height / hh
+	w := h / (ww / hh)
+
+	//možná ještě potřebuji height(from cell) + alignH ...
+
+	//...
+
+	descSz := asset.paint_textWidth(description, 0, 0.35, -1)
+
+	sx := float64(0)
+	switch align {
+	case 1:
+		sx = OsMaxFloat((1-(w*0.8+descSz))/2, 0)
+	case 2:
+		sx = OsMaxFloat((1 - (w*0.8 + descSz)), 0)
 	}
 
-	asset.paint_text(w*0.8, 0, 1-w*0.8, 1, description, "", 0, 0.1, 0, origCd, 0.35, 1, 0, 0, 1, 0, 0, 0, enable)
+	sy := float64(0)
+	switch alignV {
+	case 1:
+		sy = OsMaxFloat((1-h)/2, 0)
+	case 2:
+		sy = OsMaxFloat((1 - h), 0)
+	}
+
+	if value > 0 {
+		asset.paint_rect(sx, sy, w, h, 0.22, cd, 0)
+		asset._sa_paint_line(sx, sy, w, h, 0.33, 1.0/3, 0.9, 0.05, 2.0/3, 255, 255, 255, 255, 0.05)
+		asset._sa_paint_line(sx, sy, w, h, 0.33, 1.0/3, 0.9, 0.95, 1.0/4, 255, 255, 255, 255, 0.05)
+	} else {
+		asset.paint_rect(sx, sy, w, h, 0.22, cd, 0.03)
+	}
+
+	asset.paint_text(sx+w*0.8, sy, 1-(sx+w*0.8), h, description, "", 0, 0.1, 0, origCd, 0.35, 1, 0, 0, 1, 0, 0, 0, enable)
 
 	if len(title) > 0 {
 		asset.paint_title(0, 0, 1, 1, title)
@@ -652,7 +677,9 @@ func (asset *Asset) swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32,
 	return int64(value)
 }
 
-func (asset *Asset) _sa_swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32, value uint64, descriptionMem uint64, titleMem uint64, enable uint32) int64 {
+func (asset *Asset) _sa_swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32,
+	value uint64, descriptionMem uint64, titleMem uint64,
+	height float64, align uint32, alignV uint32, enable uint32) int64 {
 
 	description, err := asset.ptrToString(descriptionMem)
 	if asset.AddLogErr(err) {
@@ -664,7 +691,7 @@ func (asset *Asset) _sa_swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32, value ui
 		return -1
 	}
 
-	return asset.swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a, value, description, title, enable)
+	return asset.swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a, value, description, title, height, align, alignV, enable)
 }
 
 func (asset *Asset) paint_textWidth(value string, fontId uint32, ratioH float64, cursorPos int64) float64 {

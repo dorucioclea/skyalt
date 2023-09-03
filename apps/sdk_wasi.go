@@ -196,7 +196,7 @@ func _sa_swp_drawCombo(cd_r, cd_g, cd_b, cd_a uint32,
 	enable uint32) int64
 
 //export _sa_swp_drawCheckbox
-func _sa_swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32, value uint64, descriptionMem SAMem, titleMem SAMem, enable uint32) int64
+func _sa_swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32, value uint64, descriptionMem SAMem, titleMem SAMem, height float64, align uint32, alignV uint32, enable uint32) int64
 
 //export _sa_div_drag
 func _sa_div_drag(groupNameMem SAMem, id uint64) int64

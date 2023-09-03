@@ -693,7 +693,8 @@ func _sa_swp_drawCombo(cd_r, cd_g, cd_b, cd_a uint32,
 }
 
 func _sa_swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32,
-	value uint64, descriptionMem SAMem, titleMem SAMem, enable uint32) int64 {
+	value uint64, descriptionMem SAMem, titleMem SAMem,
+	height float64, align uint32, alignV uint32, enable uint32) int64 {
 	WriteUint64(46)
 	WriteUint64(uint64(cd_r))
 	WriteUint64(uint64(cd_g))
@@ -703,6 +704,10 @@ func _sa_swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32,
 	WriteUint64(value)
 	WriteMem(descriptionMem)
 	WriteMem(titleMem)
+
+	WriteFloat64(height)
+	WriteUint64(uint64(align))
+	WriteUint64(uint64(alignV))
 	WriteUint64(uint64(enable))
 
 	return int64(ReadUint64())
