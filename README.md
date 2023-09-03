@@ -48,7 +48,7 @@ There are few implementations of local-first platforms and most of them use Webk
 
 **Debugging**: The best tools to write and debug code are the ones developers already use. Every SkyAlt app can be compile into WASM *or* can be run as binary in separate process, which connects to SkyAlt and communicate over TCP socket. That means that developer can use any IDE and debugger, iterate quickly and compile app into wasm for final shipping.
 
-**Formats**: For durability, SkyAlt uses only well-known and open formats:
+**Formats**: For endurance, SkyAlt uses only well-known and open formats:
 - WASM for binaries
 - SQLite for storages
 - Json for settings
@@ -65,18 +65,18 @@ There are few implementations of local-first platforms and most of them use Webk
 
 ## Current state
 - **Experimental**
-- Linux / Windows / Mac(untested)
-- ~12K LOC
 - go-lang SDK only
+- Linux / Windows / Mac(untested)
+- ~13K LOC
 
-SkyAlt is ~40 days old. Right now, highest priority is providing best developer experience through high range of use-cases so we iterate and change apis() a lot => apps need to be edited and recompiled to wasm!
+*SkyAlt is ~40 days old. Right now, highest priority is providing best developer experience through high range of use-cases so we iterate and change apis() a lot => apps need to be edited and recompiled to wasm!*
 
 
 
 ## Compile & Run
 SkyAlt is written in Go language. You can install golang from here: https://go.dev/doc/install
 
-Libraries:
+Dependencies(sqlite, wazero, websocket, sdl):
 <pre><code>go get github.com/mattn/go-sqlite
 go get github.com/tetratelabs/wazero
 go get github.com/gorilla/websocket
@@ -91,14 +91,6 @@ cd skyalt
 go build
 ./skyalt
 </code></pre>
-
-
-
-## Dependencies
-- sqlite
-- wazero
-- websocket
-- SDL(ttf, gfx)
 
 
 
