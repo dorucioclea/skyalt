@@ -62,14 +62,15 @@ type Translations struct {
 
 	TEXT      string
 	INTEGER   string
-	FLOAT     string
+	REAL      string
 	BLOB      string
 	CHECK_BOX string
 	DATE      string
 	PERCENT   string
 	RATING    string
 
-	MAX_STARS string
+	MAX_STARS         string
+	DECIMAL_PRECISION string
 
 	HIDE string
 
@@ -179,6 +180,7 @@ type Column struct {
 	Render string //checkbox, etc.
 
 	Prop_rating_max_stars int
+	Prop_percent_floats   int
 
 	StatFunc string
 }
@@ -486,7 +488,9 @@ func RenameTable(table *Table) {
 	SA_Editbox(&store.renameTable).Error(err).TempToValue(true).Show(0, 0, 1, 1)
 
 	if SA_Button(trns.RENAME).Enable(err == nil).Show(1, 0, 1, 1).click {
-		SA_SqlWrite("", "ALTER TABLE "+table.Name+" RENAME TO "+store.renameTable+";")
+		if table.Name != store.renameTable {
+			SA_SqlWrite("", "ALTER TABLE "+table.Name+" RENAME TO "+store.renameTable+";")
+		}
 		table.Name = store.renameTable
 		SA_DialogClose()
 	}
@@ -755,23 +759,60 @@ func ColumnDetail(table *Table, column *Column) {
 
 		origName := column.Name
 		if SA_Editbox(&column.Name).ShowDescription(0, 0, 1, 1, trns.NAME, 2, 0).finished {
-			SA_SqlWrite("", "ALTER TABLE "+table.Name+" RENAME COLUMN "+origName+" TO "+column.Name+";")
+			if origName != column.Name {
+				SA_SqlWrite("", "ALTER TABLE "+table.Name+" RENAME COLUMN "+origName+" TO "+column.Name+";")
+			}
 
 			//update filter/short
 			table.UpdateColumn(origName, column.Name)
 		}
 
 		changeTypeDialog := false
-		changeType := (column.Type == "INTEGER")
-		if SA_Button(column.Type).Enable(changeType).Show(1, 0, 1, 1).click {
-			changeTypeDialog = true
+		{
+			changeType := (column.Type == "INTEGER" || column.Type == "REAL")
+			nm := column.Type
+			if changeType {
+				switch column.Render {
+				case "":
+					if column.Type == "INTEGER" {
+						nm = trns.INTEGER
+					} else if column.Type == "REAL" {
+						nm = trns.REAL
+					}
+				case "PERCENT":
+					nm = trns.PERCENT
+				case "CHECK_BOX":
+					nm = trns.CHECK_BOX
+				case "DATE":
+					nm = trns.DATE
+				case "RATING":
+					nm = trns.RATING
+				}
+			}
+			if SA_Button(nm).Enable(changeType).Show(1, 0, 1, 1).click {
+				changeTypeDialog = true
+			}
 		}
 
 		//convert column type
 		if SA_DialogStart("changeType", 1, changeTypeDialog) {
 
 			SA_ColMax(0, 5)
-			if column.Type == "INTEGER" {
+
+			if column.Type == "REAL" {
+				y := 0
+
+				if SA_Button(trns.REAL).Alpha(1).Align(0).Enable(column.Render != "").Show(0, y, 1, 1).click {
+					column.Render = ""
+				}
+				y++
+
+				if SA_Button(trns.PERCENT).Alpha(1).Align(0).Enable(column.Render != "PERCENT").Show(0, y, 1, 1).click {
+					column.Render = "PERCENT"
+				}
+				y++
+
+			} else if column.Type == "INTEGER" {
 				y := 0
 
 				if SA_Button(trns.INTEGER).Alpha(1).Align(0).Enable(column.Render != "").Show(0, y, 1, 1).click {
@@ -837,9 +878,12 @@ func ColumnDetail(table *Table, column *Column) {
 	{
 		if column.Render == "RATING" {
 			SA_ColMax(0, 100)
-			SA_Editbox(&column.Prop_rating_max_stars).ShowDescription(0, 0, 1, 1, trns.MAX_STARS, 3, 0)
+			SA_Editbox(&column.Prop_rating_max_stars).ShowDescription(0, 0, 1, 1, trns.MAX_STARS, 4, 0)
 		}
-
+		if column.Render == "PERCENT" {
+			SA_ColMax(0, 100)
+			SA_Editbox(&column.Prop_percent_floats).ShowDescription(0, 0, 1, 1, trns.DECIMAL_PRECISION, 4, 0)
+		}
 	}
 	SA_DivEnd()
 
@@ -971,7 +1015,7 @@ func TableColumns(table *Table) {
 		}
 		y++
 
-		if SA_Button(trns.FLOAT).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "type_number.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+		if SA_Button(trns.REAL).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "type_number.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "REAL"
 			defValue = "0"
 		}
@@ -1026,6 +1070,11 @@ func TableColumns(table *Table) {
 				if render == "RATING" {
 					column.Prop_rating_max_stars = 5
 				}
+
+				if render == "PERCENT" {
+					column.Prop_percent_floats = 2
+				}
+
 			}
 
 			store.createColumn = ""
@@ -1140,6 +1189,21 @@ func TableRows(table *Table) {
 							}
 							SA_DivEnd()
 						}
+					} else if col.Type == "REAL" {
+
+						switch col.Render {
+						case "":
+							if SA_Editbox(&values[x]).Margin(0.02).Show(x, 0, 1, rowSize).finished {
+								writeCell = true
+							}
+						case "PERCENT":
+							v, _ := strconv.ParseFloat(values[x], 64)
+							value := strconv.FormatFloat(v*100, 'f', col.Prop_percent_floats, 64) + "%"
+							if SA_Editbox(&value).ValueOrig(values[x]).Margin(0.02).Show(x, 0, 1, rowSize).finished {
+								values[x] = value
+								writeCell = true
+							}
+						}
 					} else if col.Type == "INTEGER" {
 
 						switch col.Render {
@@ -1160,10 +1224,6 @@ func TableRows(table *Table) {
 						case "DATE":
 							//picker ...
 
-						case "PERCENT":
-							//add settings(rounding) ...
-							// ...
-
 						case "RATING":
 							if SA_DivStart(x, 0, 1, rowSize) {
 								act, _ := strconv.Atoi(values[x])
@@ -1176,10 +1236,6 @@ func TableRows(table *Table) {
 						}
 
 					} else if col.Type == "TEXT" {
-						if SA_Editbox(&values[x]).Margin(0.02).Show(x, 0, 1, rowSize).finished {
-							writeCell = true
-						}
-					} else if col.Type == "REAL" {
 						if SA_Editbox(&values[x]).Margin(0.02).Show(x, 0, 1, rowSize).finished {
 							writeCell = true
 						}

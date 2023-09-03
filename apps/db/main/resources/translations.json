@@ -36,8 +36,8 @@
 "TEXT.cs": "Text",
 "INTEGER.en": "Integer number", 
 "INTEGER.cs": "Celé číslo",
-"FLOAT.en": "Float number", 
-"FLOAT.cs": "Desetinné číslo",
+"REAL.en": "Float number", 
+"REAL.cs": "Desetinné číslo",
 "BLOB.en": "File", 
 "BLOB.cs": "Soubor",
 "CHECK_BOX.en": "Check-box", 
@@ -50,6 +50,11 @@
 "RATING.cs": "Hodnocení",
 "MAX_STARS.en": "Max. stars", 
 "MAX_STARS.cs": "Max. hvězdiček",
+"DECIMAL_PRECISION.en": "Decimal precision", 
+"DECIMAL_PRECISION.cs": "Desetinná místa",
+
+
+
 
 "MIN.en": "Minimum", 
 "MIN.cs": "Minimum",
