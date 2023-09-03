@@ -635,14 +635,10 @@ func (asset *Asset) swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32,
 	ww := float64(st.stack.canvas.Size.X) / float64(root.ui.Cell())
 	hh := float64(st.stack.canvas.Size.Y) / float64(root.ui.Cell())
 
+	descSz := asset.paint_textWidth(description, 0, 0.35, -1)
+
 	h := height / hh
 	w := h / (ww / hh)
-
-	//možná ještě potřebuji height(from cell) + alignH ...
-
-	//...
-
-	descSz := asset.paint_textWidth(description, 0, 0.35, -1)
 
 	sx := float64(0)
 	switch align {
