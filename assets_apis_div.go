@@ -83,7 +83,9 @@ func (asset *Asset) renderStart() {
 	st.stack.UpdateCoord(root.ui)
 
 	enableInput := st.stack.data.touch_enabled
-	if st.stack.parent != nil {
+	if st.stack.parent == nil {
+		enableInput = root.stack.IsTop()
+	} else {
 		enableInput = enableInput && st.stack.parent.enableInput
 	}
 	asset._VmBasic_touchScroll(st.stack, enableInput)

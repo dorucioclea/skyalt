@@ -192,11 +192,21 @@ func (root *Root) Destroy() {
 	root.ui.Destroy() //also save ini.json
 }
 
-func (root *Root) SetLevel(act *LayoutLevel) {
-	root.stack = act
-	act.stack = act.div
+func (root *Root) SetLevel(lev *LayoutLevel) {
+	root.stack = lev
+	lev.stack = lev.div
 
-	act.stack.data.touch_enabled = act.IsTop()
+	//deactivate bottom
+	act := root.level
+	for act != nil {
+		enabled := act.IsTop()
+		div := act.stack
+		for div != nil {
+			div.enableInput = enabled
+			div = div.parent
+		}
+		act = act.next
+	}
 }
 
 func (root *Root) ReloadTranslations() {
