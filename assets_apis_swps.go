@@ -136,7 +136,7 @@ func (asset *Asset) swp_drawButton(backCd OsCd, frontCd OsCd,
 		st.buff.AddImage(path, iconInverseColor != 0, asset.getCoord(0, 0, w, 1, marginIcon, 0, 0), iconCd, 1, 1, false)
 
 		asset.paint_text(w, 0, 1-w, 1,
-			value,
+			value, value,
 			margin, 0, 0,
 			frontCd,
 			ratioH, 1,
@@ -146,7 +146,7 @@ func (asset *Asset) swp_drawButton(backCd OsCd, frontCd OsCd,
 	} else if len(value) > 0 {
 
 		asset.paint_text(0, 0, 1, 1,
-			value,
+			value, value,
 			margin, 0, 0,
 			frontCd,
 			ratioH, 1,
@@ -360,7 +360,7 @@ func (asset *Asset) swp_drawText(cd_r, cd_g, cd_b, cd_a uint32,
 	asset.div_start(0, 0, 1, 1, "")
 
 	asset.paint_text(0, 0, 1, 1,
-		value,
+		value, value,
 		margin, marginX, marginY,
 		cd,
 		ratioH, 1,
@@ -410,7 +410,7 @@ func (asset *Asset) _sa_swp_getEditValue(outMem uint64) int64 {
 }
 
 func (asset *Asset) swp_drawEdit(cd_r, cd_g, cd_b, cd_a uint32,
-	valueIn string, title string, font uint32,
+	valueIn string, valueInOrig string, title string, font uint32,
 	margin float64, marginX float64, marginY float64, align uint32, alignV uint32, ratioH float64,
 	enable uint32) (string, bool, bool, bool) {
 
@@ -452,7 +452,7 @@ func (asset *Asset) swp_drawEdit(cd_r, cd_g, cd_b, cd_a uint32,
 	asset.div_start(0, 0, 1, 1, "")
 
 	asset.paint_text(0, 0, 1, 1,
-		value,
+		value, valueInOrig,
 		margin, marginX, marginY,
 		cd,
 		ratioH, 1,
@@ -469,12 +469,16 @@ func (asset *Asset) swp_drawEdit(cd_r, cd_g, cd_b, cd_a uint32,
 }
 
 func (asset *Asset) _sa_swp_drawEdit(cd_r, cd_g, cd_b, cd_a uint32,
-	valueMem uint64, titleMem uint64, font uint32,
+	valueMem uint64, valueInOrig uint64, titleMem uint64, font uint32,
 	margin float64, marginX float64, marginY float64, align uint32, alignV uint32, ratioH float64,
 	enable uint32,
 	outMem uint64) int64 {
 
 	value, err := asset.ptrToString(valueMem)
+	if asset.AddLogErr(err) {
+		return -1
+	}
+	valueOrig, err := asset.ptrToString(valueInOrig)
 	if asset.AddLogErr(err) {
 		return -1
 	}
@@ -485,7 +489,7 @@ func (asset *Asset) _sa_swp_drawEdit(cd_r, cd_g, cd_b, cd_a uint32,
 	}
 
 	last_edit, active, changed, finished := asset.swp_drawEdit(cd_r, cd_g, cd_b, cd_a,
-		value, title, font,
+		value, valueOrig, title, font,
 		margin, marginX, marginY, align, alignV, ratioH, enable)
 
 	out, err := asset.ptrToBytesDirect(outMem)
@@ -525,7 +529,7 @@ func (asset *Asset) swp_drawCombo(cd_r, cd_g, cd_b, cd_a uint32,
 
 	//text
 	asset.paint_text(0, 0, 1-w, 1,
-		val,
+		val, "",
 		margin, marginX, marginY,
 		origCd,
 		ratioH, 1,
@@ -534,7 +538,7 @@ func (asset *Asset) swp_drawCombo(cd_r, cd_g, cd_b, cd_a uint32,
 
 	//arrow
 	asset.paint_text(1-w, 0, w, 1,
-		"▼",
+		"▼", "",
 		margin, 0, 0,
 		origCd,
 		ratioH, 1,
@@ -639,7 +643,7 @@ func (asset *Asset) swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32,
 		asset.paint_rect(0, 0, w, 1, 0.22, cd, 0.03)
 	}
 
-	asset.paint_text(w*0.8, 0, 1-w*0.8, 1, description, 0, 0.1, 0, origCd, 0.35, 1, 0, 0, 1, 0, 0, 0, enable)
+	asset.paint_text(w*0.8, 0, 1-w*0.8, 1, description, "", 0, 0.1, 0, origCd, 0.35, 1, 0, 0, 1, 0, 0, 0, enable)
 
 	if len(title) > 0 {
 		asset.paint_title(0, 0, 1, 1, title)

@@ -23,7 +23,7 @@ import (
 )
 
 func (asset *Asset) paint_text(x, y, w, h float64,
-	value string,
+	value string, valueOrigEdit string,
 	margin float64, marginX float64, marginY float64,
 	cd OsCd,
 	ratioH, lineHeight float64,
@@ -47,7 +47,7 @@ func (asset *Asset) paint_text(x, y, w, h float64,
 
 	//one liner
 	active := asset._VmDraw_Text_line(coord, 0, OsV2{utf8.RuneCountInString(value), 0},
-		value,
+		value, valueOrigEdit,
 		cd,
 		ratioH, lineHeight, margin, marginX,
 		fontId, alignH, alignV,
@@ -76,7 +76,7 @@ func (asset *Asset) _sa_paint_text(x, y, w, h float64,
 	}
 
 	return asset.paint_text(x, y, w, h,
-		value,
+		value, value,
 		margin, marginX, marginY,
 		InitOsCd32(r, g, b, a),
 		ratioH, lineHeight,
@@ -178,7 +178,7 @@ func (asset *Asset) _VmDraw_Text_HScrollInto(str string, cursor OsV2, font *Font
 	return err
 }
 
-func (asset *Asset) _VmDraw_TextSelectTouch(str string, touchPos OsV2, lineEnd OsV2, editable bool, font *Font, textH int, lineH int, margin float64, marginX float64) {
+func (asset *Asset) _VmDraw_TextSelectTouch(str string, strEditOrig string, touchPos OsV2, lineEnd OsV2, editable bool, font *Font, textH int, lineH int, margin float64, marginX float64) {
 
 	root := asset.app.root
 	st := root.stack
@@ -200,8 +200,8 @@ func (asset *Asset) _VmDraw_TextSelectTouch(str string, touchPos OsV2, lineEnd O
 		edit.uid = this_uid
 
 		if !active {
-			edit.temp = str
-			edit.orig = str
+			edit.temp = strEditOrig
+			edit.orig = strEditOrig
 		}
 
 		if !activate_next_uid {
@@ -562,7 +562,7 @@ func (asset *Asset) _VmDraw_TextEditKeys(tabIsChar bool, font *Font, textH int, 
 }
 
 func (asset *Asset) _VmDraw_Text_line(coord OsV4, lineY int, lineEnd OsV2,
-	value string,
+	value string, valueOrigEdit string,
 	cd OsCd,
 	ratioH, lineHeight, margin, marginX float64,
 	fontId, alignH, alignV uint32,
@@ -597,7 +597,7 @@ func (asset *Asset) _VmDraw_Text_line(coord OsV4, lineY int, lineEnd OsV2,
 	if selection || editable {
 
 		if coord.Inside(root.ui.io.touch.pos) || edit.setFirstEditbox {
-			asset._VmDraw_TextSelectTouch(value, OsV2{touchPos, lineY}, lineEnd, editable, font, textH, lineH, margin, marginX)
+			asset._VmDraw_TextSelectTouch(value, valueOrigEdit, OsV2{touchPos, lineY}, lineEnd, editable, font, textH, lineH, margin, marginX)
 		}
 
 		this_uid := st.stack //.Hash()

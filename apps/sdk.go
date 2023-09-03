@@ -850,8 +850,11 @@ func (b *_SA_Text) DrawPaint(x, y, w, h float64) {
 }
 
 type _SA_Editbox struct {
-	value interface{}
-	title string
+	value     interface{}
+	valueOrig string
+	title     string
+
+	valueOrigSet bool
 
 	font uint32
 
@@ -887,6 +890,7 @@ func SA_Editbox(value interface{}) *_SA_Editbox {
 	var b _SA_Editbox
 
 	b.value = value
+
 	b.enable = true
 	b.backCd = SA_ThemeWhite()
 	b.frontCd = SA_ThemeBlack()
@@ -901,6 +905,12 @@ func SA_Editbox(value interface{}) *_SA_Editbox {
 	b.precision = 3
 
 	return &b
+}
+
+func (b *_SA_Editbox) ValueOrig(v string) *_SA_Editbox {
+	b.valueOrig = v
+	b.valueOrigSet = true
+	return b
 }
 
 func (b *_SA_Editbox) Align(v uint32) *_SA_Editbox {
@@ -1028,6 +1038,11 @@ func (b *_SA_Editbox) Show(x, y, w, h int) _SA_EditboxOut {
 			//float32, byte, etc ...
 		}
 
+		valueOrig := value
+		if b.valueOrigSet {
+			valueOrig = b.valueOrig
+		}
+
 		title := ""
 		if b.err != nil {
 			title = b.err.Error()
@@ -1037,7 +1052,7 @@ func (b *_SA_Editbox) Show(x, y, w, h int) _SA_EditboxOut {
 
 		var out [4 * 8]byte
 		_sa_swp_drawEdit(uint32(b.frontCd.r), uint32(b.frontCd.g), uint32(b.frontCd.b), uint32(b.frontCd.a),
-			_SA_stringToPtr(value), _SA_stringToPtr(title), b.font,
+			_SA_stringToPtr(value), _SA_stringToPtr(valueOrig), _SA_stringToPtr(title), b.font,
 			b.margin, b.marginX, b.marginY, b.align, b.alignV, b.ratioH,
 			_SA_boolToUint32(b.enable),
 			_SA_bytesToPtr(out[:]))

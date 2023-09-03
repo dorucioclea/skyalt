@@ -638,7 +638,7 @@ func _sa_swp_getEditValue(outMem SAMem) int64 {
 }
 
 func _sa_swp_drawEdit(cd_r, cd_g, cd_b, cd_a uint32,
-	valueMem SAMem, titleMem SAMem, font uint32,
+	valueMem SAMem, valueOrigMem SAMem, titleMem SAMem, font uint32,
 	margin float64, marginX float64, marginY float64, align uint32, alignV uint32, ratioH float64,
 	enable uint32,
 	outMem SAMem) int64 {
@@ -649,6 +649,7 @@ func _sa_swp_drawEdit(cd_r, cd_g, cd_b, cd_a uint32,
 	WriteUint64(uint64(cd_a))
 
 	WriteMem(valueMem)
+	WriteMem(valueOrigMem)
 	WriteMem(titleMem)
 	WriteUint64(uint64(font))
 

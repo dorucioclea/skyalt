@@ -140,14 +140,14 @@ func (app *App) Render(startIt bool) {
 	if app.IsReadyToFire() {
 		app.baseAsset.Call("render", nil)
 	} else {
-		app.baseAsset.paint_text(0, 0, 1, 1, "Error: 'Main.wasm' is missing or corrupted", 0, 0, 0, OsCd{250, 50, 50, 255}, -1, 1, 0, 1, 1, 1, 0, 0, 1)
+		app.baseAsset.paint_text(0, 0, 1, 1, "Error: 'Main.wasm' is missing or corrupted", "", 0, 0, 0, OsCd{250, 50, 50, 255}, -1, 1, 0, 1, 1, 1, 0, 0, 1)
 	}
 
 	if app.baseAsset.debug != nil {
 		//draw blue rectangle, when debug mode is active
 		blue := OsCd{50, 50, 255, 180}
 		app.baseAsset.paint_rect(0, 0, 1, 1, 0.06, blue, 0.03)
-		app.baseAsset.paint_text(0, 0, 1, 1, "DEBUG ON", 0.1, 0, 0, blue, -1, 1, 0, 2, 2, 0, 0, 0, 1)
+		app.baseAsset.paint_text(0, 0, 1, 1, "DEBUG ON", "", 0.1, 0, 0, blue, -1, 1, 0, 2, 2, 0, 0, 0, 1)
 	}
 	if startIt {
 		app.baseAsset.renderEnd(true)

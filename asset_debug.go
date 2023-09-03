@@ -388,7 +388,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			edit := uint32(ad.ReadUint64())
 			tabIsChar := uint32(ad.ReadUint64())
 			enable := uint32(ad.ReadUint64())
-			ret := asset.paint_text(x, y, w, h, value, margin, marginX, marginY, InitOsCd32(r, g, b, a), ratioH, lineHeight, fontId, align, alignV, selection, edit, tabIsChar, enable)
+			ret := asset.paint_text(x, y, w, h, value, value, margin, marginX, marginY, InitOsCd32(r, g, b, a), ratioH, lineHeight, fontId, align, alignV, selection, edit, tabIsChar, enable)
 			ad.WriteUint64(uint64(ret))
 
 		case 31:
@@ -549,6 +549,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			cd_a := uint32(ad.ReadUint64())
 
 			value := string(ad.ReadBytes())
+			valueOrig := string(ad.ReadBytes())
 			title := string(ad.ReadBytes())
 			font := uint32(ad.ReadUint64())
 
@@ -561,7 +562,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			enable := uint32(ad.ReadUint64())
 
 			last_edit, active, changed, finished := asset.swp_drawEdit(cd_r, cd_g, cd_b, cd_a,
-				value, title, font,
+				value, valueOrig, title, font,
 				margin, marginX, marginY, align, alignV, ratioH,
 				enable)
 
