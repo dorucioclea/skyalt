@@ -1609,8 +1609,8 @@ func SA_Rating(value int, max_value int, cdActive SACd, cdDeactive SACd, icon st
 	w := SA_DivInfo("layoutWidth") / float64(max_value)
 	h := SA_DivInfo("layoutHeight")
 
-	if w < 0.9 {
-		w = 0.9
+	if w < 0.7 {
+		w = 0.7
 	}
 
 	SA_Row(0, h)
@@ -1650,7 +1650,7 @@ func SA_Rating(value int, max_value int, cdActive SACd, cdDeactive SACd, icon st
 				changed = (value != old_value)
 			}
 
-			SAPaint_File(0, 0, 1, 1, icon, "", 0.25, 0, 0, cd, 1, 1, false, false)
+			SAPaint_File(0, 0, 1, 1, icon, "", 0.1, 0, 0, cd, 1, 1, false, false)
 		}
 		SA_DivEnd()
 	}

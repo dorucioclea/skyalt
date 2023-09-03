@@ -1021,35 +1021,34 @@ func TableColumns(table *Table) {
 		}
 		y++
 
-		if SA_Button(trns.BLOB).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "star.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+		if SA_Button(trns.BLOB).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "type_blob.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "BLOB"
 			defValue = "0"
 		}
 		y++
 
-		//icons ...
-		if SA_Button(trns.CHECK_BOX).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "star.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+		if SA_Button(trns.CHECK_BOX).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "type_checkbox.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "INTEGER"
 			defValue = "0"
 			render = "CHECK_BOX"
 		}
 		y++
 
-		if SA_Button(trns.DATE).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "star.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+		if SA_Button(trns.DATE).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "type_date.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "INTEGER"
 			defValue = "0"
 			render = "DATE"
 		}
 		y++
 
-		if SA_Button(trns.PERCENT).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "star.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+		if SA_Button(trns.PERCENT).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "type_percent.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "REAL"
 			defValue = "0"
 			render = "PERCENT"
 		}
 		y++
 
-		if SA_Button(trns.RATING).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "star.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+		if SA_Button(trns.RATING).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "type_rating.png")).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "INTEGER"
 			defValue = "0"
 			render = "RATING"
