@@ -148,9 +148,9 @@ func FlightBooker() {
 
 	SA_Combo(&store.ReturnFlight, trns.ONE_WAY_FLIGHT+"|"+trns.RETURN_FLIGHT).Show(0, 0, 1, 1)
 
-	sz := SA_CallFnShow(0, 1, 1, 1, "calendar", "CalendarButton", store.StartDate, 1)
+	sz := SA_CallFnShow(0, 1, 1, 1, "calendar", "CalendarButton", store.StartDate, 0, 1)
 	SA_CallGetReturn(sz, &store.StartDate)
-	sz = SA_CallFnShow(0, 2, 1, 1, "calendar", "CalendarButton", store.ReturnDate, store.ReturnFlight > 0)
+	sz = SA_CallFnShow(0, 2, 1, 1, "calendar", "CalendarButton", store.ReturnDate, 0, store.ReturnFlight > 0)
 	SA_CallGetReturn(sz, &store.ReturnDate)
 
 	open := false

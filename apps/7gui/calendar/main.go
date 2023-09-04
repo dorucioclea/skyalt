@@ -148,14 +148,8 @@ func CmpDates(a int64, b int64) int64 {
 	return 0
 }
 
-//export Calendar
-func Calendar(value int64) int64 {
+func Calendar(value int64, page int64) (int64, int64) {
 	format := SA_InfoFloat("date")
-
-	//init
-	if store.Page == 0 {
-		store.Page = int64(SA_Time())
-	}
 
 	for x := 0; x < 7; x++ {
 		SA_ColMax(x, 10)
@@ -166,35 +160,35 @@ func Calendar(value int64) int64 {
 		act_tm := int64(SA_Time())
 		if SA_Button(Format(act_tm)).Show(0, 0, 7, 1).click {
 			value = act_tm
-			store.Page = act_tm
+			page = act_tm
 		}
 	}
 
 	//--Week header navigation--
 	{
-		tm := time.Unix(store.Page, 0)
+		tm := time.Unix(page, 0)
 
 		if SA_Button("<<").Show(0, 2, 1, 1).click {
-			store.Page = tm.AddDate(-1, 0, 0).Unix()
+			page = tm.AddDate(-1, 0, 0).Unix()
 		}
 		if SA_Button("<").Show(1, 2, 1, 1).click {
-			store.Page = tm.AddDate(0, -1, 0).Unix()
+			page = tm.AddDate(0, -1, 0).Unix()
 		}
 
 		SA_Text(MonthText(int(tm.Month()))+" "+strconv.Itoa(tm.Year())).Align(1).Show(2, 2, 3, 1)
 
 		if SA_Button(">").Show(5, 2, 1, 1).click {
-			store.Page = tm.AddDate(0, 1, 0).Unix()
+			page = tm.AddDate(0, 1, 0).Unix()
 		}
 		if SA_Button(">>").Show(6, 2, 1, 1).click {
-			store.Page = tm.AddDate(1, 0, 0).Unix()
+			page = tm.AddDate(1, 0, 0).Unix()
 		}
 	}
 
 	//fix page(need to start with day 1)
 	{
-		dtt := time.Unix(store.Page, 0)
-		store.Page = dtt.AddDate(0, 0, -(dtt.Day() - 1)).Unix()
+		dtt := time.Unix(page, 0)
+		page = dtt.AddDate(0, 0, -(dtt.Day() - 1)).Unix()
 	}
 
 	//--Day names(sort)--
@@ -212,7 +206,7 @@ func Calendar(value int64) int64 {
 
 	//--Week days--
 	now := int64(SA_Time())
-	orig_dtt := time.Unix(store.Page, 0)
+	orig_dtt := time.Unix(page, 0)
 	dtt := orig_dtt
 	weekDay := int(dtt.Weekday()) //sun=0, mon=1, etc.
 	if format != 1 {
@@ -241,37 +235,45 @@ func Calendar(value int64) int64 {
 
 			if SA_Button(strconv.Itoa(dtt.Day())).FrontCd(frontCd).BackCd(backCd).Border(CmpDates(dtt.Unix(), now) > 0).Show(x, 4+y, 1, 1).click {
 				value = dtt.Unix()
-				store.Page = value
+				page = value
 			}
 
 			dtt = dtt.AddDate(0, 0, 1) //add day
 		}
 	}
 
-	return value
+	return value, page
 }
 
 //export CalendarButton
-func CalendarButton(date int64, enable uint32) int64 {
+func CalendarButton(value int64, page int64, enable uint32) int64 {
+
+	if page == 0 {
+		page = store.Page
+	}
 
 	SA_ColMax(0, 100)
 	SA_RowMax(0, 100)
 	open := false
-	if SA_Button(Format(date)).Enable(enable != 0).Show(0, 0, 1, 1).click {
+	if SA_Button(Format(value)).Enable(enable != 0).Show(0, 0, 1, 1).click {
 		open = true
+		page = value
 	}
 
 	if SA_DialogStart("CalendarButton", 1, open) {
+
 		SA_ColMax(0, 15)
 		SA_RowMax(0, 10)
 		SA_DivStart(0, 0, 1, 1)
-		date = Calendar(date)
+		value, page = Calendar(value, page)
 		SA_DivEnd()
 
 		SA_DialogEnd()
+
+		store.Page = page
 	}
 
-	return date
+	return value
 }
 
 //export render
@@ -280,7 +282,7 @@ func render() uint32 {
 	SA_ColMax(0, 100)
 	SA_RowMax(0, 100)
 	SA_DivStart(0, 0, 1, 1)
-	CalendarButton(int64(SA_Time()), 1)
+	CalendarButton(int64(SA_Time()), store.Page, 1)
 	SA_DivEnd()
 
 	return 0

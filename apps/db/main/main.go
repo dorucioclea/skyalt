@@ -1208,7 +1208,7 @@ func TableRows(table *Table) {
 							}
 						case "DATE":
 							date, _ := strconv.Atoi(values[x])
-							sz := SA_CallFnShow(x, 0, 1, rowSize, "calendar", "CalendarButton", date, 1) //date picker
+							sz := SA_CallFnShow(x, 0, 1, rowSize, "calendar", "CalendarButton", date, 0, 1) //date picker
 							var date2 int
 							SA_CallGetReturn(sz, &date2)
 							if date != date2 {
