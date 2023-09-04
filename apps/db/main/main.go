@@ -35,6 +35,7 @@ type Storage struct {
 }
 
 type Translations struct {
+	NO_TABLES    string
 	CREATE_TABLE string
 	RENAME       string
 	REMOVE       string
@@ -472,9 +473,14 @@ func TopHeader() {
 		SA_DialogEnd()
 	}
 
-	SA_DivStart(1, 0, 1, 1)
-	TablesList()
-	SA_DivEnd()
+	if len(store.Tables) == 0 {
+		SA_Text(trns.NO_TABLES).Show(1, 0, 1, 1)
+	} else {
+		SA_DivStart(1, 0, 1, 1)
+		TablesList()
+		SA_DivEnd()
+	}
+
 }
 
 func Reorder[T any](x, y, w, h int, group string, id int, array []T) {

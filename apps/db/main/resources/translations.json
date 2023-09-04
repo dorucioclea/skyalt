@@ -2,6 +2,9 @@
 "NAME.en": "Name", 
 "NAME.cs": "Název",
 
+"NO_TABLES.en": "No tables", 
+"NO_TABLES.cs": "Žádné tabulky",
+
 "CREATE_TABLE.en": "Create table", 
 "CREATE_TABLE.cs": "Vytvoř tabulku",
 
@@ -92,4 +95,5 @@
 "AND.cs": "A",
 "OR.en": "OR", 
 "OR.cs": "NEBO"
+
 }
