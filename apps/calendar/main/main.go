@@ -203,24 +203,23 @@ func GetYear(unix_sec int64) string {
 	return strconv.Itoa(tm.Year())
 }
 
-func CmpDates(a int64, b int64) int64 {
+func CmpDates(a int64, b int64) bool {
 	ta := time.Unix(a, 0)
 	tb := time.Unix(b, 0)
 
-	if ta.Year() == tb.Year() && ta.Month() == tb.Month() && ta.Day() == tb.Day() {
-		return 1
-	}
-	return 0
+	return ta.Year() == tb.Year() && ta.Month() == tb.Month() && ta.Day() == tb.Day()
 }
 
 func Calendar(value *int64, page *int64) {
 	format := SA_InfoFloat("date")
 
 	for x := 0; x < 7; x++ {
-		SA_ColMax(x, 0.9)
+		SA_Col(x, 0.9)
+		SA_ColMax(x, 2)
 	}
 	for y := 0; y < 6; y++ {
-		SA_RowMax(y, 0.9)
+		SA_Row(y, 0.9)
+		SA_RowMax(y, 2)
 	}
 
 	//fix page(need to start with day 1)
@@ -249,19 +248,33 @@ func Calendar(value *int64, page *int64) {
 
 	for y := 0; y < 6; y++ {
 		for x := 0; x < 7; x++ {
+			alpha := float64(1)
 			backCd := SA_ThemeCd()
 			frontCd := SA_ThemeBlack()
 
-			if CmpDates(dtt.Unix(), *value) > 0 { //selected day
-				backCd = SA_ThemeBlack()
+			isDayToday := CmpDates(dtt.Unix(), now)
+			isDaySelected := CmpDates(dtt.Unix(), *value)
+			isDayInMonth := dtt.Month() == orig_dtt.Month()
+
+			if isDayToday {
+				frontCd = SA_ThemeCd()
+			}
+
+			if isDaySelected && isDayInMonth { //selected day
+				alpha = 0 //show back
 				frontCd = SA_ThemeWhite()
+				backCd = SA_ThemeGrey(0.4)
+
+				if isDayToday {
+					backCd = SA_ThemeCd()
+				}
 			}
 
-			if dtt.Month() != orig_dtt.Month() { //is day in current month
-				backCd = SA_ThemeCd().Aprox(SA_ThemeWhite(), 0.7)
+			if !isDayInMonth { //is day in current month
+				frontCd = SA_ThemeGrey(0.7)
 			}
 
-			if SA_Button(strconv.Itoa(dtt.Day())).Alpha(1).FrontCd(frontCd).BackCd(backCd).Border(CmpDates(dtt.Unix(), now) > 0).Show(x, 1+y, 1, 1).click {
+			if SA_Button(strconv.Itoa(dtt.Day())).Alpha(alpha).FrontCd(frontCd).BackCd(backCd).Show(x, 1+y, 1, 1).click {
 				*value = dtt.Unix()
 				*page = *value
 			}
@@ -340,13 +353,14 @@ func ModeYear() {
 	}
 
 	for x := 0; x < w*2; x += 2 {
-		SA_Col(x, 7)
+		SA_Col(x, 6.5)
 
-		SA_Col(x+1, 0.1)
+		SA_Col(x+1, 0.2)
 		SA_ColMax(x+1, 100)
 	}
-	for y := 0; y < h; y++ {
-		SA_Row(y, 8)
+	for y := 0; y < h*2; y += 2 {
+		SA_Row(y, 7.5)
+		SA_Row(y+1, 0.2)
 	}
 
 	year := time.Unix(store.Small_date, 0).Year()
@@ -354,7 +368,7 @@ func ModeYear() {
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
 			if i < 12 {
-				if SA_DivStart(x*2, y, 1, 1) {
+				if SA_DivStart(x*2, y*2, 1, 1) {
 
 					page := time.Date(year, time.Month(1+i), 1, 0, 0, 0, 0, time.Now().Location()).Unix()
 
@@ -437,7 +451,7 @@ func ModeMonth() {
 
 				SA_DivStart(x, 1+y, 1, 1)
 				{
-					isToday := CmpDates(dtt.Unix(), int64(SA_Time())) != 0
+					isToday := CmpDates(dtt.Unix(), int64(SA_Time()))
 					if isToday {
 						SAPaint_Rect(0, 0, 1, 1, 0.03, SA_ThemeWhite().Aprox(SA_ThemeCd(), 0.3), 0)
 					}
@@ -554,7 +568,7 @@ func ModeWeek() {
 		//time-line
 		w1 := GetStartWeekDay(time.Now(), format).Unix()
 		w2 := GetStartWeekDay(time.Unix(store.Small_date, 0), format).Unix()
-		if CmpDates(w1, w2) > 0 { //today is in current week
+		if CmpDates(w1, w2) { //today is in current week
 
 			dt := time.Now()
 			h := (float64(dt.Hour()) + (float64(dt.Minute()) / 60)) / 24
@@ -619,7 +633,7 @@ func ModeDay() {
 		}
 
 		//time-line
-		if CmpDates(time.Now().Unix(), store.Small_date) > 0 { //today == day
+		if CmpDates(time.Now().Unix(), store.Small_date) { //today == day
 
 			dt := time.Now()
 			h := (float64(dt.Hour()) + (float64(dt.Minute()) / 60)) / 24
@@ -640,23 +654,27 @@ func ModePanel() {
 	SA_RowMax(1, 100)
 
 	var title string
-	SA_DivStart(0, 1, 1, 1)
-	{
-		if store.Mode == "year" {
-			title = GetYear(store.Small_date)
-			ModeYear()
-		} else if store.Mode == "month" {
-			title = GetMonthYear(store.Small_date)
-			ModeMonth()
-		} else if store.Mode == "week" {
-			title = GetMonthYear(store.Small_date)
-			ModeWeek()
-		} else if store.Mode == "day" {
-			title = GetFullDay(store.Small_date)
-			ModeDay()
-		}
+	if store.Mode == "year" {
+		title = GetYear(store.Small_date)
+		SA_DivStartName(0, 1, 1, 1, "year")
+		ModeYear()
+		SA_DivEnd()
+	} else if store.Mode == "month" {
+		title = GetMonthYear(store.Small_date)
+		SA_DivStartName(0, 1, 1, 1, "month")
+		ModeMonth()
+		SA_DivEnd()
+	} else if store.Mode == "week" {
+		title = GetMonthYear(store.Small_date)
+		SA_DivStartName(0, 1, 1, 1, "week")
+		ModeWeek()
+		SA_DivEnd()
+	} else if store.Mode == "day" {
+		title = GetFullDay(store.Small_date)
+		SA_DivStartName(0, 1, 1, 1, "day")
+		ModeDay()
+		SA_DivEnd()
 	}
-	SA_DivEnd()
 
 	SA_DivStart(0, 0, 1, 1)
 	{
@@ -768,5 +786,5 @@ func save() ([]byte, bool) {
 	return nil, false //default json
 }
 func debug() (int, int, string) {
-	return -1, 00, "main"
+	return -1, 12, "main"
 }
