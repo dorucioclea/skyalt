@@ -1253,7 +1253,14 @@ func TableRows(table *Table) {
 								writeCell = true
 							}
 						case "DATE":
-							//picker ...
+							date, _ := strconv.Atoi(values[x])
+							sz := SA_CallFnShow(x, 0, 1, rowSize, "calendar", "CalendarButton", date, 1) //date picker
+							var date2 int
+							SA_CallGetReturn(sz, &date2)
+							if date != date2 {
+								values[x] = strconv.Itoa(date2)
+								writeCell = true
+							}
 
 						case "RATING":
 							if SA_DivStart(x, 0, 1, rowSize) {
