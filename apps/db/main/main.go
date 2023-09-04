@@ -44,8 +44,6 @@ type Translations struct {
 	EMPTY_FIELD    string
 	INVALID_NAME   string
 
-	CREATE_VIEW string
-
 	COLUMNS  string
 	SHOW_ALL string
 	HIDE_ALL string
@@ -201,10 +199,8 @@ type Table struct {
 }
 
 func (table *Table) UpdateColumn(old string, new string) {
-	//for _, w := range table.Views {
 	table.Filter.UpdateColumn(old, new)
 	table.Sort.UpdateColumn(old, new)
-	//}
 }
 
 func GetDbStructure() []*Table {
@@ -216,7 +212,6 @@ func GetDbStructure() []*Table {
 
 		//table
 		table := Table{Name: tname}
-		//view := table.AddView("View_0")
 		table.Filter.Enable = true
 		table.Sort.Enable = true
 		// rowid column
@@ -240,27 +235,6 @@ func GetDbStructure() []*Table {
 	return tables
 }
 
-/*func (table *Table) GetRender(columnName string) string {
-	//for _, view := range table.Views {
-	for _, cl := range table.Columns {
-		if cl.Name == columnName && len(cl.Render) > 0 {
-			return cl.Render
-		}
-	}
-	//}
-	return ""
-}
-
-func (table *Table) SetRender(columnName string, render string) {
-	//for _, view := range table.Views {
-	for _, cl := range table.Columns {
-		if cl.Name == columnName {
-			cl.Render = render
-		}
-	}
-	//}
-}*/
-
 func FindTable(tables []*Table, tname string) *Table {
 	for _, tb := range tables {
 		if tb.Name == tname {
@@ -279,7 +253,7 @@ func (table *Table) FindColumn(cname string) *Column {
 	return nil
 }
 
-func UpdateViews() {
+func UpdateTables() {
 
 	db := GetDbStructure()
 
@@ -292,12 +266,9 @@ func UpdateViews() {
 
 	//add columns
 	for _, table := range store.Tables {
-		//check
-		//table.Check()
 
 		db_tb := FindTable(db, table.Name)
 		if db_tb != nil {
-			//for _, view := range table.Views {
 			for _, db_cl := range db_tb.Columns {
 				column := table.FindColumn(db_cl.Name)
 				if column == nil {
@@ -305,9 +276,7 @@ func UpdateViews() {
 					table.Columns = append(table.Columns, column)
 				}
 				column.Type = db_cl.Type
-				//column.Render = table.GetRender(column.Name)
 			}
-			//}
 		}
 	}
 
@@ -327,10 +296,8 @@ func UpdateViews() {
 			db_cl := db_tb.FindColumn(column.Name)
 			if db_cl == nil {
 				table.Columns = append(table.Columns[:ci], table.Columns[ci+1:]...) //remove column
-				//continue
 			}
 		}
-		//}
 	}
 	if store.SelectedTable >= len(store.Tables) {
 		store.SelectedTable = 0
@@ -338,21 +305,17 @@ func UpdateViews() {
 
 	//fix Columns
 	for _, table := range store.Tables {
-		//for _, view := range table.Views {
 		for _, column := range table.Columns {
 			if column.isRowId() {
 				column.Show = true
 			}
 		}
-		//}
 	}
 
 	//fix filter/short
 	for _, table := range store.Tables {
-		//for _, view := range table.Views {
 		table.Filter.Check()
 		table.Sort.Check()
-		//}
 	}
 }
 
@@ -512,10 +475,6 @@ func TopHeader() {
 	SA_DivStart(1, 0, 1, 1)
 	TablesList()
 	SA_DivEnd()
-
-	/*if SA_Button(trns.VIEWS).Alpha(1).Highlight(store.ShowViewPanel).Show(2, 0, 1, 1).click {
-		store.ShowViewPanel = !store.ShowViewPanel
-	}*/
 }
 
 func Reorder[T any](x, y, w, h int, group string, id int, array []T) {
@@ -533,14 +492,12 @@ func Reorder[T any](x, y, w, h int, group string, id int, array []T) {
 }
 
 func TableView(table *Table) {
-	//table.Check()
 
 	SA_ColMax(0, 100)
 	SA_RowMax(1, 100)
 
 	SA_DivStart(0, 0, 1, 1)
 	{
-		//view := table.Views[table.SelectedView]
 
 		SA_ColMax(0, 5)
 
@@ -555,8 +512,6 @@ func TableView(table *Table) {
 		//rows height
 		SA_Col(5, 0.5)
 		SA_ColMax(6, 4)
-
-		//SA_Text(view.Name).Show(0, 0, 1, 1)
 
 		hidden := false
 		for _, col := range table.Columns {
@@ -621,7 +576,6 @@ func TableView(table *Table) {
 			SA_ColMax(0, 2)
 			SA_ColMax(1, 6)
 			SA_ColMax(2, 4)
-			//SA_ColMax(3, 3)
 
 			//enable
 			y := 0
@@ -1561,7 +1515,7 @@ func GetQueryStats(table *Table) (string, int) {
 //export render
 func render() uint32 {
 
-	UpdateViews()
+	UpdateTables()
 	SA_ColMax(0, 100)
 	SA_RowMax(1, 100)
 

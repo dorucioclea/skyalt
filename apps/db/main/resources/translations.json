@@ -8,12 +8,6 @@
 "CREATE_COLUMN.en": "Create column", 
 "CREATE_COLUMN.cs": "Vytvoř sloupec",
 
-"CREATE_VIEW.en": "Create view", 
-"CREATE_VIEW.cs": "Vytvoř pohled",
-
-"VIEWS.en": "Views", 
-"VIEWS.cs": "Pohledy",
-
 "RENAME.en": "Rename", 
 "RENAME.cs": "Přejmenovat",
 
@@ -52,9 +46,6 @@
 "MAX_STARS.cs": "Max. hvězdiček",
 "DECIMAL_PRECISION.en": "Decimal precision", 
 "DECIMAL_PRECISION.cs": "Desetinná místa",
-
-
-
 
 "MIN.en": "Minimum", 
 "MIN.cs": "Minimum",
