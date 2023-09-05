@@ -76,6 +76,33 @@
 "OK.cs": "OK",
 
 "TODAY.en": "Today",
-"TODAY.cs": "Dnes"
+"TODAY.cs": "Dnes",
+
+"BETWEEN.en": "Between",
+"BETWEEN.cs": "Mezi",
+
+"TITLE.en": "Title",
+"TITLE.cs": "Název",
+
+"DESCRIPTION.en": "Description",
+"DESCRIPTION.cs": "Popis",
+
+"FILE.en": "File",
+"FILE.cs": "Soubor",
+
+"ADD_EVENT.en": "Add event",
+"ADD_EVENT.cs": "Přidat událost",
+
+"CANCEL.en": "Cancel",
+"CANCEL.cs": "Zrušit",
+
+"BEGIN.en": "Begin",
+"BEGIN.cs": "Začátek",
+
+"FINISH.en": "Finish",
+"FINISH.cs": "Konec",
+
+"EMPTY.en": "Empty",
+"EMPTY.cs": "Prázdné"
 
 }

@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -28,6 +29,19 @@ type Storage struct {
 
 	Small_date int64
 	Small_page int64
+
+	new_event_page       int64
+	new_event_start_date int64
+	new_event_start_hour int
+	new_event_start_min  int
+
+	new_event_end_date int64
+	new_event_end_hour int
+	new_event_end_min  int
+
+	new_event_title       string
+	new_event_description string
+	new_event_file        string
 }
 
 type Translations struct {
@@ -66,6 +80,18 @@ type Translations struct {
 	NEW_ITEM string
 	OK       string
 	TODAY    string
+	BETWEEN  string
+
+	TITLE       string
+	DESCRIPTION string
+	FILE        string
+	ADD_EVENT   string
+	CANCEL      string
+
+	BEGIN  string
+	FINISH string
+
+	EMPTY string
 }
 
 func MonthText(month int) string {
@@ -284,6 +310,106 @@ func Calendar(value *int64, page *int64) {
 	}
 }
 
+func DateTimePicker(name string, date *int64, hour *int, minute *int) bool {
+
+	SA_ColMax(0, 3)
+	SA_ColMax(1, 15)
+
+	SA_Text(name).Show(0, 0, 1, 1)
+
+	//date
+	showStart := false
+	if SA_Button(GetFullDay(*date)).Show(1, 0, 1, 1).click {
+		showStart = true
+		store.new_event_page = int64(SA_Time())
+	}
+	if SA_DialogStart("StartDate", 1, showStart) {
+		Calendar(date, &store.new_event_page)
+		SA_DialogEnd()
+	}
+
+	//time
+	var err1 error
+	var err2 error
+
+	if *hour < 0 || *hour > 23 {
+		err1 = errors.New(trns.BETWEEN + " 0 - 23")
+	}
+	if SA_Editbox(hour).TempToValue(true).Error(err1).Show(3, 0, 1, 1).finished {
+		if *hour < 0 {
+			*hour = 0
+		}
+		if *hour > 23 {
+			*hour = 23
+		}
+	}
+
+	SA_Text(":").Align(1).Show(4, 0, 1, 1)
+
+	if *minute < 0 || *minute > 59 {
+		err2 = errors.New(trns.BETWEEN + " 0 - 59")
+	}
+	if SA_Editbox(minute).TempToValue(true).Error(err2).Show(5, 0, 1, 1).finished {
+		if *minute < 0 {
+			*minute = 0
+		}
+		if *minute > 59 {
+			*minute = 59
+		}
+	}
+
+	return err1 == nil && err2 == nil
+}
+
+func CreateEvent() {
+	SA_ColMax(0, 15)
+
+	//start date
+	SA_DivStart(0, 0, 1, 1)
+	startOk := DateTimePicker(trns.BEGIN, &store.new_event_start_date, &store.new_event_start_hour, &store.new_event_start_min)
+	SA_DivEnd()
+
+	//end date
+	SA_DivStart(0, 1, 1, 1)
+	endOk := DateTimePicker(trns.FINISH, &store.new_event_end_date, &store.new_event_end_hour, &store.new_event_end_min)
+	SA_DivEnd()
+
+	var errTitle error
+	if len(store.new_event_title) == 0 {
+		errTitle = errors.New(trns.EMPTY)
+	}
+	SA_Editbox(&store.new_event_title).TempToValue(true).Error(errTitle).ShowDescription(0, 2, 1, 1, trns.TITLE, 3, 0)
+	SA_Editbox(&store.new_event_description).ShowDescription(0, 3, 1, 1, trns.DESCRIPTION, 3, 0)
+	//SA_Editbox(&store.new_event_file).ShowDescription(0, 4, 1, 1, trns.FILE, 3, 0) //drag & drop ...
+
+	SA_DivStart(0, 5, 1, 1)
+	{
+		SA_ColMax(0, 100)
+		SA_ColMax(1, 100)
+
+		if SA_Button(trns.ADD_EVENT).Enable(startOk && endOk && errTitle == nil).Show(0, 0, 1, 1).click {
+			store.new_event_start_date -= store.new_event_start_date % (24 * 3600) //round to begin of day
+			store.new_event_end_date -= store.new_event_end_date % (24 * 3600)     //round to begin of day
+
+			start := store.new_event_start_date + (int64(store.new_event_start_hour) * 3600) + (int64(store.new_event_start_min) * 60)
+			end := store.new_event_end_date + (int64(store.new_event_end_hour) * 3600) + (int64(store.new_event_end_min) * 60)
+
+			//send file into db - maybe hex()? ...
+			SA_SqlWrite("", fmt.Sprintf("INSERT INTO events(start, end, title, description) VALUES(%d, %d, '%s', '%s');", start, end, store.new_event_title, store.new_event_description))
+			SA_DialogClose()
+		}
+		if SA_Button(trns.CANCEL).Show(1, 0, 1, 1).click {
+			store.new_event_start_date = 0
+			store.new_event_end_date = 0
+			store.new_event_title = ""
+			store.new_event_description = ""
+			store.new_event_file = ""
+			SA_DialogClose()
+		}
+	}
+	SA_DivEnd()
+}
+
 func Side() {
 
 	SA_ColMax(0, 100)
@@ -297,8 +423,26 @@ func Side() {
 		SA_Row(4, 0.3)
 		SA_RowMax(5, 100)
 
+		newEvent := false
 		if SA_Button(trns.NEW_ITEM).Show(0, 0, 1, 1).click {
-			//dialog + save into db ...
+			newEvent = true
+
+			//init
+			store.new_event_start_date = int64(SA_Time())
+			store.new_event_end_date = int64(SA_Time())
+
+			tm := time.Unix(int64(SA_Time()), 0)
+
+			store.new_event_start_hour = tm.Hour()
+			store.new_event_start_min = tm.Minute()
+
+			store.new_event_end_hour = store.new_event_start_hour
+			store.new_event_end_min = store.new_event_start_min
+		}
+
+		if SA_DialogStart("NewEvent", 0, newEvent) {
+			CreateEvent()
+			SA_DialogEnd()
 		}
 
 		SA_RowSpacer(0, 1, 1, 1)
@@ -451,19 +595,44 @@ func ModeMonth() {
 
 				SA_DivStart(x, 1+y, 1, 1)
 				{
+					SA_ColMax(0, 100)
+					SA_RowMax(1, 100)
+
 					isToday := CmpDates(dtt.Unix(), int64(SA_Time()))
 					if isToday {
 						SAPaint_Rect(0, 0, 1, 1, 0.03, SA_ThemeWhite().Aprox(SA_ThemeCd(), 0.3), 0)
 					}
 
-					SA_ColMax(0, 100)
 					if SA_Button(strconv.Itoa(dtt.Day())+".").Alpha(1).FrontCd(frontCd).RatioH(0.4).Align(0).AlphaNoBack(true).Show(0, 0, 1, 1).click {
 						store.Small_date = dtt.Unix()
 						store.Mode = "day"
 					}
 
-					//db ...
-					//paintRect(borderWidth:0.03, margin: 0.1, color: themeGrey())
+					SA_DivStart(0, 1, 1, 1)
+					{
+
+						//fmt.Print(dtt)
+						t := dtt.Unix()
+						t -= t % (24 * 3600)
+						query := SA_SqlRead("", fmt.Sprintf("SELECT start, title FROM events WHERE start > %d AND start < %d ORDER BY start", t, t+(24*3600)))
+
+						//paintRect(borderWidth:0.03, margin: 0.1, color: themeGrey())
+						SA_ColMax(0, 100)
+						for i := int64(0); i < query.row_count; i++ {
+							SA_Row(int(i), 0.7)
+						}
+
+						y := 0
+						var start int64
+						var title string
+						for query.Next(&start, &title) {
+							if SA_Button(title).Title(GetFullTime(start)).Align(0).Margin(0.06).Show(0, y, 1, 1).click {
+								//open dialog ...
+							}
+							y++
+						}
+					}
+					SA_DivEnd()
 
 				}
 				SA_DivEnd()
