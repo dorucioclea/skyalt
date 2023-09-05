@@ -749,7 +749,7 @@ func ColumnDetail(table *Table, column *Column) {
 					nm = trns.RATING
 				}
 			}
-			if SA_Button(nm).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, column.Render))).MarginIcon(0.17).Enable(changeType).Show(1, 0, 1, 1).click {
+			if SA_Button(nm).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, column.Render))).MarginIcon(0.2).Enable(changeType).Show(1, 0, 1, 1).click {
 				changeTypeDialog = true
 			}
 		}
@@ -762,12 +762,12 @@ func ColumnDetail(table *Table, column *Column) {
 			if column.Type == "REAL" {
 				y := 0
 
-				if SA_Button(trns.REAL).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, ""))).MarginIcon(0.17).Enable(column.Render != "").Show(0, y, 1, 1).click {
+				if SA_Button(trns.REAL).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, ""))).MarginIcon(0.2).Enable(column.Render != "").Show(0, y, 1, 1).click {
 					column.Render = ""
 				}
 				y++
 
-				if SA_Button(trns.PERCENT).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, "PERCENT"))).MarginIcon(0.17).Enable(column.Render != "PERCENT").Show(0, y, 1, 1).click {
+				if SA_Button(trns.PERCENT).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, "PERCENT"))).MarginIcon(0.2).Enable(column.Render != "PERCENT").Show(0, y, 1, 1).click {
 					column.Render = "PERCENT"
 				}
 				y++
@@ -775,22 +775,22 @@ func ColumnDetail(table *Table, column *Column) {
 			} else if column.Type == "INTEGER" {
 				y := 0
 
-				if SA_Button(trns.INTEGER).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, ""))).MarginIcon(0.17).Enable(column.Render != "").Show(0, y, 1, 1).click {
+				if SA_Button(trns.INTEGER).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, ""))).MarginIcon(0.2).Enable(column.Render != "").Show(0, y, 1, 1).click {
 					column.Render = ""
 				}
 				y++
 
-				if SA_Button(trns.CHECK_BOX).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, "CHECK_BOX"))).MarginIcon(0.17).Enable(column.Render != "CHECK_BOX").Show(0, y, 1, 1).click {
+				if SA_Button(trns.CHECK_BOX).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, "CHECK_BOX"))).MarginIcon(0.2).Enable(column.Render != "CHECK_BOX").Show(0, y, 1, 1).click {
 					column.Render = "CHECK_BOX"
 				}
 				y++
 
-				if SA_Button(trns.DATE).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, "DATE"))).MarginIcon(0.17).Enable(column.Render != "DATE").Show(0, y, 1, 1).click {
+				if SA_Button(trns.DATE).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, "DATE"))).MarginIcon(0.2).Enable(column.Render != "DATE").Show(0, y, 1, 1).click {
 					column.Render = "DATE"
 				}
 				y++
 
-				if SA_Button(trns.RATING).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, "RATING"))).MarginIcon(0.17).Enable(column.Render != "RATING").Show(0, y, 1, 1).click {
+				if SA_Button(trns.RATING).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, "RATING"))).MarginIcon(0.2).Enable(column.Render != "RATING").Show(0, y, 1, 1).click {
 					column.Render = "RATING"
 					if column.Prop_rating_max_stars == 0 {
 						column.Prop_rating_max_stars = 5
@@ -953,15 +953,17 @@ func TableColumns(table *Table) {
 		}
 
 		openDetail := false
-
 		SA_DivStart(x, 0, 1, 1)
 		{
 			SA_ColMax(0, 100)
-			if SA_Button(nm).Show(0, 0, 1, 1).click && !col.isRowId() {
-				openDetail = true
-			}
 
-			if !col.isRowId() {
+			if col.isRowId() {
+				SA_Button(nm).Show(0, 0, 1, 1)
+			} else {
+				if SA_Button(nm).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(col.Type, col.Render))).MarginIcon(0.2).Show(0, 0, 1, 1).click && !col.isRowId() {
+					openDetail = true
+				}
+
 				DragAndDropColumn(x, table)
 			}
 		}
@@ -995,52 +997,51 @@ func TableColumns(table *Table) {
 		y++
 
 		//types
-		if SA_Button(trns.TEXT).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("TEXT", ""))).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+		if SA_Button(trns.TEXT).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("TEXT", ""))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "TEXT"
 			defValue = "''"
 		}
 		y++
 
-		if SA_Button(trns.INTEGER).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INTEGER", ""))).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+		if SA_Button(trns.INTEGER).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INTEGER", ""))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "INTEGER"
 			defValue = "0"
 		}
 		y++
 
-		if SA_Button(trns.REAL).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("REAL", ""))).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+		if SA_Button(trns.REAL).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("REAL", ""))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "REAL"
 			defValue = "0"
 		}
 		y++
 
-		if SA_Button(trns.BLOB).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("BLOB", ""))).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+		if SA_Button(trns.BLOB).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("BLOB", ""))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "BLOB"
-			defValue = "0"
 		}
 		y++
 
-		if SA_Button(trns.CHECK_BOX).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INTEGER", "CHECK_BOX"))).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+		if SA_Button(trns.CHECK_BOX).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INTEGER", "CHECK_BOX"))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "INTEGER"
 			defValue = "0"
 			render = "CHECK_BOX"
 		}
 		y++
 
-		if SA_Button(trns.DATE).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INTEGER", "DATE"))).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+		if SA_Button(trns.DATE).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INTEGER", "DATE"))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "INTEGER"
 			defValue = "0"
 			render = "DATE"
 		}
 		y++
 
-		if SA_Button(trns.PERCENT).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("REAL", "PERCENT"))).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+		if SA_Button(trns.PERCENT).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("REAL", "PERCENT"))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "REAL"
 			defValue = "0"
 			render = "PERCENT"
 		}
 		y++
 
-		if SA_Button(trns.RATING).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INTEGER", "RATING"))).MarginIcon(0.17).Enable(err == nil).Show(0, y, 1, 1).click {
+		if SA_Button(trns.RATING).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INTEGER", "RATING"))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "INTEGER"
 			defValue = "0"
 			render = "RATING"
@@ -1049,7 +1050,11 @@ func TableColumns(table *Table) {
 		y++
 
 		if len(add_type) > 0 {
-			add_def := "DEFAULT " + defValue + " NOT NULL"
+
+			var add_def string
+			if len(defValue) > 0 {
+				add_def = "DEFAULT " + defValue + " NOT NULL"
+			}
 
 			SA_SqlWrite("", "ALTER TABLE "+table.Name+" ADD "+store.createColumn+" "+add_type+" "+add_def+";")
 
