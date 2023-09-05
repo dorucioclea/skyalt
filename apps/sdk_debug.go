@@ -238,8 +238,16 @@ func _sa_sql_read(dbMem SAMem, queryMem SAMem) int64 {
 	return int64(ReadUint64())
 }
 
-func _sa_sql_readRowLen(dbMem SAMem, queryMem SAMem, queryHash int64, row_i uint64) int64 {
+func _sa_sql_readRowCount(dbMem SAMem, queryMem SAMem, queryHash int64) int64 {
 	WriteUint64(10)
+	WriteMem(dbMem)
+	WriteMem(queryMem)
+	WriteUint64(uint64(queryHash))
+	return int64(ReadUint64())
+}
+
+func _sa_sql_readRowLen(dbMem SAMem, queryMem SAMem, queryHash int64, row_i uint64) int64 {
+	WriteUint64(11)
 	WriteMem(dbMem)
 	WriteMem(queryMem)
 	WriteUint64(uint64(queryHash))
@@ -248,7 +256,7 @@ func _sa_sql_readRowLen(dbMem SAMem, queryMem SAMem, queryHash int64, row_i uint
 }
 
 func _sa_sql_readRow(dbMem SAMem, queryMem SAMem, queryHash int64, row_i uint64, resultMem SAMem) int64 {
-	WriteUint64(11)
+	WriteUint64(12)
 	WriteMem(dbMem)
 	WriteMem(queryMem)
 	WriteUint64(uint64(queryHash))
@@ -259,14 +267,6 @@ func _sa_sql_readRow(dbMem SAMem, queryMem SAMem, queryHash int64, row_i uint64,
 }
 
 func _sa_div_colResize(pos uint64, nameMem SAMem, val float64) float64 {
-	WriteUint64(12)
-	WriteUint64(pos)
-	WriteMem(nameMem)
-	WriteFloat64(val)
-
-	return ReadFloat64()
-}
-func _sa_div_rowResize(pos uint64, nameMem SAMem, val float64) float64 {
 	WriteUint64(13)
 	WriteUint64(pos)
 	WriteMem(nameMem)
@@ -274,15 +274,15 @@ func _sa_div_rowResize(pos uint64, nameMem SAMem, val float64) float64 {
 
 	return ReadFloat64()
 }
-func _sa_div_colMax(pos uint64, val float64) float64 {
+func _sa_div_rowResize(pos uint64, nameMem SAMem, val float64) float64 {
 	WriteUint64(14)
 	WriteUint64(pos)
+	WriteMem(nameMem)
 	WriteFloat64(val)
 
 	return ReadFloat64()
 }
-
-func _sa_div_rowMax(pos uint64, val float64) float64 {
+func _sa_div_colMax(pos uint64, val float64) float64 {
 	WriteUint64(15)
 	WriteUint64(pos)
 	WriteFloat64(val)
@@ -290,7 +290,7 @@ func _sa_div_rowMax(pos uint64, val float64) float64 {
 	return ReadFloat64()
 }
 
-func _sa_div_col(pos uint64, val float64) float64 {
+func _sa_div_rowMax(pos uint64, val float64) float64 {
 	WriteUint64(16)
 	WriteUint64(pos)
 	WriteFloat64(val)
@@ -298,7 +298,7 @@ func _sa_div_col(pos uint64, val float64) float64 {
 	return ReadFloat64()
 }
 
-func _sa_div_row(pos uint64, val float64) float64 {
+func _sa_div_col(pos uint64, val float64) float64 {
 	WriteUint64(17)
 	WriteUint64(pos)
 	WriteFloat64(val)
@@ -306,8 +306,16 @@ func _sa_div_row(pos uint64, val float64) float64 {
 	return ReadFloat64()
 }
 
-func _sa_div_start(x, y, w, h uint64, nameMem SAMem) int64 {
+func _sa_div_row(pos uint64, val float64) float64 {
 	WriteUint64(18)
+	WriteUint64(pos)
+	WriteFloat64(val)
+
+	return ReadFloat64()
+}
+
+func _sa_div_start(x, y, w, h uint64, nameMem SAMem) int64 {
+	WriteUint64(19)
 	WriteUint64(x)
 	WriteUint64(y)
 	WriteUint64(w)
@@ -318,10 +326,8 @@ func _sa_div_start(x, y, w, h uint64, nameMem SAMem) int64 {
 }
 
 func _sa_div_end() {
-	WriteUint64(19)
+	WriteUint64(20)
 }
-
-//20 can be use later ...
 
 func _sa_div_dialogClose() {
 	WriteUint64(21)

@@ -78,6 +78,7 @@ type SA_Sql struct {
 	query      string
 	query_hash int64
 	row_i      uint64
+	row_count  int64
 	cache      []byte
 }
 
@@ -92,6 +93,7 @@ func SA_SqlRead(db string, query string) *SA_Sql {
 	sql.db = db
 	sql.query = query
 	sql.query_hash = query_hash
+	sql.row_count = _sa_sql_readRowCount(_SA_stringToPtr(sql.db), _SA_stringToPtr(sql.query), sql.query_hash)
 
 	return &sql
 }

@@ -104,6 +104,26 @@ func (asset *Asset) _sa_sql_read(dbMem uint64, queryMem uint64) int64 {
 
 }
 
+func (asset *Asset) sql_readRowCount(dbName string, query string, queryHash int64) (int64, error) {
+
+	db, err := asset._getDb(dbName)
+	if db == nil {
+		return -1, err
+	}
+
+	cache := db.FindCache(queryHash)
+
+	if cache == nil {
+		var err error
+		cache, err = db.AddCache(query)
+		if err != nil {
+			return -1, err
+		}
+	}
+
+	return int64(len(cache.result_rows)), nil
+}
+
 func (asset *Asset) sql_readRowLen(dbName string, query string, queryHash int64, row_i uint64) (int64, error) {
 
 	db, err := asset._getDb(dbName)
@@ -126,6 +146,22 @@ func (asset *Asset) sql_readRowLen(dbName string, query string, queryHash int64,
 	}
 
 	return 0, nil //no more rows
+}
+
+func (asset *Asset) _sa_sql_readRowCount(dbMem uint64, queryMem uint64, queryHash int64) int64 {
+
+	db, err := asset.ptrToString(dbMem)
+	if asset.AddLogErr(err) {
+		return -1
+	}
+	query, err := asset.ptrToString(queryMem)
+	if asset.AddLogErr(err) {
+		return -1
+	}
+
+	ret, err := asset.sql_readRowCount(db, query, queryHash)
+	asset.AddLogErr(err)
+	return ret
 }
 
 func (asset *Asset) _sa_sql_readRowLen(dbMem uint64, queryMem uint64, queryHash int64, row_i uint64) int64 {

@@ -65,6 +65,9 @@ func _sa_sql_write(dbMem SAMem, queryMem SAMem) int64
 //export _sa_sql_read
 func _sa_sql_read(dbMem SAMem, queryMem SAMem) int64
 
+//export _sa_sql_readRowCount
+func _sa_sql_readRowCount(dbMem SAMem, queryMem SAMem, queryHash int64) int64
+
 //export _sa_sql_readRowLen
 func _sa_sql_readRowLen(dbMem SAMem, queryMem SAMem, queryHash int64, row_i uint64) int64
 

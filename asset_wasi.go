@@ -85,6 +85,7 @@ func (aw *AssetWasm) InstantiateEnv() error {
 
 	env.NewFunctionBuilder().WithFunc(aw.asset._sa_sql_write).Export("_sa_sql_write")
 	env.NewFunctionBuilder().WithFunc(aw.asset._sa_sql_read).Export("_sa_sql_read")
+	env.NewFunctionBuilder().WithFunc(aw.asset._sa_sql_readRowCount).Export("_sa_sql_readRowCount")
 	env.NewFunctionBuilder().WithFunc(aw.asset._sa_sql_readRowLen).Export("_sa_sql_readRowLen")
 	env.NewFunctionBuilder().WithFunc(aw.asset._sa_sql_readRow).Export("_sa_sql_readRow")
 
