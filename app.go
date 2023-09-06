@@ -76,10 +76,6 @@ func (app *App) SaveData() {
 	}
 }
 
-/*func (app *App) GetStoragePath(asset string) string {
-	return app.root.folderStorage + "/" + app.name + "_" + app.db_name + "_" + asset + ".json"
-}*/
-
 func (app *App) FindAsset(name string) *Asset {
 	for _, asset := range app.assets {
 		if asset.name == name {
@@ -138,7 +134,10 @@ func (app *App) Render(startIt bool) {
 		app.baseAsset.renderStart()
 	}
 	if app.IsReadyToFire() {
-		app.baseAsset.Call("render", nil)
+		_, err := app.baseAsset.Call("render", nil)
+		if err != nil {
+			fmt.Print(err)
+		}
 	} else {
 		app.baseAsset.paint_text(0, 0, 1, 1, "Error: 'Main.wasm' is missing or corrupted", "", 0, 0, 0, OsCd{250, 50, 50, 255}, -1, 1, 0, 1, 1, 1, 0, 0, 1)
 	}
