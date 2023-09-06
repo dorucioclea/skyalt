@@ -87,7 +87,7 @@ func (div *LayoutDiv) GetParent(deep int) *LayoutDiv {
 	return act
 }
 
-func (div *LayoutDiv) Hash() float64 {
+func (div *LayoutDiv) Hash() uint64 {
 	var tmp [8]byte
 
 	h := sha256.New()
@@ -106,7 +106,7 @@ func (div *LayoutDiv) Hash() float64 {
 
 		div = div.parent
 	}
-	return float64(binary.LittleEndian.Uint64(h.Sum(nil)))
+	return binary.LittleEndian.Uint64(h.Sum(nil))
 }
 
 func NewLayoutPack(parent *LayoutDiv, name string, grid OsV4, infoLayout *RS_LScroll) *LayoutDiv {

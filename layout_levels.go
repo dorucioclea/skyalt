@@ -16,88 +16,164 @@ limitations under the License.
 
 package main
 
-type LayoutLevel struct {
-	parent *LayoutLevel
+import "fmt"
 
-	name string
-	use  bool
+type LayoutLevels struct {
+	dialogs []*LayoutLevel
+	calls   []*LayoutLevel
 
-	buff *PaintBuff
-
-	infoLayout *RS_LScroll
-
-	div      *LayoutDiv //rootPack
-	openPack *LayoutDiv
-	stack    *LayoutDiv
-
-	src_coordMoveCut OsV4
-
-	next *LayoutLevel
-
-	close bool
+	infoLayout RS_LScroll
 }
 
-func NewLayoutLevel(parent *LayoutLevel, name string, src_coordMoveCut OsV4, openPack *LayoutDiv, infoLayout *RS_LScroll, ui *Ui) *LayoutLevel {
+func NewLayoutLevels(scrollPath string, ui *Ui) (*LayoutLevels, error) {
 
-	var self LayoutLevel
+	var levels LayoutLevels
 
-	self.parent = parent
-	self.use = true
-	self.name = name
-
-	self.buff = NewPaintBuff(ui)
-
-	self.infoLayout = infoLayout
-
-	self.div = NewLayoutPack(nil, "", OsV4{}, infoLayout)
-
-	self.openPack = openPack
-
-	self.src_coordMoveCut = src_coordMoveCut
-
-	return &self
-}
-
-func (level *LayoutLevel) Free() {
-	level.div.Destroy(level.infoLayout)
-}
-
-func (level *LayoutLevel) Delete() {
-	if level.next != nil {
-		level.next.Delete()
+	//scroll
+	err := levels.infoLayout.Open(scrollPath)
+	if err != nil {
+		return nil, fmt.Errorf("Open() failed: %w", err)
 	}
 
-	level.Free()
+	levels.AddDialog("", OsV4{}, ui)
 
-	if level.parent != nil {
-		level.parent.next = nil
+	return &levels, nil
+}
+
+func (levels *LayoutLevels) Destroy(scrollPath string) {
+
+	levels.dialogs[0].rootDiv.Save(&levels.infoLayout)
+	err := levels.infoLayout.Save(scrollPath)
+	if err != nil {
+		fmt.Printf("Open() failed: %v\n", err)
 	}
-}
 
-func (level *LayoutLevel) GetCoord(q OsV4, winRect OsV4) OsV4 {
-
-	if !level.src_coordMoveCut.IsZero() {
-		// relative
-		q = OsV4_relativeSurround(level.src_coordMoveCut, q, winRect)
-	} else {
-		// center
-		q = OsV4_center(winRect, q.Size)
+	for _, l := range levels.dialogs {
+		l.Destroy()
 	}
-	return q
+	levels.dialogs = nil
+	levels.calls = nil
 }
 
-func (level *LayoutLevel) IsTop() bool {
-	return level.next == nil
+func (levels *LayoutLevels) AddDialog(name string, src_coordMoveCut OsV4, ui *Ui) {
+	levels.dialogs = append(levels.dialogs, NewLayoutLevel(name, src_coordMoveCut, &levels.infoLayout, ui))
 }
 
-func (level *LayoutLevel) AddLevel(name string, src_coordMoveCut OsV4, openPack *LayoutDiv, ui *Ui) *LayoutLevel {
+func (levels *LayoutLevels) StartCall(lev *LayoutLevel) {
 
-	if level.next != nil {
-		if level.next.name == name {
-			return level.next
+	//init level
+	lev.stack = lev.rootDiv
+
+	//add
+	levels.calls = append(levels.calls, lev)
+
+	//deactivate bottom
+	n := len(levels.calls)
+	for i, l := range levels.calls {
+		enabled := (i == n-1)
+
+		div := l.stack
+		for div != nil {
+			div.enableInput = enabled
+			div = div.parent
 		}
 	}
 
-	level.next = NewLayoutLevel(level, name, src_coordMoveCut, openPack, level.infoLayout, ui)
-	return level.next
+}
+func (levels *LayoutLevels) EndCall() error {
+
+	n := len(levels.calls)
+	if n > 1 {
+		levels.calls = levels.calls[:n-1]
+		return nil
+	}
+
+	return fmt.Errorf("trying to EndCall from root level")
+}
+
+func (levels *LayoutLevels) isSomeClose() bool {
+	for _, l := range levels.dialogs {
+		if !l.use || l.close {
+			return true
+		}
+	}
+	return false
+}
+
+func (levels *LayoutLevels) Maintenance() {
+
+	levels.GetBaseDialog().use = true //base level is always use
+
+	//remove unused or closed
+	if levels.isSomeClose() {
+		var lvls []*LayoutLevel
+		for _, l := range levels.dialogs {
+			if l.use && !l.close {
+				lvls = append(lvls, l)
+			}
+		}
+		levels.dialogs = lvls
+
+	}
+
+	//layout
+	for _, l := range levels.dialogs {
+		l.rootDiv.Maintenance(&levels.infoLayout)
+		l.use = false
+	}
+}
+
+func (levels *LayoutLevels) DrawDialogs() {
+
+	for _, l := range levels.dialogs {
+		if l.buff != nil {
+			l.buff.Draw()
+		}
+	}
+}
+
+func (levels *LayoutLevels) CloseAndAbove(dialog *LayoutLevel) {
+
+	found := false
+	for _, l := range levels.dialogs {
+		if l == dialog {
+			found = true
+		}
+		if found {
+			l.close = true
+		}
+	}
+}
+func (levels *LayoutLevels) CloseAll() {
+
+	if len(levels.dialogs) > 1 {
+		levels.CloseAndAbove(levels.dialogs[1])
+	}
+}
+
+func (levels *LayoutLevels) GetBaseDialog() *LayoutLevel {
+	return levels.dialogs[0]
+}
+
+func (levels *LayoutLevels) GetStack() *LayoutLevel {
+	return levels.calls[len(levels.calls)-1] //last call
+}
+
+func (levels *LayoutLevels) IsStackTop() bool {
+	return levels.dialogs[len(levels.dialogs)-1] == levels.GetStack() //last dialog
+}
+
+func (levels *LayoutLevels) ResetStack() {
+	levels.calls = nil
+	levels.StartCall(levels.GetBaseDialog())
+}
+
+func (levels *LayoutLevels) Find(name string) *LayoutLevel {
+
+	for _, l := range levels.dialogs {
+		if l.name == name {
+			return l
+		}
+	}
+	return nil
 }

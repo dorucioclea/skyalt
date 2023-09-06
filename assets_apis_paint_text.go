@@ -31,7 +31,7 @@ func (asset *Asset) paint_text(x, y, w, h float64,
 	selection, edit, tabIsChar, enable uint32) int64 {
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 	if st.stack == nil || st.stack.crop.IsZero() {
 		return -1
 	}
@@ -137,7 +137,7 @@ func (asset *Asset) _VmDraw_resetKeys(editable bool) {
 
 func (asset *Asset) _VmDraw_Text_VScrollInto(cursor OsV2, lineH int) {
 
-	st := asset.app.root.stack
+	st := asset.app.root.levels.GetStack()
 	if st.stack.parent == nil {
 		return
 	}
@@ -156,7 +156,7 @@ func (asset *Asset) _VmDraw_Text_VScrollInto(cursor OsV2, lineH int) {
 }
 func (asset *Asset) _VmDraw_Text_HScrollInto(str string, cursor OsV2, font *Font, textH int, margin float64, marginX float64) error {
 
-	st := asset.app.root.stack
+	st := asset.app.root.levels.GetStack()
 	if st.stack.parent == nil {
 		return nil
 	}
@@ -181,7 +181,7 @@ func (asset *Asset) _VmDraw_Text_HScrollInto(str string, cursor OsV2, font *Font
 func (asset *Asset) _VmDraw_TextSelectTouch(str string, strEditOrig string, touchPos OsV2, lineEnd OsV2, editable bool, font *Font, textH int, lineH int, margin float64, marginX float64) {
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	//dict := stt.dict
 	edit := &root.ui.io.edit
@@ -569,7 +569,7 @@ func (asset *Asset) _VmDraw_Text_line(coord OsV4, lineY int, lineEnd OsV2,
 	selection, editable, tabIsChar bool) bool {
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	align := OsV2{int(alignH), int(alignV)}
 	lineH := coord.Size.Y

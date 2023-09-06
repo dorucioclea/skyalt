@@ -19,6 +19,7 @@ package main
 import (
 	"encoding/binary"
 	"math"
+	"strconv"
 	"strings"
 )
 
@@ -59,7 +60,7 @@ func (asset *Asset) swp_drawButton(backCd OsCd, frontCd OsCd,
 	enable uint32, highlight uint32, drawBorder uint32) (bool, bool, int64) {
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	drawBack := true
 	//backCd := OsCd{byte(backCd_r), byte(backCd_g), byte(backCd_b), byte(backCd_a)}
@@ -247,7 +248,7 @@ func (asset *Asset) _sa_swp_drawProgress(value float64, maxValue float64, titleM
 func (asset *Asset) swp_drawSlider(value float64, minValue float64, maxValue float64, jumpValue float64, title string, enable uint32) (float64, bool, bool, bool) {
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	old_value := value
 
@@ -333,7 +334,7 @@ func (asset *Asset) swp_drawText(cd_r, cd_g, cd_b, cd_a uint32,
 	enable uint32, selection uint32) int64 {
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	cd := InitOsCd32(cd_r, cd_g, cd_b, cd_a)
 	//origCd := cd
@@ -415,7 +416,7 @@ func (asset *Asset) swp_drawEdit(cd_r, cd_g, cd_b, cd_a uint32,
 	enable uint32) (string, bool, bool, bool) {
 
 	root := asset.app.root
-	div := root.stack.stack
+	div := root.levels.GetStack().stack
 
 	cd := InitOsCd32(cd_r, cd_g, cd_b, cd_a)
 	if align == 1 {
@@ -427,7 +428,7 @@ func (asset *Asset) swp_drawEdit(cd_r, cd_g, cd_b, cd_a uint32,
 
 	edit := &root.ui.io.edit
 
-	inDiv := root.stack.stack.FindOrCreate("", InitOsQuad(0, 0, 1, 1), &root.infoLayout)
+	inDiv := div.FindOrCreate("", InitOsQuad(0, 0, 1, 1), &root.levels.infoLayout)
 	this_uid := inDiv //.Hash()
 	edit_uid := edit.uid
 	active := (edit_uid != nil && edit_uid == this_uid)
@@ -515,7 +516,7 @@ func (asset *Asset) swp_drawCombo(cd_r, cd_g, cd_b, cd_a uint32,
 	}
 
 	root := asset.app.root
-	div := root.stack.stack
+	div := root.levels.GetStack().stack
 
 	options := strings.Split(optionsIn, "|")
 	var val string
@@ -556,7 +557,11 @@ func (asset *Asset) swp_drawCombo(cd_r, cd_g, cd_b, cd_a uint32,
 	}
 
 	//dialog
-	if asset.div_dialogStart("combo", 1, div.data.touch_end && enable > 0) > 0 {
+	nmd := "combo_" + strconv.Itoa(int(div.Hash()))
+	if div.data.touch_end && enable > 0 {
+		asset.div_dialogOpen(nmd, 1)
+	}
+	if asset.div_dialogStart(nmd) > 0 {
 		//compute minimum dialog width
 		mx := 0
 		for _, opt := range options {
@@ -609,7 +614,7 @@ func (asset *Asset) swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32,
 	height float64, align uint32, alignV uint32, enable uint32) int64 {
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	cd := InitOsCd32(cd_r, cd_g, cd_b, cd_a)
 	origCd := cd

@@ -45,7 +45,8 @@ type Root struct {
 
 	last_ticks int64
 
-	level *LayoutLevel
+	levels *LayoutLevels
+
 	touch LayerTouch
 	tile  LayerTile
 
@@ -53,10 +54,6 @@ type Root struct {
 
 	baseApp string
 	baseDb  string
-
-	infoLayout RS_LScroll
-	//stack      Stack
-	stack *LayoutLevel
 
 	fonts *Fonts
 
@@ -125,13 +122,10 @@ func NewRoot(debugPORT int, folderApps string, folderDbs string, folderDevice st
 		return nil, fmt.Errorf("NewUi() failed: %w", err)
 	}
 
-	//scroll
-	err = root.infoLayout.Open(scrollPath)
+	root.levels, err = NewLayoutLevels(scrollPath, root.ui)
 	if err != nil {
-		return nil, fmt.Errorf("Open() failed: %w", err)
+		return nil, fmt.Errorf("NewLayoutLevels() failed: %w", err)
 	}
-
-	root.level = NewLayoutLevel(nil, "", OsV4{}, nil, &root.infoLayout, root.ui)
 
 	root.baseApp = "base"
 	root.baseDb = "base"
@@ -180,33 +174,12 @@ func (root *Root) Destroy() {
 			fmt.Printf("Open() failed: %v\n", err)
 		}
 
-		root.level.div.Save(&root.infoLayout)
-		err = root.infoLayout.Save(scrollPath)
-		if err != nil {
-			fmt.Printf("Open() failed: %v\n", err)
-		}
+		root.levels.Destroy(scrollPath)
 	}
 
 	root.settings.Destroy()
 
 	root.ui.Destroy() //also save ini.json
-}
-
-func (root *Root) SetLevel(lev *LayoutLevel) {
-	root.stack = lev
-	lev.stack = lev.div
-
-	//deactivate bottom
-	act := root.level
-	for act != nil {
-		enabled := act.IsTop()
-		div := act.stack
-		for div != nil {
-			div.enableInput = enabled
-			div = div.parent
-		}
-		act = act.next
-	}
 }
 
 func (root *Root) ReloadTranslations() {
@@ -397,13 +370,13 @@ func (root *Root) CommitDbs() {
 func (root *Root) Render() {
 
 	winRect, _ := root.ui.GetScreenCoord()
-	root.level.div.canvas = winRect
-	root.level.div.crop = winRect
+	root.levels.GetBaseDialog().rootDiv.canvas = winRect
+	root.levels.GetBaseDialog().rootDiv.crop = winRect
 
 	// close all levels
 	if root.ui.io.keys.shift && root.ui.io.keys.esc {
 		root.touch.Reset()
-		root.level.next.Delete()
+		root.levels.CloseAll()
 		root.ui.io.keys.esc = false
 	}
 
@@ -413,9 +386,9 @@ func (root *Root) Render() {
 		return
 	}
 
-	root.SetLevel(root.level)
+	root.levels.ResetStack()
 
-	st := root.stack
+	st := root.levels.GetStack()
 	//background
 	st.buff.Reset(st.stack.canvas)
 	st.buff.AddCrop(st.stack.canvas)
@@ -423,33 +396,8 @@ func (root *Root) Render() {
 
 	ist.Render(true)
 
-	//close un-used
-	//draw
-	act := root.level
-	act.use = true //base level is always use
-	for act != nil {
-		if !act.use || act.close {
-			act.Delete()
-		}
-		act.use = false
-		act = act.next
-	}
-
-	//layout maintenance
-	act = root.level
-	for act != nil {
-		act.div.Maintenance(&root.infoLayout)
-		act = act.next
-	}
-
-	//draw
-	act = root.level
-	for act != nil {
-		if act.buff != nil {
-			act.buff.Draw()
-		}
-		act = act.next
-	}
+	root.levels.Maintenance()
+	root.levels.DrawDialogs()
 }
 
 func (root *Root) Tick() (bool, error) {

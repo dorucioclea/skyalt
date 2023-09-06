@@ -97,8 +97,8 @@ func (aw *AssetWasm) InstantiateEnv() error {
 	env.NewFunctionBuilder().WithFunc(aw.asset._sa_div_row).Export("_sa_div_row")
 	env.NewFunctionBuilder().WithFunc(aw.asset._sa_div_start).Export("_sa_div_start")
 	env.NewFunctionBuilder().WithFunc(aw.asset._sa_div_end).Export("_sa_div_end")
+	env.NewFunctionBuilder().WithFunc(aw.asset._sa_div_dialogOpen).Export("_sa_div_dialogOpen")
 	env.NewFunctionBuilder().WithFunc(aw.asset._sa_div_dialogClose).Export("_sa_div_dialogClose")
-
 	env.NewFunctionBuilder().WithFunc(aw.asset._sa_div_dialogStart).Export("_sa_div_dialogStart")
 	env.NewFunctionBuilder().WithFunc(aw.asset._sa_div_dialogEnd).Export("_sa_div_dialogEnd")
 
@@ -136,11 +136,7 @@ func (aw *AssetWasm) InstantiateEnv() error {
 	env.NewFunctionBuilder().WithFunc(aw.asset._sa_print_float).Export("_sa_print_float")
 
 	_, err := env.Instantiate(aw.asset.app.root.ctx)
-	if err != nil {
-		return fmt.Errorf("Instantiate() failed: %w", err)
-	}
-
-	return nil
+	return err
 }
 
 func (aw *AssetWasm) Call(fnName string, args []byte) (int64, error) {
@@ -281,16 +277,16 @@ func (aw *AssetWasm) LoadModule() error {
 	return nil
 }
 
-func (aw *AssetWasm) Tick() bool {
+func (aw *AssetWasm) Tick() (bool, error) {
 
 	stat, err := os.Stat(aw.asset.getWasmPath())
 	if err == nil && !stat.IsDir() {
 		if aw.mod == nil || stat.ModTime().UnixMilli() != aw.load_tm {
-			aw.LoadModule()
+			err = aw.LoadModule()
 			aw.load_tm = stat.ModTime().UnixMilli()
-			return true
+			return true, err
 		}
 	}
 
-	return false
+	return false, nil
 }

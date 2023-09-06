@@ -28,7 +28,7 @@ type RS_LResize struct {
 }
 
 type RS_LScrollItem struct {
-	Hash                   float64
+	Hash                   uint64
 	ScrollVpos, ScrollHpos int
 	Cols_resize            []RS_LResize
 	Rows_resize            []RS_LResize

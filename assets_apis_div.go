@@ -18,6 +18,7 @@ package main
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -77,14 +78,14 @@ func (asset *Asset) _VmBasic_RenderScroll(packLayout *LayoutDiv, showBackground 
 func (asset *Asset) renderStart() {
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	st.stack.data.Reset() //here because after *dialog* needs to know old size
 	st.stack.UpdateCoord(root.ui)
 
 	enableInput := st.stack.data.touch_enabled
 	if st.stack.parent == nil {
-		enableInput = root.stack.IsTop()
+		enableInput = root.levels.IsStackTop()
 	} else {
 		enableInput = enableInput && st.stack.parent.enableInput
 	}
@@ -132,7 +133,7 @@ func (asset *Asset) renderStart() {
 
 func (asset *Asset) DrawGrid() {
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	start := st.stack.canvas.Start
 	size := st.stack.canvas.Size
@@ -170,7 +171,7 @@ func (asset *Asset) DrawGrid() {
 func (asset *Asset) renderEnd(baseDiv bool) {
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	st.stack.gridLock = false
 
@@ -191,7 +192,7 @@ func (asset *Asset) renderEnd(baseDiv bool) {
 func (asset *Asset) div_start(x, y, w, h uint64, name string) int64 {
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	if !st.stack.gridLock {
 
@@ -203,7 +204,7 @@ func (asset *Asset) div_start(x, y, w, h uint64, name string) int64 {
 	}
 
 	grid := InitOsQuad(int(x), int(y), int(w), int(h))
-	st.stack = st.stack.FindOrCreate(name, grid, &root.infoLayout)
+	st.stack = st.stack.FindOrCreate(name, grid, &root.levels.infoLayout)
 
 	asset.renderStart()
 
@@ -221,7 +222,7 @@ func (asset *Asset) _sa_div_start(x, y, w, h uint64, nameMem uint64) int64 {
 func (asset *Asset) _sa_div_end() {
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	//if grid is empty
 	if !st.stack.gridLock {
@@ -237,7 +238,10 @@ func (asset *Asset) _sa_div_end() {
 
 func (asset *Asset) checkGridLock() bool {
 
-	if asset.app.root.stack.stack.gridLock {
+	root := asset.app.root
+	st := root.levels.GetStack()
+
+	if st.stack.gridLock {
 		fmt.Println("Warning: Trying to changed col/row dimension after you already draw div into")
 		return false
 	}
@@ -250,7 +254,7 @@ func (asset *Asset) _sa_div_col(pos uint64, val float64) float64 {
 	}
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 	st.stack.GetInputCol(int(pos)).min = float32(val)
 
 	return float64(st.stack.data.cols.GetOutput(int(pos))) / float64(root.ui.Cell())
@@ -261,7 +265,7 @@ func (asset *Asset) div_colResize(pos uint64, name string, val float64) float64 
 		return -1
 	}
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	//if 'resize' exist in layout than read it from there
 	if len(name) == 0 {
@@ -281,7 +285,7 @@ func (asset *Asset) div_rowResize(pos uint64, name string, val float64) float64 
 		return -1
 	}
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	//if 'resize' exist in layout than read it from there
 	if len(name) == 0 {
@@ -311,7 +315,7 @@ func (asset *Asset) _sa_div_colMax(pos uint64, val float64) float64 {
 	}
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	st.stack.GetInputCol(int(pos)).max = float32(val)
 
@@ -324,7 +328,7 @@ func (asset *Asset) _sa_div_row(pos uint64, val float64) float64 {
 	}
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 	st.stack.GetInputRow(int(pos)).min = float32(val)
 
 	return float64(st.stack.data.rows.GetOutput(int(pos))) / float64(root.ui.Cell())
@@ -346,7 +350,7 @@ func (asset *Asset) _sa_div_rowMax(pos uint64, val float64) float64 {
 	}
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	st.stack.GetInputRow(int(pos)).max = float32(val)
 
@@ -354,16 +358,48 @@ func (asset *Asset) _sa_div_rowMax(pos uint64, val float64) float64 {
 }
 
 func (asset *Asset) _sa_div_dialogClose() {
-	asset.app.root.stack.close = true
+	root := asset.app.root
+	root.levels.CloseAndAbove(root.levels.GetStack())
 }
 
-func (asset *Asset) div_dialogStart(name string, tp uint64, openIt bool) int64 {
+func (asset *Asset) _sa_div_dialogEnd() {
+
 	root := asset.app.root
-	st := asset.app.root.stack
+	st := root.levels.GetStack()
+
+	//close dialog
+	if st.stack.enableInput {
+		winRect, _ := root.ui.GetScreenCoord()
+		outside := winRect.Inside(root.ui.io.touch.pos) && !st.rootDiv.canvas.Inside(root.ui.io.touch.pos)
+		if (root.ui.io.touch.end && outside) || root.ui.io.keys.esc {
+			root.touch.Reset()
+			root.levels.CloseAndAbove(root.levels.GetStack())
+			root.ui.io.keys.esc = false
+		}
+	}
+
+	asset.renderEnd(true)
+
+	err := root.levels.EndCall()
+	if err != nil {
+		asset.AddLogErr(err)
+	}
+}
+
+func (asset *Asset) div_dialogOpen(name string, tp uint64) int64 {
+	root := asset.app.root
+	st := asset.app.root.levels.GetStack()
 
 	//name
 	if len(name) == 0 {
 		return -1
+	}
+
+	//find
+	act := root.levels.Find(name)
+	if act != nil {
+		asset.AddLogErr(errors.New("Dialog already opened"))
+		return 0 //already open
 	}
 
 	//coord
@@ -379,88 +415,91 @@ func (asset *Asset) div_dialogStart(name string, tp uint64, openIt bool) int64 {
 		src_coordMoveCut = OsV4{Start: root.ui.io.touch.pos, Size: OsV2{1, 1}}
 	}
 
-	if openIt {
-		//add
-		st.AddLevel(name, src_coordMoveCut, st.stack, root.ui)
+	//add
+	root.levels.AddDialog(name, src_coordMoveCut, root.ui)
+	root.touch.Reset()
+	root.ui.io.ResetTouchAndKeys()
+	root.ui.io.edit.setFirstEditbox = true
 
-		root.touch.Reset()
-		root.ui.io.ResetTouchAndKeys()
-		root.ui.io.edit.setFirstEditbox = true
-	}
-
-	lev := st.next
-	if lev != nil && lev.name == name && lev.openPack == st.stack {
-		lev.use = true
-		if tp < 2 { //not for touch_pos
-			lev.src_coordMoveCut = src_coordMoveCut
-		}
-
-		//coord
-		winRect, _ := root.ui.GetScreenCoord()
-
-		coord := lev.div.GetLevelSize(winRect, root.ui)
-		coord = lev.GetCoord(coord, winRect)
-		lev.div.canvas = coord
-		lev.div.crop = coord
-
-		root.SetLevel(lev)
-		lev.buff.Reset(lev.stack.canvas)
-
-		//fade
-		lev.buff.AddCrop(winRect)
-		lev.buff.AddRect(winRect, OsCd{0, 0, 0, 80}, 0)
-		//background
-		lev.buff.AddCrop(lev.stack.canvas)
-		lev.buff.AddRect(lev.stack.canvas, OsCd_white(), 0)
-
-		asset.renderStart()
-
-		return 1 //active
-	}
-
-	return 0 //not opened
+	return 1
 }
 
-func (asset *Asset) _sa_div_dialogStart(nameMem uint64, tp uint64, openIt uint64) int64 {
+func (asset *Asset) _sa_div_dialogOpen(nameMem uint64, tp uint64) int64 {
 
 	name, err := asset.ptrToString(nameMem)
 	if asset.AddLogErr(err) {
 		return -1
 	}
 
-	return asset.div_dialogStart(name, tp, openIt > 0)
+	return asset.div_dialogOpen(name, tp)
 }
 
-func (asset *Asset) _sa_div_dialogEnd() {
-
+func (asset *Asset) div_dialogStart(name string) int64 {
 	root := asset.app.root
-	st := root.stack
+	st := asset.app.root.levels.GetStack()
 
-	parent := st.parent
-	if parent == nil {
-		return
+	//name
+	if len(name) == 0 {
+		return -1
 	}
 
-	//close dialog
-	if st.stack.enableInput {
-		winRect, _ := root.ui.GetScreenCoord()
-		outside := winRect.Inside(root.ui.io.touch.pos) && !st.div.canvas.Inside(root.ui.io.touch.pos)
-		if (root.ui.io.touch.end && outside) || root.ui.io.keys.esc {
-			root.touch.Reset()
-			st.close = true
-			root.ui.io.keys.esc = false
+	//find
+	lev := root.levels.Find(name)
+	if lev == nil {
+		return 0 //dialog not open, which is NOT error
+	}
+
+	if lev.use {
+		asset.AddLogErr(errors.New("dialog already drawn into"))
+		return -1
+	}
+	lev.use = true
+
+	if lev.src_coordMoveCut.Size.X > 1 || lev.src_coordMoveCut.Size.Y > 1 { //for tp==1
+		if st.stack.lastChild != nil {
+			lev.src_coordMoveCut = st.stack.lastChild.crop
+		} else {
+			lev.src_coordMoveCut = st.stack.crop
 		}
 	}
 
-	asset.renderEnd(true)
+	//coord
+	winRect, _ := root.ui.GetScreenCoord()
 
-	root.stack = parent
+	coord := lev.rootDiv.GetLevelSize(winRect, root.ui)
+	coord = lev.GetCoord(coord, winRect)
+	lev.rootDiv.canvas = coord
+	lev.rootDiv.crop = coord
+
+	root.levels.StartCall(lev)
+	lev.buff.Reset(lev.stack.canvas)
+
+	//fade
+	lev.buff.AddCrop(winRect)
+	lev.buff.AddRect(winRect, OsCd{0, 0, 0, 80}, 0)
+	//background
+	lev.buff.AddCrop(lev.stack.canvas)
+	lev.buff.AddRect(lev.stack.canvas, OsCd_white(), 0)
+
+	asset.renderStart()
+
+	return 1 //active/open
+}
+
+func (asset *Asset) _sa_div_dialogStart(nameMem uint64) int64 {
+
+	name, err := asset.ptrToString(nameMem)
+	if asset.AddLogErr(err) {
+		return -1
+	}
+
+	return asset.div_dialogStart(name)
 }
 
 func (asset *Asset) div_get_info(id string, x int64, y int64) float64 {
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	div := st.stack
 	if div != nil && (x >= 0 || y >= 0) {
@@ -581,7 +620,7 @@ func (asset *Asset) div_get_info(id string, x int64, y int64) float64 {
 func (asset *Asset) div_set_info(id string, val float64, x int64, y int64) float64 {
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	div := st.stack
 	if div != nil && (x >= 0 || y >= 0) {
@@ -661,12 +700,12 @@ func (asset *Asset) _sa_div_set_info(idMem uint64, val float64, x int64, y int64
 func (asset *Asset) div_drag(groupName string, id uint64) int64 {
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	if st.stack.data.touch_active {
 		drag := &root.ui.io.drag
 		//set
-		drag.div = root.stack.stack
+		drag.div = root.levels.GetStack().stack
 		drag.group = groupName
 		drag.id = id
 
@@ -678,7 +717,7 @@ func (asset *Asset) div_drag(groupName string, id uint64) int64 {
 func (asset *Asset) div_drop(groupName string, vertical uint32, horizontal uint32, inside uint32) (uint64, uint64, int64) {
 
 	root := asset.app.root
-	st := root.stack
+	st := root.levels.GetStack()
 
 	id := uint64(0)
 	pos := uint64(0)
@@ -798,7 +837,6 @@ func (asset *Asset) _sa_div_drop(groupNameMem uint64, vertical uint32, horizonta
 func (asset *Asset) render_app(appName string, dbName string, sts_id uint64) (int64, error) {
 
 	root := asset.app.root
-	//st := root.stack
 
 	app, err := root.AddApp(appName, dbName, int(sts_id))
 	if err != nil {

@@ -33,7 +33,7 @@ func (asset *Asset) addCoordMargin(q OsV4, margin float64, marginX float64, marg
 
 func (asset *Asset) getCoord(x, y, w, h float64, margin float64, marginX float64, marginY float64) OsV4 {
 
-	st := asset.app.root.stack
+	st := asset.app.root.levels.GetStack()
 	layoutScreen := st.stack.canvas //st.stackLayout.CoordNoScroll()
 
 	q := InitOsQuad(layoutScreen.Start.X+int(float64(layoutScreen.Size.X)*x),
@@ -46,7 +46,7 @@ func (asset *Asset) getCoord(x, y, w, h float64, margin float64, marginX float64
 
 func (asset *Asset) paint_rect(x, y, w, h float64, margin float64, cd OsCd, borderWidth float64) int64 {
 
-	st := asset.app.root.stack
+	st := asset.app.root.levels.GetStack()
 	if st.stack == nil || st.stack.crop.IsZero() {
 		return -1
 	}
@@ -61,7 +61,7 @@ func (asset *Asset) _sa_paint_rect(x, y, w, h float64, margin float64, r, g, b, 
 
 func (asset *Asset) _sa_paint_line(x, y, w, h float64, margin float64, sx, sy, ex, ey float64, r, g, b, a uint32, width float64) int64 {
 
-	st := asset.app.root.stack
+	st := asset.app.root.levels.GetStack()
 	if st.stack == nil || st.stack.crop.IsZero() {
 		return -1
 	}
@@ -81,7 +81,7 @@ func (asset *Asset) _sa_paint_line(x, y, w, h float64, margin float64, sx, sy, e
 
 func (asset *Asset) _sa_paint_circle(x, y, w, h float64, margin float64, sx, sy, rad float64, r, g, b, a uint32, borderWidth float64) int64 {
 
-	st := asset.app.root.stack
+	st := asset.app.root.levels.GetStack()
 	if st.stack == nil || st.stack.crop.IsZero() {
 		return -1
 	}
@@ -99,7 +99,7 @@ func (asset *Asset) _sa_paint_circle(x, y, w, h float64, margin float64, sx, sy,
 
 func (asset *Asset) paint_file(x, y, w, h float64, file string, title string, margin, marginX, marginY float64, r, g, b, a uint32, alignV, alignH uint32, fill, inverse uint32) int64 {
 
-	st := asset.app.root.stack
+	st := asset.app.root.levels.GetStack()
 	if st.stack == nil || st.stack.crop.IsZero() {
 		return -1
 	}
@@ -137,7 +137,7 @@ func (asset *Asset) _sa_paint_file(x, y, w, h float64, fileMem uint64, titleMem 
 
 func (asset *Asset) paint_title(x, y, w, h float64, text string) int64 {
 
-	st := asset.app.root.stack
+	st := asset.app.root.levels.GetStack()
 	if st.stack == nil || st.stack.crop.IsZero() {
 		return -1
 	}

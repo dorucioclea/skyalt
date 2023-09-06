@@ -274,12 +274,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 		case 21:
 			asset._sa_div_dialogClose()
 
-		case 22:
-			name := string(ad.ReadBytes())
-			tp := ad.ReadUint64()
-			openIt := ad.ReadUint64()
-			ret := asset.div_dialogStart(name, tp, openIt > 0)
-			ad.WriteUint64(uint64(ret))
+		//case 22:	//use later ...
 
 		case 23:
 			asset._sa_div_dialogEnd()
@@ -650,6 +645,18 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 
 			ret, err := asset.render_app(app, db, sts_id)
 			asset.AddLogErr(err)
+			ad.WriteUint64(uint64(ret))
+
+		case 50:
+			name := string(ad.ReadBytes())
+			tp := ad.ReadUint64()
+			ret := asset.div_dialogOpen(name, tp)
+			ad.WriteUint64(uint64(ret))
+
+		case 51:
+			name := string(ad.ReadBytes())
+
+			ret := asset.div_dialogStart(name)
 			ad.WriteUint64(uint64(ret))
 
 		case 100:

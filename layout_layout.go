@@ -33,7 +33,7 @@ type Layout struct {
 	touch_enabled bool
 }
 
-func (lay *Layout) Init(hash float64, infoLayout *RS_LScroll) {
+func (lay *Layout) Init(hash uint64, infoLayout *RS_LScroll) {
 
 	lay.touch_enabled = true
 
@@ -64,7 +64,7 @@ func (lay *Layout) Init(hash float64, infoLayout *RS_LScroll) {
 	}
 }
 
-func (lay *Layout) Save(hash float64, infoLayout *RS_LScroll) {
+func (lay *Layout) Save(hash uint64, infoLayout *RS_LScroll) {
 
 	hasColResize := lay.cols.HasResize()
 	hasRowResize := lay.rows.HasResize()
@@ -105,7 +105,7 @@ func (lay *Layout) Save(hash float64, infoLayout *RS_LScroll) {
 	}
 }
 
-func (lay *Layout) Close(hash float64, infoLayout *RS_LScroll) {
+func (lay *Layout) Close(hash uint64, infoLayout *RS_LScroll) {
 	lay.Save(hash, infoLayout)
 }
 
@@ -141,7 +141,7 @@ func (lay *Layout) ConvertMax(cell int, in OsV4) OsV4 {
 	return OsV4{OsV2{c.X, r.X}, OsV2{c.Y, r.Y}}
 }
 
-func _Layout_findGlobalScrollHash(scroll *RS_LScroll, hash float64) *RS_LScrollItem {
+func _Layout_findGlobalScrollHash(scroll *RS_LScroll, hash uint64) *RS_LScrollItem {
 
 	if scroll == nil {
 		return nil
@@ -156,7 +156,7 @@ func _Layout_findGlobalScrollHash(scroll *RS_LScroll, hash float64) *RS_LScrollI
 	return nil
 }
 
-func _Layout_addGlobalScrollHash(scroll *RS_LScroll, hash float64) *RS_LScrollItem {
+func _Layout_addGlobalScrollHash(scroll *RS_LScroll, hash uint64) *RS_LScrollItem {
 	if scroll == nil {
 		return nil
 	}
