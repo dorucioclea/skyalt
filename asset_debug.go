@@ -185,19 +185,29 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ad.WriteUint64(uint64(ret))
 
 		case 8:
+			name := string(ad.ReadBytes())
+			asset.print(name)
+			ad.WriteUint64(1)
+
+		case 9:
+			val := ad.ReadFloat64()
+			ret := asset._sa_print_float(val)
+			ad.WriteUint64(uint64(ret))
+
+		case 10:
 			db := ad.ReadBytes()
 			query := ad.ReadBytes()
 			ret, err := asset.sql_write(string(db), string(query))
 			asset.AddLogErr(err)
 			ad.WriteUint64(uint64(ret))
-		case 9:
+		case 11:
 			db := ad.ReadBytes()
 			query := ad.ReadBytes()
 			ret, err := asset.sql_read(string(db), string(query))
 			asset.AddLogErr(err)
 			ad.WriteUint64(uint64(ret))
 
-		case 10:
+		case 12:
 			db := ad.ReadBytes()
 			query := ad.ReadBytes()
 			queryHash := int64(ad.ReadUint64())
@@ -205,7 +215,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			asset.AddLogErr(err)
 			ad.WriteUint64(uint64(ret))
 
-		case 11:
+		case 13:
 			db := ad.ReadBytes()
 			query := ad.ReadBytes()
 			queryHash := int64(ad.ReadUint64())
@@ -213,7 +223,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ret, err := asset.sql_readRowLen(string(db), string(query), queryHash, row_i)
 			asset.AddLogErr(err)
 			ad.WriteUint64(uint64(ret))
-		case 12:
+		case 14:
 			db := ad.ReadBytes()
 			query := ad.ReadBytes()
 			queryHash := int64(ad.ReadUint64())
@@ -223,43 +233,44 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ad.WriteBytes([]byte(dst))
 			ad.WriteUint64(uint64(ret))
 
-		case 13:
+		case 20:
 			pos := ad.ReadUint64()
 			name := string(ad.ReadBytes())
 			val := ad.ReadFloat64()
 			ret := asset.div_colResize(pos, name, val)
 			ad.WriteFloat64(ret)
 
-		case 14:
+		case 21:
 			pos := ad.ReadUint64()
 			name := string(ad.ReadBytes())
 			val := ad.ReadFloat64()
 			ret := asset.div_rowResize(pos, name, val)
 			ad.WriteFloat64(ret)
 
-		case 15:
+		case 22:
 			pos := ad.ReadUint64()
 			val := ad.ReadFloat64()
 			ret := asset._sa_div_colMax(pos, val)
 			ad.WriteFloat64(ret)
-		case 16:
+
+		case 23:
 			pos := ad.ReadUint64()
 			val := ad.ReadFloat64()
 			ret := asset._sa_div_rowMax(pos, val)
 			ad.WriteFloat64(ret)
 
-		case 17:
+		case 24:
 			pos := ad.ReadUint64()
 			val := ad.ReadFloat64()
 			ret := asset._sa_div_col(pos, val)
 			ad.WriteFloat64(ret)
-		case 18:
+		case 25:
 			pos := ad.ReadUint64()
 			val := ad.ReadFloat64()
 			ret := asset._sa_div_row(pos, val)
 			ad.WriteFloat64(ret)
 
-		case 19:
+		case 26:
 			x := ad.ReadUint64()
 			y := ad.ReadUint64()
 			w := ad.ReadUint64()
@@ -268,25 +279,17 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ret := asset.div_start(x, y, w, h, name)
 			ad.WriteUint64(uint64(ret))
 
-		case 20:
+		case 27:
 			asset._sa_div_end()
 
-		case 21:
-			asset._sa_div_dialogClose()
-
-		//case 22:	//use later ...
-
-		case 23:
-			asset._sa_div_dialogEnd()
-
-		case 24:
+		case 28:
 			name := string(ad.ReadBytes())
 			x := int64(ad.ReadUint64())
 			y := int64(ad.ReadUint64())
 			ret := asset.div_get_info(name, x, y)
 			ad.WriteFloat64(ret)
 
-		case 25:
+		case 29:
 			name := string(ad.ReadBytes())
 			val := ad.ReadFloat64()
 			x := int64(ad.ReadUint64())
@@ -294,7 +297,25 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ret := asset.div_set_info(name, val, x, y)
 			ad.WriteFloat64(ret)
 
-		case 26:
+		case 40:
+			name := string(ad.ReadBytes())
+			tp := ad.ReadUint64()
+			ret := asset.div_dialogOpen(name, tp)
+			ad.WriteUint64(uint64(ret))
+
+		case 41:
+			asset._sa_div_dialogClose()
+
+		case 42:
+			name := string(ad.ReadBytes())
+
+			ret := asset.div_dialogStart(name)
+			ad.WriteUint64(uint64(ret))
+
+		case 43:
+			asset._sa_div_dialogEnd()
+
+		case 50:
 			x := ad.ReadFloat64()
 			y := ad.ReadFloat64()
 			w := ad.ReadFloat64()
@@ -308,7 +329,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ret := asset._sa_paint_rect(x, y, w, h, margin, r, g, b, a, borderWidth)
 			ad.WriteUint64(uint64(ret))
 
-		case 27:
+		case 51:
 			x := ad.ReadFloat64()
 			y := ad.ReadFloat64()
 			w := ad.ReadFloat64()
@@ -327,7 +348,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ret := asset._sa_paint_line(x, y, w, h, margin, sx, sy, ex, ey, r, g, b, a, width)
 			ad.WriteUint64(uint64(ret))
 
-		case 28:
+		case 52:
 			x := ad.ReadFloat64()
 			y := ad.ReadFloat64()
 			w := ad.ReadFloat64()
@@ -344,7 +365,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ret := asset._sa_paint_circle(x, y, w, h, margin, sx, sy, rad, r, g, b, a, borderWidth)
 			ad.WriteUint64(uint64(ret))
 
-		case 29:
+		case 53:
 			x := ad.ReadFloat64()
 			y := ad.ReadFloat64()
 			w := ad.ReadFloat64()
@@ -365,7 +386,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ret := asset.paint_file(x, y, w, h, file, title, margin, marginX, marginY, r, g, b, a, alignV, alignH, fill, inverse)
 			ad.WriteUint64(uint64(ret))
 
-		case 30:
+		case 54:
 			x := ad.ReadFloat64()
 			y := ad.ReadFloat64()
 			w := ad.ReadFloat64()
@@ -392,7 +413,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ret := asset.paint_text(x, y, w, h, value, value, margin, marginX, marginY, InitOsCd32(r, g, b, a), ratioH, lineHeight, fontId, align, alignV, selection, edit, tabIsChar, enable)
 			ad.WriteUint64(uint64(ret))
 
-		case 31:
+		case 55:
 			value := string(ad.ReadBytes())
 			fontId := uint32(ad.ReadUint64())
 			ratioH := ad.ReadFloat64()
@@ -400,7 +421,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ret := asset.paint_textWidth(value, fontId, ratioH, cursorPos)
 			ad.WriteFloat64(ret)
 
-		case 32:
+		case 56:
 			x := ad.ReadFloat64()
 			y := ad.ReadFloat64()
 			w := ad.ReadFloat64()
@@ -409,23 +430,13 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ret := asset.paint_title(x, y, w, h, value)
 			ad.WriteUint64(uint64(ret))
 
-		case 33:
+		case 57:
 			name := string(ad.ReadBytes())
 			ret, err := asset.paint_cursor(name)
 			asset.AddLogErr(err)
 			ad.WriteUint64(uint64(ret))
 
-		case 34:
-			name := string(ad.ReadBytes())
-			asset.print(name)
-			ad.WriteUint64(1)
-
-		case 35:
-			val := ad.ReadFloat64()
-			ret := asset._sa_print_float(val)
-			ad.WriteUint64(uint64(ret))
-
-		case 36:
+		case 70:
 			assetName := string(ad.ReadBytes())
 			fnName := string(ad.ReadBytes())
 			args := ad.ReadBytes()
@@ -434,18 +445,18 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			asset.AddLogErr(err)
 			ad.WriteUint64(uint64(v))
 
-		case 37:
+		case 71:
 			args := ad.ReadBytes()
 
 			v := asset.fn_setReturn(args)
 			ad.WriteUint64(uint64(v))
 
-		case 38:
+		case 72:
 			dst := asset.fn_getReturn()
 			ad.WriteBytes(dst)
 			ad.WriteUint64(1)
 
-		case 39:
+		case 80:
 			cd_r := uint32(ad.ReadUint64())
 			cd_g := uint32(ad.ReadUint64())
 			cd_b := uint32(ad.ReadUint64())
@@ -487,7 +498,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ad.WriteBytes(dst[:])
 			ad.WriteUint64(uint64(ret))
 
-		case 40:
+		case 81:
 			value := ad.ReadFloat64()
 			min := ad.ReadFloat64()
 			max := ad.ReadFloat64()
@@ -503,7 +514,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ad.WriteBytes(dst[:])
 			ad.WriteFloat64(value)
 
-		case 41:
+		case 82:
 			value := ad.ReadFloat64()
 			maxValue := ad.ReadFloat64()
 			title := string(ad.ReadBytes())
@@ -512,7 +523,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ret := asset.swp_drawProgress(value, maxValue, title, margin, enable)
 			ad.WriteUint64(uint64(ret))
 
-		case 42:
+		case 83:
 			cd_r := uint32(ad.ReadUint64())
 			cd_g := uint32(ad.ReadUint64())
 			cd_b := uint32(ad.ReadUint64())
@@ -538,12 +549,12 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 				enable, selection)
 			ad.WriteUint64(uint64(ret))
 
-		case 43:
+		case 84:
 			edit := asset.swp_getEditValue()
 			ad.WriteBytes([]byte(edit))
 			ad.WriteUint64(1)
 
-		case 44:
+		case 85:
 			cd_r := uint32(ad.ReadUint64())
 			cd_g := uint32(ad.ReadUint64())
 			cd_b := uint32(ad.ReadUint64())
@@ -575,7 +586,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ad.WriteBytes(dst[:])
 			ad.WriteUint64(1)
 
-		case 45:
+		case 86:
 			cd_r := uint32(ad.ReadUint64())
 			cd_g := uint32(ad.ReadUint64())
 			cd_b := uint32(ad.ReadUint64())
@@ -598,7 +609,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 				margin, marginX, marginY, align, ratioH, enable)
 			ad.WriteUint64(uint64(valueOut))
 
-		case 46:
+		case 87:
 			cd_r := uint32(ad.ReadUint64())
 			cd_g := uint32(ad.ReadUint64())
 			cd_b := uint32(ad.ReadUint64())
@@ -618,13 +629,13 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 				height, align, alignV, enable)
 			ad.WriteUint64(uint64(valueOut))
 
-		case 47:
+		case 100:
 			groupName := string(ad.ReadBytes())
 			id := ad.ReadUint64()
 			ret := asset.div_drag(groupName, id)
 			ad.WriteUint64(uint64(ret))
 
-		case 48:
+		case 101:
 			groupName := string(ad.ReadBytes())
 			vertical := uint32(ad.ReadUint64())
 			horizontal := uint32(ad.ReadUint64())
@@ -638,7 +649,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ad.WriteBytes(dst[:])
 			ad.WriteUint64(uint64(done))
 
-		case 49:
+		case 110:
 			app := string(ad.ReadBytes())
 			db := string(ad.ReadBytes())
 			sts_id := ad.ReadUint64()
@@ -647,19 +658,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			asset.AddLogErr(err)
 			ad.WriteUint64(uint64(ret))
 
-		case 50:
-			name := string(ad.ReadBytes())
-			tp := ad.ReadUint64()
-			ret := asset.div_dialogOpen(name, tp)
-			ad.WriteUint64(uint64(ret))
-
-		case 51:
-			name := string(ad.ReadBytes())
-
-			ret := asset.div_dialogStart(name)
-			ad.WriteUint64(uint64(ret))
-
-		case 100:
+		case 1000:
 			//must return len(returnBytes)
 			return 0, nil //render() is done
 

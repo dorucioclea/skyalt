@@ -81,7 +81,7 @@ func main() {
 			log.Panic("Unknown function: ", string(fnName))
 		}
 
-		WriteUint64(100) //end of function call
+		WriteUint64(1000) //end of function call
 	}
 
 	err = conn.Close()
@@ -224,22 +224,34 @@ func _sa_resource_len(pathMem SAMem) int64 {
 	return int64(ReadUint64())
 }
 
-func _sa_sql_write(dbMem SAMem, queryMem SAMem) int64 {
+func _sa_print(mem SAMem) {
 	WriteUint64(8)
+	WriteMem(mem)
+}
+
+func _sa_print_float(val float64) {
+	WriteUint64(9)
+	WriteFloat64(val)
+}
+
+//-------
+
+func _sa_sql_write(dbMem SAMem, queryMem SAMem) int64 {
+	WriteUint64(10)
 	WriteMem(dbMem)
 	WriteMem(queryMem)
 	return int64(ReadUint64())
 }
 
 func _sa_sql_read(dbMem SAMem, queryMem SAMem) int64 {
-	WriteUint64(9)
+	WriteUint64(11)
 	WriteMem(dbMem)
 	WriteMem(queryMem)
 	return int64(ReadUint64())
 }
 
 func _sa_sql_readRowCount(dbMem SAMem, queryMem SAMem, queryHash int64) int64 {
-	WriteUint64(10)
+	WriteUint64(12)
 	WriteMem(dbMem)
 	WriteMem(queryMem)
 	WriteUint64(uint64(queryHash))
@@ -247,7 +259,7 @@ func _sa_sql_readRowCount(dbMem SAMem, queryMem SAMem, queryHash int64) int64 {
 }
 
 func _sa_sql_readRowLen(dbMem SAMem, queryMem SAMem, queryHash int64, row_i uint64) int64 {
-	WriteUint64(11)
+	WriteUint64(13)
 	WriteMem(dbMem)
 	WriteMem(queryMem)
 	WriteUint64(uint64(queryHash))
@@ -256,7 +268,7 @@ func _sa_sql_readRowLen(dbMem SAMem, queryMem SAMem, queryHash int64, row_i uint
 }
 
 func _sa_sql_readRow(dbMem SAMem, queryMem SAMem, queryHash int64, row_i uint64, resultMem SAMem) int64 {
-	WriteUint64(12)
+	WriteUint64(14)
 	WriteMem(dbMem)
 	WriteMem(queryMem)
 	WriteUint64(uint64(queryHash))
@@ -266,8 +278,10 @@ func _sa_sql_readRow(dbMem SAMem, queryMem SAMem, queryHash int64, row_i uint64,
 	return int64(ReadUint64())
 }
 
+//-------
+
 func _sa_div_colResize(pos uint64, nameMem SAMem, val float64) float64 {
-	WriteUint64(13)
+	WriteUint64(20)
 	WriteUint64(pos)
 	WriteMem(nameMem)
 	WriteFloat64(val)
@@ -275,7 +289,7 @@ func _sa_div_colResize(pos uint64, nameMem SAMem, val float64) float64 {
 	return ReadFloat64()
 }
 func _sa_div_rowResize(pos uint64, nameMem SAMem, val float64) float64 {
-	WriteUint64(14)
+	WriteUint64(21)
 	WriteUint64(pos)
 	WriteMem(nameMem)
 	WriteFloat64(val)
@@ -283,7 +297,7 @@ func _sa_div_rowResize(pos uint64, nameMem SAMem, val float64) float64 {
 	return ReadFloat64()
 }
 func _sa_div_colMax(pos uint64, val float64) float64 {
-	WriteUint64(15)
+	WriteUint64(22)
 	WriteUint64(pos)
 	WriteFloat64(val)
 
@@ -291,7 +305,7 @@ func _sa_div_colMax(pos uint64, val float64) float64 {
 }
 
 func _sa_div_rowMax(pos uint64, val float64) float64 {
-	WriteUint64(16)
+	WriteUint64(23)
 	WriteUint64(pos)
 	WriteFloat64(val)
 
@@ -299,7 +313,7 @@ func _sa_div_rowMax(pos uint64, val float64) float64 {
 }
 
 func _sa_div_col(pos uint64, val float64) float64 {
-	WriteUint64(17)
+	WriteUint64(24)
 	WriteUint64(pos)
 	WriteFloat64(val)
 
@@ -307,7 +321,7 @@ func _sa_div_col(pos uint64, val float64) float64 {
 }
 
 func _sa_div_row(pos uint64, val float64) float64 {
-	WriteUint64(18)
+	WriteUint64(25)
 	WriteUint64(pos)
 	WriteFloat64(val)
 
@@ -315,7 +329,7 @@ func _sa_div_row(pos uint64, val float64) float64 {
 }
 
 func _sa_div_start(x, y, w, h uint64, nameMem SAMem) int64 {
-	WriteUint64(19)
+	WriteUint64(26)
 	WriteUint64(x)
 	WriteUint64(y)
 	WriteUint64(w)
@@ -326,21 +340,11 @@ func _sa_div_start(x, y, w, h uint64, nameMem SAMem) int64 {
 }
 
 func _sa_div_end() {
-	WriteUint64(20)
-}
-
-func _sa_div_dialogClose() {
-	WriteUint64(21)
-}
-
-//22 use later ...
-
-func _sa_div_dialogEnd() {
-	WriteUint64(23)
+	WriteUint64(27)
 }
 
 func _sa_div_get_info(idMem SAMem, x int64, y int64) float64 {
-	WriteUint64(24)
+	WriteUint64(28)
 	WriteMem(idMem)
 	WriteUint64(uint64(x))
 	WriteUint64(uint64(y))
@@ -349,7 +353,7 @@ func _sa_div_get_info(idMem SAMem, x int64, y int64) float64 {
 }
 
 func _sa_div_set_info(idMem SAMem, val float64, x int64, y int64) float64 {
-	WriteUint64(25)
+	WriteUint64(29)
 	WriteMem(idMem)
 	WriteFloat64(val)
 	WriteUint64(uint64(x))
@@ -358,8 +362,35 @@ func _sa_div_set_info(idMem SAMem, val float64, x int64, y int64) float64 {
 	return ReadFloat64()
 }
 
+//-------
+
+func _sa_div_dialogOpen(nameMem SAMem, tp uint64) int64 {
+	WriteUint64(40)
+	WriteMem(nameMem)
+	WriteUint64(tp)
+
+	return int64(ReadUint64())
+}
+
+func _sa_div_dialogClose() {
+	WriteUint64(41)
+}
+
+func _sa_div_dialogStart(nameMem SAMem) int64 {
+	WriteUint64(42)
+	WriteMem(nameMem)
+
+	return int64(ReadUint64())
+}
+
+func _sa_div_dialogEnd() {
+	WriteUint64(43)
+}
+
+//-------
+
 func _sa_paint_rect(x, y, w, h float64, margin float64, r, g, b, a uint32, borderWidth float64) int64 {
-	WriteUint64(26)
+	WriteUint64(50)
 	WriteFloat64(x)
 	WriteFloat64(y)
 	WriteFloat64(w)
@@ -375,7 +406,7 @@ func _sa_paint_rect(x, y, w, h float64, margin float64, r, g, b, a uint32, borde
 }
 
 func _sa_paint_line(x, y, w, h float64, margin float64, sx, sy, ex, ey float64, r, g, b, a uint32, width float64) int64 {
-	WriteUint64(27)
+	WriteUint64(51)
 	WriteFloat64(x)
 	WriteFloat64(y)
 	WriteFloat64(w)
@@ -395,7 +426,7 @@ func _sa_paint_line(x, y, w, h float64, margin float64, sx, sy, ex, ey float64, 
 }
 
 func _sa_paint_circle(x, y, w, h float64, margin float64, sx, sy, rad float64, r, g, b, a uint32, borderWidth float64) int64 {
-	WriteUint64(28)
+	WriteUint64(52)
 	WriteFloat64(x)
 	WriteFloat64(y)
 	WriteFloat64(w)
@@ -414,7 +445,7 @@ func _sa_paint_circle(x, y, w, h float64, margin float64, sx, sy, rad float64, r
 }
 
 func _sa_paint_file(x, y, w, h float64, fileMem SAMem, titleMem SAMem, margin, marginX, marginY float64, r, g, b, a uint32, alignV, alignH uint32, fill, inverse uint32) int64 {
-	WriteUint64(29)
+	WriteUint64(53)
 	WriteFloat64(x)
 	WriteFloat64(y)
 	WriteFloat64(w)
@@ -444,7 +475,7 @@ func _sa_paint_text(x, y, w, h float64,
 	fontId, align, alignV uint32,
 	selection, edit, tabIsChar, enable uint32) int64 {
 
-	WriteUint64(30)
+	WriteUint64(54)
 	WriteFloat64(x)
 	WriteFloat64(y)
 	WriteFloat64(w)
@@ -476,7 +507,7 @@ func _sa_paint_text(x, y, w, h float64,
 }
 
 func _sa_paint_textWidth(valueMem SAMem, fontId uint32, ratioH float64, cursorPos int64) float64 {
-	WriteUint64(31)
+	WriteUint64(55)
 	WriteMem(valueMem)
 	WriteUint64(uint64(fontId))
 	WriteFloat64(ratioH)
@@ -486,7 +517,7 @@ func _sa_paint_textWidth(valueMem SAMem, fontId uint32, ratioH float64, cursorPo
 }
 
 func _sa_paint_title(x, y, w, h float64, valueMem SAMem) int64 {
-	WriteUint64(32)
+	WriteUint64(56)
 	WriteFloat64(x)
 	WriteFloat64(y)
 	WriteFloat64(w)
@@ -497,24 +528,14 @@ func _sa_paint_title(x, y, w, h float64, valueMem SAMem) int64 {
 }
 
 func _sa_paint_cursor(nameMem SAMem) int64 {
-	WriteUint64(33)
+	WriteUint64(57)
 	WriteMem(nameMem)
 
 	return int64(ReadUint64())
 }
 
-func _sa_print(mem SAMem) {
-	WriteUint64(34)
-	WriteMem(mem)
-}
-
-func _sa_print_float(val float64) {
-	WriteUint64(35)
-	WriteFloat64(val)
-}
-
 func _sa_fn_call(assetMem SAMem, fnMem SAMem, argsMem SAMem) int64 {
-	WriteUint64(36)
+	WriteUint64(70)
 	WriteMem(assetMem)
 	WriteMem(fnMem)
 	WriteMem(argsMem)
@@ -523,14 +544,14 @@ func _sa_fn_call(assetMem SAMem, fnMem SAMem, argsMem SAMem) int64 {
 }
 
 func _sa_fn_setReturn(argsMem SAMem) int64 {
-	WriteUint64(37)
+	WriteUint64(71)
 	WriteMem(argsMem)
 
 	return int64(ReadUint64())
 }
 
 func _sa_fn_getReturn(argsMem SAMem) int64 {
-	WriteUint64(38)
+	WriteUint64(72)
 
 	ReadMem(argsMem)
 	return int64(ReadUint64())
@@ -544,7 +565,7 @@ func _sa_swp_drawButton(cd_r, cd_g, cd_b, cd_a uint32,
 	enable uint32, highlight uint32, drawBorder uint32,
 	outMem SAMem) int64 {
 
-	WriteUint64(39)
+	WriteUint64(80)
 
 	WriteUint64(uint64(cd_r))
 	WriteUint64(uint64(cd_g))
@@ -580,7 +601,7 @@ func _sa_swp_drawButton(cd_r, cd_g, cd_b, cd_a uint32,
 }
 
 func _sa_swp_drawSlider(value float64, min float64, max float64, jump float64, titleMem SAMem, enable uint32, outMem SAMem) float64 {
-	WriteUint64(40)
+	WriteUint64(81)
 	WriteFloat64(value)
 	WriteFloat64(min)
 	WriteFloat64(max)
@@ -593,7 +614,7 @@ func _sa_swp_drawSlider(value float64, min float64, max float64, jump float64, t
 }
 
 func _sa_swp_drawProgress(value float64, maxValue float64, titleMem SAMem, margin float64, enable uint32) int64 {
-	WriteUint64(41)
+	WriteUint64(82)
 	WriteFloat64(value)
 	WriteFloat64(maxValue)
 	WriteMem(titleMem)
@@ -606,7 +627,7 @@ func _sa_swp_drawText(cd_r, cd_g, cd_b, cd_a uint32,
 	valueMem SAMem, titleMem SAMem, font uint32,
 	margin float64, marginX float64, marginY float64, align uint32, alignV uint32, ratioH float64,
 	enable uint32, selection uint32) int64 {
-	WriteUint64(42)
+	WriteUint64(83)
 	WriteUint64(uint64(cd_r))
 	WriteUint64(uint64(cd_g))
 	WriteUint64(uint64(cd_b))
@@ -630,7 +651,7 @@ func _sa_swp_drawText(cd_r, cd_g, cd_b, cd_a uint32,
 }
 
 func _sa_swp_getEditValue(outMem SAMem) int64 {
-	WriteUint64(43)
+	WriteUint64(84)
 
 	ReadMem(outMem)
 	return int64(ReadUint64())
@@ -641,7 +662,7 @@ func _sa_swp_drawEdit(cd_r, cd_g, cd_b, cd_a uint32,
 	margin float64, marginX float64, marginY float64, align uint32, alignV uint32, ratioH float64,
 	enable uint32,
 	outMem SAMem) int64 {
-	WriteUint64(44)
+	WriteUint64(85)
 	WriteUint64(uint64(cd_r))
 	WriteUint64(uint64(cd_g))
 	WriteUint64(uint64(cd_b))
@@ -669,7 +690,7 @@ func _sa_swp_drawCombo(cd_r, cd_g, cd_b, cd_a uint32,
 	value uint64, optionsMem SAMem, titleMem SAMem, font uint32,
 	margin float64, marginX float64, marginY float64, align uint32, ratioH float64,
 	enable uint32) int64 {
-	WriteUint64(45)
+	WriteUint64(86)
 	WriteUint64(uint64(cd_r))
 	WriteUint64(uint64(cd_g))
 	WriteUint64(uint64(cd_b))
@@ -694,7 +715,7 @@ func _sa_swp_drawCombo(cd_r, cd_g, cd_b, cd_a uint32,
 func _sa_swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32,
 	value uint64, descriptionMem SAMem, titleMem SAMem,
 	height float64, align uint32, alignV uint32, enable uint32) int64 {
-	WriteUint64(46)
+	WriteUint64(87)
 	WriteUint64(uint64(cd_r))
 	WriteUint64(uint64(cd_g))
 	WriteUint64(uint64(cd_b))
@@ -713,14 +734,14 @@ func _sa_swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32,
 }
 
 func _sa_div_drag(groupName SAMem, id uint64) int64 {
-	WriteUint64(47)
+	WriteUint64(100)
 	WriteMem(groupName)
 	WriteUint64(id)
 	return int64(ReadUint64())
 }
 
 func _sa_div_drop(groupName SAMem, vertical uint32, horizontal uint32, inside uint32, outMem SAMem) int64 {
-	WriteUint64(48)
+	WriteUint64(101)
 	WriteMem(groupName)
 	WriteUint64(uint64(vertical))
 	WriteUint64(uint64(horizontal))
@@ -731,25 +752,10 @@ func _sa_div_drop(groupName SAMem, vertical uint32, horizontal uint32, inside ui
 }
 
 func _sa_render_app(appMem SAMem, dbMem SAMem, sts_id uint64) int64 {
-	WriteUint64(49)
+	WriteUint64(110)
 	WriteMem(appMem)
 	WriteMem(dbMem)
 	WriteUint64(sts_id)
-
-	return int64(ReadUint64())
-}
-
-func _sa_div_dialogOpen(nameMem SAMem, tp uint64) int64 {
-	WriteUint64(50)
-	WriteMem(nameMem)
-	WriteUint64(tp)
-
-	return int64(ReadUint64())
-}
-
-func _sa_div_dialogStart(nameMem SAMem) int64 {
-	WriteUint64(51)
-	WriteMem(nameMem)
 
 	return int64(ReadUint64())
 }
