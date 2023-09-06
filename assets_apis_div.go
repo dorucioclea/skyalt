@@ -398,7 +398,7 @@ func (asset *Asset) div_dialogOpen(name string, tp uint64) int64 {
 	//find
 	act := root.levels.Find(name)
 	if act != nil {
-		asset.AddLogErr(errors.New("Dialog already opened"))
+		asset.AddLogErr(errors.New("dialog already opened"))
 		return 0 //already open
 	}
 
