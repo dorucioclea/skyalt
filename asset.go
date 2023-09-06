@@ -46,21 +46,6 @@ type Asset struct {
 	sts_rowid int
 }
 
-/*
-	func (asset *Asset) AddLogInfo(err error) {
-		if err != nil {
-			fmt.Printf("Info(%s): %v", asset.getWasmPath(), err)
-			asset.logs = append(asset.logs, AssetLog{err: err, tp: 0})
-		}
-	}
-
-	func (asset *Asset) AddLogWarn(err error) {
-		if err != nil {
-			fmt.Printf("Warn(%s): %v", asset.getWasmPath(), err)
-			asset.logs = append(asset.logs, AssetLog{err: err, tp: 1})
-		}
-	}
-*/
 func (asset *Asset) AddLogErr(err error) bool {
 	if err != nil {
 		fmt.Printf("Error(%s): %v\n", asset.getWasmPath(), err)
@@ -193,18 +178,10 @@ func (asset *Asset) UpdateResources() {
 }
 
 func (asset *Asset) loadData() {
-	//data(json)
-	//path := asset.app.GetStoragePath(asset.name)
-	//js, err := os.ReadFile(path)
-
 	js, err := asset.app.root.settings.GetContent(asset.sts_rowid)
 	if asset.AddLogErr(err) {
 		return
 	}
-
-	//if len(js) == 0 {
-	//	js = []byte("{}")
-	//}
 
 	asset.CallSet(js, "_sa_open")
 }
@@ -235,7 +212,12 @@ func (asset *Asset) Tick() {
 			loadData = true
 		}
 	} else if asset.wasm != nil {
-		if asset.wasm.Tick() {
+		changed, err := asset.wasm.Tick()
+		if err != nil {
+			asset.AddLogErr(err)
+			asset.wasm = nil
+
+		} else if changed {
 			loadTranslations = true
 			loadData = true
 		}
