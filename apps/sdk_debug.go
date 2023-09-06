@@ -333,14 +333,7 @@ func _sa_div_dialogClose() {
 	WriteUint64(21)
 }
 
-func _sa_div_dialogStart(nameMem SAMem, tp uint64, openIt uint64) int64 {
-	WriteUint64(22)
-	WriteMem(nameMem)
-	WriteUint64(tp)
-	WriteUint64(openIt)
-
-	return int64(ReadUint64())
-}
+//22 use later ...
 
 func _sa_div_dialogEnd() {
 	WriteUint64(23)
@@ -742,6 +735,21 @@ func _sa_render_app(appMem SAMem, dbMem SAMem, sts_id uint64) int64 {
 	WriteMem(appMem)
 	WriteMem(dbMem)
 	WriteUint64(sts_id)
+
+	return int64(ReadUint64())
+}
+
+func _sa_div_dialogOpen(nameMem SAMem, tp uint64) int64 {
+	WriteUint64(50)
+	WriteMem(nameMem)
+	WriteUint64(tp)
+
+	return int64(ReadUint64())
+}
+
+func _sa_div_dialogStart(nameMem SAMem) int64 {
+	WriteUint64(51)
+	WriteMem(nameMem)
 
 	return int64(ReadUint64())
 }

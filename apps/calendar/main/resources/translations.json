@@ -103,6 +103,14 @@
 "FINISH.cs": "Konec",
 
 "EMPTY.en": "Empty",
-"EMPTY.cs": "Prázdné"
+"EMPTY.cs": "Prázdné",
+
+
+"EDIT.en": "Edit",
+"EDIT.cs": "Upravit",
+
+"DELETE.en": "Delete",
+"DELETE.cs": "Smazat"
+
 
 }

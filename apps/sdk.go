@@ -173,11 +173,17 @@ func SA_DialogClose() {
 	_sa_div_dialogClose()
 }
 
-func SA_DialogStart(name string, tp int, openIt bool) bool {
-	return _sa_div_dialogStart(_SA_stringToPtr(name), uint64(tp), uint64(_SA_boolToUint32(openIt))) > 0
-}
 func SA_DialogEnd() {
 	_sa_div_dialogEnd()
+}
+
+func SA_DialogOpen(name string, tp int) bool {
+	return _sa_div_dialogOpen(_SA_stringToPtr(name), uint64(tp)) > 0 //return true if dialog is already opened
+}
+
+func SA_DialogStart(name string) bool {
+	//maybe create extra api() which will return names of open dialogs ...
+	return _sa_div_dialogStart(_SA_stringToPtr(name)) > 0
 }
 
 func SA_DivInfoPos(id string, x, y int) float64 {
@@ -831,6 +837,25 @@ func (b *_SA_Text) AlignV(v int) *_SA_Text {
 func (b *_SA_Text) RatioH(v float64) *_SA_Text {
 	b.ratioH = v
 	return b
+}
+
+func (b *_SA_Text) ShowDescription(x, y, w, h int, description string, width float64, align int) {
+
+	if SA_DivStart(x, y, w, h) {
+		if width > 0 {
+			//1 row
+			SA_Col(0, width)
+			SA_ColMax(1, 100)
+			SA_Text(description).Align(align).Show(0, 0, 1, 1)
+			b.Show(1, 0, 1, 1)
+		} else {
+			//2 rows
+			SA_ColMax(0, 100)
+			SA_Text(description).Align(align).Show(0, 0, 1, 1)
+			b.Show(0, 1, 1, 1)
+		}
+	}
+	SA_DivEnd()
 }
 
 func (b *_SA_Text) Show(x, y, w, h int) {
@@ -1535,7 +1560,7 @@ func SA_ColSpacer(x, y, w, h int) {
 	SA_DivEnd()
 }
 
-func SA_DialogConfirm(x, y, w, h int) bool {
+func SA_DialogConfirm() bool {
 	SA_ColMax(0, 5)
 
 	click := SA_Button("Confirm").BackCd(SA_ThemeWarning()).Show(0, 0, 1, 1).click //translations ... maybe add 'confirm string' do args ...

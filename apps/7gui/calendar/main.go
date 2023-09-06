@@ -246,7 +246,8 @@ func Calendar(value int64, page int64) (int64, int64) {
 }
 
 //export CalendarButton
-func CalendarButton(value int64, page int64, enable uint32) int64 {
+func CalendarButton(dialogNameMem SAMem, value int64, page int64, enable uint32) int64 {
+	dialogName := _SA_ptrToString(dialogNameMem)
 
 	if page == 0 {
 		page = store.Page
@@ -254,13 +255,12 @@ func CalendarButton(value int64, page int64, enable uint32) int64 {
 
 	SA_ColMax(0, 100)
 	SA_RowMax(0, 100)
-	open := false
 	if SA_Button(Format(value)).Enable(enable != 0).Show(0, 0, 1, 1).click {
-		open = true
+		SA_DialogOpen(dialogName, 1)
 		page = value
 	}
 
-	if SA_DialogStart("CalendarButton", 1, open) {
+	if SA_DialogStart(dialogName) {
 
 		SA_ColMax(0, 15)
 		SA_RowMax(0, 10)
@@ -268,9 +268,8 @@ func CalendarButton(value int64, page int64, enable uint32) int64 {
 		value, page = Calendar(value, page)
 		SA_DivEnd()
 
-		SA_DialogEnd()
-
 		store.Page = page
+		SA_DialogEnd()
 	}
 
 	return value
@@ -282,7 +281,7 @@ func render() uint32 {
 	SA_ColMax(0, 100)
 	SA_RowMax(0, 100)
 	SA_DivStart(0, 0, 1, 1)
-	CalendarButton(int64(SA_Time()), store.Page, 1)
+	CalendarButton(_SA_stringToPtr("Calendar"), int64(SA_Time()), store.Page, 1)
 	SA_DivEnd()
 
 	return 0

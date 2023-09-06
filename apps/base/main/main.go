@@ -86,9 +86,6 @@ func FindFile(name string) *File {
 }
 
 type Storage struct {
-	settingsDialog bool
-	aboutDialog    bool
-
 	Files []*File
 
 	SelectedFile int
@@ -319,8 +316,8 @@ func Menu() {
 
 	//settings
 	if SA_Button(trns.SETTINGS).Alpha(1).Align(0).Show(0, 2, 1, 1).click {
-		store.settingsDialog = true
 		SA_DialogClose()
+		SA_DialogOpen("Settings", 0)
 	}
 
 	SA_RowSpacer(0, 3, 1, 1)
@@ -368,8 +365,8 @@ func Menu() {
 	SA_RowSpacer(0, 7, 1, 1)
 
 	if SA_Button(trns.ABOUT).Alpha(1).Align(0).Show(0, 8, 1, 1).click {
-		store.aboutDialog = true
 		SA_DialogClose()
+		SA_DialogOpen("About", 0)
 	}
 
 	SA_RowSpacer(0, 9, 1, 1)
@@ -528,34 +525,36 @@ func Files() {
 			SA_DivEnd()
 
 			//add app
-			appDialog := SA_Button("+").Alpha(1).Show(2, 0, 1, 1).click
-			if SA_DialogStart("apps_"+file.Name, 1, appDialog) {
+			if SA_Button("+").Alpha(1).Show(2, 0, 1, 1).click {
+				SA_DialogOpen("apps_"+file.Name, 1)
+			}
+			if SA_DialogStart("apps_" + file.Name) {
 				Apps(file, file_i)
 				SA_DialogEnd()
 			}
 
 			//context
-			fileContextDialog := false
 			if SA_Button("").Alpha(1).Icon(SA_ResourceBuildAssetPath("", "context.png")).MarginIcon(0.3).Show(3, 0, 1, 1).click {
-				fileContextDialog = true
+				SA_DialogOpen("fileContext_"+file.Name, 1)
 			}
 
-			renameFile := false
-			removeFileConfirm := false
-			if SA_DialogStart("fileContext_"+file.Name, 1, fileContextDialog) {
+			//renameFile := false
+			//removeFileConfirm := false
+			if SA_DialogStart("fileContext_" + file.Name) {
 				SA_ColMax(0, 5)
 
 				if SA_Button(trns.RENAME).Alpha(1).Align(0).Show(0, 0, 1, 1).click {
-					renameFile = true
+					SA_DialogOpen("RenameFile_"+file.Name, 1)
 				}
 
 				if SA_Button(trns.REMOVE).Alpha(1).Align(0).Show(0, 1, 1, 1).click {
-					removeFileConfirm = true
+					SA_DialogOpen("RemoveFileConfirm_"+file.Name, 1)
 				}
+
 				SA_DialogEnd()
 			}
 
-			if SA_DialogStart("RenameFile_"+file.Name, 1, renameFile) {
+			if SA_DialogStart("RenameFile_" + file.Name) {
 
 				SA_ColMax(0, 7)
 
@@ -570,15 +569,15 @@ func Files() {
 				SA_DialogEnd()
 			}
 
-			if SA_DialogStart("RemoveFileConfirm_"+file.Name, 1, removeFileConfirm) {
-				if SA_DialogConfirm(0, 0, 1, 1) {
+			if SA_DialogStart("RemoveFileConfirm_" + file.Name) {
+				if SA_DialogConfirm() {
 					if store.SelectedFile == file_i {
 						store.SelectedFile = -1
 						store.SelectedApp = -1
 					}
 					SA_InfoSet("remove_file", file.Name)
 				}
-				SA_DialogEnd()
+				SA_DialogEnd() //pokud je pod ním context, tak nastaví context, né root ...
 			}
 		}
 		SA_DivEnd()
@@ -620,28 +619,27 @@ func Files() {
 					SA_DivEnd()
 
 					//context
-					appContextDialog := false
 					if SA_Button("").Alpha(1).Icon(SA_ResourceBuildAssetPath("", "context.png")).MarginIcon(0.3).Show(2, 0, 1, 1).click {
-						appContextDialog = true
+						SA_DialogOpen("appContext_"+file.Name+"_"+strconv.Itoa(app.Sts_id), 1)
 					}
 
-					renameApp := false
-					removeAppConfirm := false
-					if SA_DialogStart("appContext_"+file.Name+"_"+strconv.Itoa(app.Sts_id), 1, appContextDialog) {
+					//renameApp := false
+					//removeAppConfirm := false
+					if SA_DialogStart("appContext_" + file.Name + "_" + strconv.Itoa(app.Sts_id)) {
 						SA_ColMax(0, 5)
 
 						if SA_Button(trns.RENAME).Alpha(1).Align(0).Show(0, 0, 1, 1).click {
-							renameApp = true
+							SA_DialogOpen("RenameApp_"+file.Name+"_"+strconv.Itoa(app.Sts_id), 1)
 						}
 
 						if SA_Button(trns.REMOVE).Alpha(1).Align(0).Show(0, 1, 1, 1).click {
-							removeAppConfirm = true
+							SA_DialogOpen("RemoveAppConfirm_"+file.Name+"_"+strconv.Itoa(app.Sts_id), 1)
 
 						}
 						SA_DialogEnd()
 					}
 
-					if SA_DialogStart("RenameApp_"+file.Name+"_"+strconv.Itoa(app.Sts_id), 1, renameApp) {
+					if SA_DialogStart("RenameApp_" + file.Name + "_" + strconv.Itoa(app.Sts_id)) {
 						SA_ColMax(0, 7)
 						backupLabel := app.Label
 						if SA_Editbox(&app.Label).Show(0, 0, 1, 1).finished {
@@ -653,8 +651,8 @@ func Files() {
 						SA_DialogEnd()
 					}
 
-					if SA_DialogStart("RemoveAppConfirm_"+file.Name+"_"+strconv.Itoa(app.Sts_id), 1, removeAppConfirm) {
-						if SA_DialogConfirm(0, 0, 1, 1) {
+					if SA_DialogStart("RemoveAppConfirm_" + file.Name + "_" + strconv.Itoa(app.Sts_id)) {
+						if SA_DialogConfirm() {
 							if store.SelectedFile == file_i && store.SelectedApp == app_i {
 								store.SelectedApp = -1
 							}
@@ -678,8 +676,10 @@ func Files() {
 	//new database
 	SA_DivStart(0, y, 1, 1)
 	{
-		newFileDialog := SA_Button("+").Show(0, 0, 1, 1).click
-		if SA_DialogStart("newFile", 1, newFileDialog) {
+		if SA_Button("+").Show(0, 0, 1, 1).click {
+			SA_DialogOpen("newFile", 1)
+		}
+		if SA_DialogStart("newFile") {
 
 			SA_ColMax(0, 9)
 			err := CheckFileName(store.createFile, FindFile(store.createFile) != nil)
@@ -727,21 +727,19 @@ func render() uint32 {
 		SA_ColMax(1, 100)
 
 		//Menu + dialogs
-		menuDialog := false
 		if SA_Button("").Alpha(1).Icon(SA_ResourceBuildAssetPath("", "logo_small.png")).IconInverseColor(true).Margin(0.1).Show(0, 0, 1, 1).click {
-			menuDialog = true
+			SA_DialogOpen("Menu", 1)
 		}
-		if SA_DialogStart("Menu", 1, menuDialog) {
+		if SA_DialogStart("Menu") {
 			Menu()
 			SA_DialogEnd()
 		}
-		if SA_DialogStart("Settings", 0, store.settingsDialog) {
-			store.settingsDialog = false
+
+		if SA_DialogStart("Settings") {
 			Settings()
 			SA_DialogEnd()
 		}
-		if SA_DialogStart("About", 0, store.aboutDialog) {
-			store.aboutDialog = false
+		if SA_DialogStart("About") {
 			About()
 			SA_DialogEnd()
 		}

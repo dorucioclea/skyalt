@@ -99,13 +99,13 @@ func _sa_div_start(x, y, w, h uint64, nameMem SAMem) int64
 func _sa_div_end()
 
 //export _sa_div_dialogOpen
-//func _sa_div_dialogOpen(nameMem SAMem, tp uint64) int64
+func _sa_div_dialogOpen(nameMem SAMem, tp uint64) int64
 
 //export _sa_div_dialogClose
 func _sa_div_dialogClose()
 
 //export _sa_div_dialogStart
-func _sa_div_dialogStart(nameMem SAMem, tp uint64, openIt uint64) int64
+func _sa_div_dialogStart(nameMem SAMem) int64
 
 //export _sa_div_dialogEnd
 func _sa_div_dialogEnd()
@@ -235,11 +235,11 @@ func _SA_bytesToPtr(s []byte) SAMem {
 	return SAMem{v: 0}
 }
 
-/*func _SA_ptrToString(mem SAMem) string {
-	ptr := uint32(mem >> 32)
-	size := uint32(mem)
+func _SA_ptrToString(mem SAMem) string {
+	ptr := uint32(mem.v >> 32)
+	size := uint32(mem.v)
 	return unsafe.String((*byte)(unsafe.Pointer(uintptr(ptr))), size)
-}*/
+}
 
 /*func _SA_bytes64ToPtr(s []uint64) uint64 {
 	ptr := unsafe.Pointer(unsafe.SliceData(s))

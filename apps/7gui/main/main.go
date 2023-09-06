@@ -148,17 +148,16 @@ func FlightBooker() {
 
 	SA_Combo(&store.ReturnFlight, trns.ONE_WAY_FLIGHT+"|"+trns.RETURN_FLIGHT).Show(0, 0, 1, 1)
 
-	sz := SA_CallFnShow(0, 1, 1, 1, "calendar", "CalendarButton", store.StartDate, 0, 1)
+	sz := SA_CallFnShow(0, 1, 1, 1, "calendar", "CalendarButton", "Calendar_Start", store.StartDate, 0, 1)
 	SA_CallGetReturn(sz, &store.StartDate)
-	sz = SA_CallFnShow(0, 2, 1, 1, "calendar", "CalendarButton", store.ReturnDate, 0, store.ReturnFlight > 0)
+	sz = SA_CallFnShow(0, 2, 1, 1, "calendar", "CalendarButton", "Calendar_Return", store.ReturnDate, 0, store.ReturnFlight > 0)
 	SA_CallGetReturn(sz, &store.ReturnDate)
 
-	open := false
 	if SA_Button(trns.BOOK).Show(0, 3, 1, 1).click {
-		open = true
+		SA_DialogOpen("FlightBookerDialog", 1)
 	}
 
-	if SA_DialogStart("FlightBookerDialog", 0, open) {
+	if SA_DialogStart("FlightBookerDialog") {
 		FlightBookerDialog()
 		SA_DialogEnd()
 	}
@@ -314,7 +313,6 @@ func CircleDrawerCanvas() {
 	}
 
 	//draw circles + open dialog if clicked
-	openDialog := false
 	for i, it := range store.Circles {
 		if closest_i == i {
 			//highlight
@@ -323,14 +321,14 @@ func CircleDrawerCanvas() {
 
 			if touch_clicked {
 				store.circles_selected = i
-				openDialog = true
+				SA_DialogOpen("CirclesDialog", 2) //if I use name as prefix, I don't need 'store.circles_selected' ...
 			}
 		}
 		SAPaint_Circle(it.X, it.Y, it.Rad, SA_ThemeBlack(), 0.03)
 	}
 
 	//dialog(resize circle)
-	if SA_DialogStart("CirclesDialog", 2, openDialog) {
+	if SA_DialogStart("CirclesDialog") {
 		circle := &store.Circles[store.circles_selected]
 		SA_ColMax(0, 5)
 		if SA_Slider(&circle.Rad).Min(0.1).Max(3).Jump(0.1).Show(0, 0, 1, 1).finished {

@@ -359,26 +359,26 @@ func TablesList() {
 
 			isSelected := (store.SelectedTable == x)
 
-			openTableMenu := false
-			openRenameTable := false
-			removeTableConfirm := false
+			//openTableMenu := false
+			//openRenameTable := false
+			//removeTableConfirm := false
 			if SA_Button(table.Name).Alpha(1).Align(1).Highlight(isSelected).Show(0, 0, 1, 1).click {
 				store.SelectedTable = x
 				if isSelected {
-					openTableMenu = true
+					SA_DialogOpen("TableMenu_"+table.Name, 1)
 				}
 			}
 
 			DragAndDropTable(x)
 
-			if SA_DialogStart("TableMenu_"+table.Name, 1, openTableMenu) {
+			if SA_DialogStart("TableMenu_" + table.Name) {
 				SA_ColMax(0, 5)
 				SA_Row(1, 0.3)
 
 				if SA_Button(trns.RENAME).Alpha(1).Show(0, 0, 1, 1).click {
 					store.renameTable = table.Name
 					SA_DialogClose()
-					openRenameTable = true
+					SA_DialogOpen("RenameTable_"+table.Name, 1)
 				}
 
 				//space
@@ -386,19 +386,19 @@ func TablesList() {
 
 				if SA_Button(trns.REMOVE).BackCd(SA_ThemeWarning()).Show(0, 2, 1, 1).click {
 					SA_DialogClose()
-					removeTableConfirm = true
+					SA_DialogOpen("RemoveTableConfirm_"+table.Name, 1)
 				}
 
 				SA_DialogEnd()
 			}
 
-			if SA_DialogStart("RenameTable_"+table.Name, 1, openRenameTable) {
+			if SA_DialogStart("RenameTable_" + table.Name) {
 				RenameTable(table)
 				SA_DialogEnd()
 			}
 
-			if SA_DialogStart("RemoveTableConfirm_"+table.Name, 1, removeTableConfirm) {
-				if SA_DialogConfirm(0, 0, 1, 1) {
+			if SA_DialogStart("RemoveTableConfirm_" + table.Name) {
+				if SA_DialogConfirm() {
 					SA_SqlWrite("", "DROP TABLE "+table.Name+";")
 				}
 
@@ -464,11 +464,10 @@ func TopHeader() {
 	SA_ColMax(1, 100)
 	SA_Col(2, 2)
 
-	openCreateTable := false
 	if SA_Button("+").Align(1).Title(trns.CREATE_TABLE).Show(0, 0, 1, 1).click {
-		openCreateTable = true
+		SA_DialogOpen("CreateTable", 1)
 	}
-	if SA_DialogStart("CreateTable", 1, openCreateTable) {
+	if SA_DialogStart("CreateTable") {
 		CreateTable()
 		SA_DialogEnd()
 	}
@@ -526,14 +525,11 @@ func TableView(table *Table) {
 			}
 		}
 
-		openColumns := false
-		openFilter := false
-		openSort := false
 		if SA_Button(trns.COLUMNS).Alpha(0.5).Highlight(hidden).Show(0, 0, 1, 1).click {
-			openColumns = true
+			SA_DialogOpen("Columns", 1)
 		}
 
-		if SA_DialogStart("Columns", 1, openColumns) {
+		if SA_DialogStart("Columns") {
 
 			SA_ColMax(0, 5)
 			SA_ColMax(1, 5)
@@ -574,10 +570,10 @@ func TableView(table *Table) {
 
 		if SA_Button(trns.FILTER).Alpha(0.5).Highlight(table.Filter.Enable && len(table.Filter.Items) > 0).Show(2, 0, 1, 1).click || store.showFilterDialog {
 			store.showFilterDialog = false
-			openFilter = true
+			SA_DialogOpen("Filter", 1)
 		}
 
-		if SA_DialogStart("Filter", 1, openFilter) {
+		if SA_DialogStart("Filter") {
 
 			SA_ColMax(0, 2)
 			SA_ColMax(1, 6)
@@ -629,10 +625,10 @@ func TableView(table *Table) {
 		}
 
 		if SA_Button(trns.SORT).Alpha(0.5).Highlight(table.Sort.Enable && len(table.Sort.Items) > 0).Show(4, 0, 1, 1).click {
-			openSort = true
+			SA_DialogOpen("Sort", 1)
 		}
 
-		if SA_DialogStart("Sort", 1, openSort) {
+		if SA_DialogStart("Sort") {
 
 			SA_ColMax(2, 7)
 
@@ -727,7 +723,6 @@ func ColumnDetail(table *Table, column *Column) {
 			table.UpdateColumn(origName, column.Name)
 		}
 
-		changeTypeDialog := false
 		{
 			changeType := (column.Type == "INTEGER" || column.Type == "REAL")
 			nm := column.Type
@@ -750,12 +745,12 @@ func ColumnDetail(table *Table, column *Column) {
 				}
 			}
 			if SA_Button(nm).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, column.Render))).MarginIcon(0.2).Enable(changeType).Show(1, 0, 1, 1).click {
-				changeTypeDialog = true
+				SA_DialogOpen("changeType", 1)
 			}
 		}
 
 		//convert column type
-		if SA_DialogStart("changeType", 1, changeTypeDialog) {
+		if SA_DialogStart("changeType") {
 
 			SA_ColMax(0, 5)
 
@@ -854,13 +849,12 @@ func ColumnDetail(table *Table, column *Column) {
 	}
 
 	//remove
-	removeColumnConfirm := false
 	if SA_Button(trns.REMOVE).BackCd(SA_ThemeWarning()).Show(0, 10, 1, 1).click {
-		removeColumnConfirm = true
+		SA_DialogOpen("RemoveColumnConfirm", 1)
 	}
 
-	if SA_DialogStart("RemoveColumnConfirm", 1, removeColumnConfirm) {
-		if SA_DialogConfirm(0, 0, 1, 1) {
+	if SA_DialogStart("RemoveColumnConfirm") {
+		if SA_DialogConfirm() {
 			SA_SqlWrite("", "ALTER TABLE "+table.Name+" DROP COLUMN "+column.Name+";")
 			SA_DialogClose()
 		}
@@ -952,7 +946,6 @@ func TableColumns(table *Table) {
 			nm = "#"
 		}
 
-		openDetail := false
 		SA_DivStart(x, 0, 1, 1)
 		{
 			SA_ColMax(0, 100)
@@ -961,7 +954,7 @@ func TableColumns(table *Table) {
 				SA_Button(nm).Show(0, 0, 1, 1)
 			} else {
 				if SA_Button(nm).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(col.Type, col.Render))).MarginIcon(0.2).Show(0, 0, 1, 1).click && !col.isRowId() {
-					openDetail = true
+					SA_DialogOpen("columnDetail_"+nm, 1)
 				}
 
 				DragAndDropColumn(x, table)
@@ -969,7 +962,7 @@ func TableColumns(table *Table) {
 		}
 		SA_DivEnd()
 
-		if SA_DialogStart("columnDetail_"+nm, 1, openDetail) {
+		if SA_DialogStart("columnDetail_" + nm) {
 			ColumnDetail(table, col)
 			SA_DialogEnd()
 		}
@@ -978,12 +971,11 @@ func TableColumns(table *Table) {
 	}
 
 	//create column
-	createColumn := false
 	if SA_Button("+").Show(x, 0, 1, 1).click {
-		createColumn = true
+		SA_DialogOpen("createColumn", 1)
 	}
 
-	if SA_DialogStart("createColumn", 1, createColumn) {
+	if SA_DialogStart("createColumn") {
 
 		SA_ColMax(0, 5)
 		y := 0
@@ -1142,9 +1134,11 @@ func TableRows(table *Table) {
 					writeCell := false
 					if col.isRowId() {
 
-						rowidDialog := SA_Button(values[x]).Show(0, 0, 1, rowSize).click
+						if SA_Button(values[x]).Show(0, 0, 1, rowSize).click {
+							SA_DialogOpen("RowId_"+values[x], 1)
+						}
 
-						if SA_DialogStart("RowId_"+values[x], 1, rowidDialog) {
+						if SA_DialogStart("RowId_" + values[x]) {
 							SA_ColMax(0, 5)
 
 							if SA_Button(trns.REMOVE).BackCd(SA_ThemeWarning()).Show(0, 0, 1, 1).click {
@@ -1171,9 +1165,11 @@ func TableRows(table *Table) {
 								if r > 0 && inside {
 									SAPaint_Cursor("hand")
 								}
-								showImageDialog := r > 0 && inside && end
+								if r > 0 && inside && end {
+									SA_DialogOpen("Image_"+values[x], 1)
+								}
 
-								if SA_DialogStart("Image_"+values[x], 1, showImageDialog) {
+								if SA_DialogStart("Image_" + values[x]) {
 									SA_ColMax(0, 15)
 									SA_RowMax(0, 15)
 									SAPaint_File(0, 0, 1, 1, res, "", 0.03, 0, 0, SA_ThemeWhite(), 1, 1, false, false)
@@ -1219,7 +1215,7 @@ func TableRows(table *Table) {
 							}
 						case "DATE":
 							date, _ := strconv.Atoi(values[x])
-							sz := SA_CallFnShow(x, 0, 1, rowSize, "calendar", "CalendarButton", date, 0, 1) //date picker
+							sz := SA_CallFnShow(x, 0, 1, rowSize, "calendar", "CalendarButton", fmt.Sprint("Calendar_%s_%s_%d_%d", table.Name, col.Name, st, x), date, 0, 1) //date picker
 							var date2 int
 							SA_CallGetReturn(sz, &date2)
 							if date != date2 {
@@ -1309,11 +1305,10 @@ func TableStats(table *Table) {
 				text = col.StatFunc + ": " + values[stat_i]
 				stat_i++
 			}
-			dialogStat := false
 			if SA_Button(text).BackCd(SA_ThemeWhite().Aprox(SA_ThemeBack(), 0.4)).Align(0).Show(x, 0, 1, 1).click { //show result
-				dialogStat = true
+				SA_DialogOpen("Stat_"+strconv.Itoa(x), 1)
 			}
-			if SA_DialogStart("Stat_"+strconv.Itoa(x), 1, dialogStat) {
+			if SA_DialogStart("Stat_" + strconv.Itoa(x)) {
 
 				SA_ColMax(0, 5)
 				y := 0

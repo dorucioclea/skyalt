@@ -30,18 +30,18 @@ type Storage struct {
 	Small_date int64
 	Small_page int64
 
-	new_event_page       int64
-	new_event_start_date int64
-	new_event_start_hour int
-	new_event_start_min  int
+	event_page       int64
+	event_start_date int64
+	event_start_hour int
+	event_start_min  int
 
-	new_event_end_date int64
-	new_event_end_hour int
-	new_event_end_min  int
+	event_end_date int64
+	event_end_hour int
+	event_end_min  int
 
-	new_event_title       string
-	new_event_description string
-	new_event_file        string
+	event_title       string
+	event_description string
+	event_file        string
 }
 
 type Translations struct {
@@ -91,7 +91,9 @@ type Translations struct {
 	BEGIN  string
 	FINISH string
 
-	EMPTY string
+	EMPTY  string
+	EDIT   string
+	DELETE string
 }
 
 func MonthText(month int) string {
@@ -191,7 +193,7 @@ func GetStartWeekDay(date time.Time, format float64) time.Time {
 	return date.AddDate(0, 0, -weekDay)
 }
 
-func GetFullDay(unix_sec int64) string {
+func GetTextDate(unix_sec int64) string {
 
 	tm := time.Unix(unix_sec, 0)
 
@@ -217,6 +219,18 @@ func GetFullDay(unix_sec int64) string {
 	}
 
 	return ""
+}
+
+func GetTextTime(unix_sec int64) string {
+
+	hour := (unix_sec % (24 * 3600)) / 3600
+	min := (unix_sec % 3600) / 60
+
+	return fmt.Sprintf("%d:%d", hour, min)
+}
+
+func GetTextDateTime(unix_sec int64) string {
+	return GetTextDate(unix_sec) + " " + GetTextTime(unix_sec)
 }
 
 func GetMonthYear(unix_sec int64) string {
@@ -318,13 +332,13 @@ func DateTimePicker(name string, date *int64, hour *int, minute *int) bool {
 	SA_Text(name).Show(0, 0, 1, 1)
 
 	//date
-	showStart := false
-	if SA_Button(GetFullDay(*date)).Show(1, 0, 1, 1).click {
-		showStart = true
-		store.new_event_page = int64(SA_Time())
+	if SA_Button(GetTextDate(*date)).Show(1, 0, 1, 1).click {
+		SA_DialogOpen("DateTimePicker_"+name, 1)
+		store.event_page = int64(SA_Time())
 	}
-	if SA_DialogStart("StartDate", 1, showStart) {
-		Calendar(date, &store.new_event_page)
+
+	if SA_DialogStart("DateTimePicker_" + name) {
+		Calendar(date, &store.event_page)
 		SA_DialogEnd()
 	}
 
@@ -366,20 +380,20 @@ func CreateEvent() {
 
 	//start date
 	SA_DivStart(0, 0, 1, 1)
-	startOk := DateTimePicker(trns.BEGIN, &store.new_event_start_date, &store.new_event_start_hour, &store.new_event_start_min)
+	startOk := DateTimePicker(trns.BEGIN, &store.event_start_date, &store.event_start_hour, &store.event_start_min)
 	SA_DivEnd()
 
 	//end date
 	SA_DivStart(0, 1, 1, 1)
-	endOk := DateTimePicker(trns.FINISH, &store.new_event_end_date, &store.new_event_end_hour, &store.new_event_end_min)
+	endOk := DateTimePicker(trns.FINISH, &store.event_end_date, &store.event_end_hour, &store.event_end_min)
 	SA_DivEnd()
 
 	var errTitle error
-	if len(store.new_event_title) == 0 {
+	if len(store.event_title) == 0 {
 		errTitle = errors.New(trns.EMPTY)
 	}
-	SA_Editbox(&store.new_event_title).TempToValue(true).Error(errTitle).ShowDescription(0, 2, 1, 1, trns.TITLE, 3, 0)
-	SA_Editbox(&store.new_event_description).ShowDescription(0, 3, 1, 1, trns.DESCRIPTION, 3, 0)
+	SA_Editbox(&store.event_title).TempToValue(true).Error(errTitle).ShowDescription(0, 2, 1, 1, trns.TITLE, 3, 0)
+	SA_Editbox(&store.event_description).ShowDescription(0, 3, 1, 1, trns.DESCRIPTION, 3, 0)
 	//SA_Editbox(&store.new_event_file).ShowDescription(0, 4, 1, 1, trns.FILE, 3, 0) //drag & drop ...
 
 	SA_DivStart(0, 5, 1, 1)
@@ -388,22 +402,22 @@ func CreateEvent() {
 		SA_ColMax(1, 100)
 
 		if SA_Button(trns.ADD_EVENT).Enable(startOk && endOk && errTitle == nil).Show(0, 0, 1, 1).click {
-			store.new_event_start_date -= store.new_event_start_date % (24 * 3600) //round to begin of day
-			store.new_event_end_date -= store.new_event_end_date % (24 * 3600)     //round to begin of day
+			store.event_start_date -= store.event_start_date % (24 * 3600) //round to begin of day
+			store.event_end_date -= store.event_end_date % (24 * 3600)     //round to begin of day
 
-			start := store.new_event_start_date + (int64(store.new_event_start_hour) * 3600) + (int64(store.new_event_start_min) * 60)
-			end := store.new_event_end_date + (int64(store.new_event_end_hour) * 3600) + (int64(store.new_event_end_min) * 60)
+			start := store.event_start_date + (int64(store.event_start_hour) * 3600) + (int64(store.event_start_min) * 60)
+			end := store.event_end_date + (int64(store.event_end_hour) * 3600) + (int64(store.event_end_min) * 60)
 
 			//send file into db - maybe hex()? ...
-			SA_SqlWrite("", fmt.Sprintf("INSERT INTO events(start, end, title, description) VALUES(%d, %d, '%s', '%s');", start, end, store.new_event_title, store.new_event_description))
+			SA_SqlWrite("", fmt.Sprintf("INSERT INTO events(start, end, title, description) VALUES(%d, %d, '%s', '%s');", start, end, store.event_title, store.event_description))
 			SA_DialogClose()
 		}
 		if SA_Button(trns.CANCEL).Show(1, 0, 1, 1).click {
-			store.new_event_start_date = 0
-			store.new_event_end_date = 0
-			store.new_event_title = ""
-			store.new_event_description = ""
-			store.new_event_file = ""
+			store.event_start_date = 0
+			store.event_end_date = 0
+			store.event_title = ""
+			store.event_description = ""
+			store.event_file = ""
 			SA_DialogClose()
 		}
 	}
@@ -423,24 +437,25 @@ func Side() {
 		SA_Row(4, 0.3)
 		SA_RowMax(5, 100)
 
-		newEvent := false
+		//newEvent := false
 		if SA_Button(trns.NEW_ITEM).Show(0, 0, 1, 1).click {
-			newEvent = true
+			//newEvent = true
+			SA_DialogOpen("NewEvent", 0)
 
 			//init
-			store.new_event_start_date = int64(SA_Time())
-			store.new_event_end_date = int64(SA_Time())
+			store.event_start_date = int64(SA_Time())
+			store.event_end_date = int64(SA_Time())
 
 			tm := time.Unix(int64(SA_Time()), 0)
 
-			store.new_event_start_hour = tm.Hour()
-			store.new_event_start_min = tm.Minute()
+			store.event_start_hour = tm.Hour()
+			store.event_start_min = tm.Minute()
 
-			store.new_event_end_hour = store.new_event_start_hour
-			store.new_event_end_min = store.new_event_start_min
+			store.event_end_hour = store.event_start_hour
+			store.event_end_min = store.event_start_min
 		}
 
-		if SA_DialogStart("NewEvent", 0, newEvent) {
+		if SA_DialogStart("NewEvent") {
 			CreateEvent()
 			SA_DialogEnd()
 		}
@@ -614,8 +629,9 @@ func ModeMonth() {
 						//fmt.Print(dtt)
 						t := dtt.Unix()
 						t -= t % (24 * 3600)
-						query := SA_SqlRead("", fmt.Sprintf("SELECT start, title FROM events WHERE start > %d AND start < %d ORDER BY start", t, t+(24*3600)))
+						query := SA_SqlRead("", fmt.Sprintf("SELECT rowid, start, title FROM events WHERE start > %d AND start < %d ORDER BY start", t, t+(24*3600)))
 
+						SA_DivSetInfo("scrollVnarrow", 1)
 						//paintRect(borderWidth:0.03, margin: 0.1, color: themeGrey())
 						SA_ColMax(0, 100)
 						for i := int64(0); i < query.row_count; i++ {
@@ -623,12 +639,40 @@ func ModeMonth() {
 						}
 
 						y := 0
-						var start int64
+						var rowid, start int64
 						var title string
-						for query.Next(&start, &title) {
-							if SA_Button(title).Title(GetFullTime(start)).Align(0).Margin(0.06).Show(0, y, 1, 1).click {
-								//open dialog ...
+						for query.Next(&rowid, &start, &title) {
+
+							//2) for SA_DialogStartPrefix("eventDetail_", &rowid) + SA_DialogEnd() ...
+							//3) SA_DialogIsInit(), vrací true když se volá poprvé ...
+							//4) SA_DialogCloseName("dd")
+
+							//openEdit := false
+							//openRemove := false
+							if SA_Button(title).Alpha(0.5).Title(GetTextTime(start)).Align(0).Margin(0.06).Show(0, y, 1, 1).click {
+								SA_DialogOpen(fmt.Sprintf("eventDetail_%d", rowid), 1)
 							}
+
+							//details
+							if SA_DialogStart(fmt.Sprintf("eventDetail_%d", rowid)) {
+								EventDetail(rowid)
+								SA_DialogEnd()
+							}
+
+							//edit
+							if SA_DialogStart(fmt.Sprintf("eventEdit_%d", rowid)) {
+								EventEdit(rowid)
+								SA_DialogEnd()
+							}
+
+							//remove
+							if SA_DialogStart(fmt.Sprintf("eventRemove_%d", rowid)) {
+								if SA_DialogConfirm() {
+									SA_SqlWrite("", fmt.Sprintf("DELETE FROM events WHERE rowid=%d;", rowid))
+								}
+								SA_DialogEnd()
+							}
+
 							y++
 						}
 					}
@@ -641,6 +685,87 @@ func ModeMonth() {
 			}
 		}
 	}
+}
+
+func EventDetail(rowid int64) {
+
+	query := SA_SqlRead("", fmt.Sprintf("SELECT start, end, title, description FROM events WHERE rowid=%d", rowid))
+	var start, end int64
+	var title, description string
+	if query.Next(&start, &end, &title, &description) {
+
+		SA_ColMax(0, 10)
+
+		SA_Text(GetTextDateTime(start)).ShowDescription(0, 0, 1, 1, trns.BEGIN, 3, 0)
+		SA_Text(GetTextDateTime(end)).ShowDescription(0, 1, 1, 1, trns.FINISH, 3, 0)
+		SA_Text(title).ShowDescription(0, 2, 1, 1, trns.TITLE, 3, 0)
+		SA_Text(description).ShowDescription(0, 3, 1, 1, trns.DESCRIPTION, 3, 0)
+
+		SA_DivStart(0, 4, 1, 1)
+		{
+			SA_ColMax(0, 4)
+			SA_ColMax(1, 100)
+			SA_ColMax(2, 2)
+			if SA_Button(trns.EDIT).Show(0, 0, 1, 1).click {
+				SA_DialogClose()
+				SA_DialogOpen(fmt.Sprintf("eventEdit_%d", rowid), 1)
+			}
+			if SA_Button(trns.DELETE).Show(2, 0, 1, 1).click {
+				SA_DialogClose()
+				SA_DialogOpen(fmt.Sprintf("eventRemove_%d", rowid), 1)
+			}
+		}
+		SA_DivEnd()
+	}
+}
+
+func EventEdit(rowid int64) {
+
+	query := SA_SqlRead("", fmt.Sprintf("SELECT start, end, title, description FROM events WHERE rowid=%d", rowid))
+	var start, end int64
+	var title, description string
+	if query.Next(&start, &end, &title, &description) {
+
+		SA_ColMax(0, 15)
+
+		//...
+
+		//start date
+		/*SA_DivStart(0, 0, 1, 1)
+		startOk := DateTimePicker(trns.BEGIN, &store.event_start_date, &store.event_start_hour, &store.event_start_min)
+		SA_DivEnd()
+
+		//end date
+		SA_DivStart(0, 1, 1, 1)
+		endOk := DateTimePicker(trns.FINISH, &store.event_end_date, &store.event_end_hour, &store.event_end_min)
+		SA_DivEnd()
+
+		var errTitle error
+		if len(store.event_title) == 0 {
+			errTitle = errors.New(trns.EMPTY)
+		}
+		if SA_Editbox(&store.event_title).TempToValue(true).Error(errTitle).ShowDescription(0, 2, 1, 1, trns.TITLE, 3, 0).finished {
+			//sql write ...
+		}
+		if SA_Editbox(&store.event_description).ShowDescription(0, 3, 1, 1, trns.DESCRIPTION, 3, 0).finished {
+			//sql write ...
+		}
+		//SA_Editbox(&store.new_event_file).ShowDescription(0, 4, 1, 1, trns.FILE, 3, 0) //drag & drop ...
+		*/
+
+		SA_DivStart(0, 4, 1, 1)
+		{
+			SA_ColMax(0, 4)
+			SA_ColMax(1, 100)
+			SA_ColMax(2, 2)
+			if SA_Button(trns.DELETE).Show(2, 0, 1, 1).click {
+				SA_DialogClose()
+				SA_DialogOpen(fmt.Sprintf("eventRemove_%d", rowid), 1)
+			}
+		}
+		SA_DivEnd()
+	}
+
 }
 
 func ModeWeek() {
@@ -839,7 +964,7 @@ func ModePanel() {
 		ModeWeek()
 		SA_DivEnd()
 	} else if store.Mode == "day" {
-		title = GetFullDay(store.Small_date)
+		title = GetTextDate(store.Small_date)
 		SA_DivStartName(0, 1, 1, 1, "day")
 		ModeDay()
 		SA_DivEnd()
@@ -852,7 +977,7 @@ func ModePanel() {
 		SA_ColMax(4, 8)
 
 		//today
-		if SA_Button(trns.TODAY).Title(GetFullDay(int64(SA_Time()))).Alpha(0.5).Show(0, 0, 1, 1).click {
+		if SA_Button(trns.TODAY).Title(GetTextDate(int64(SA_Time()))).Alpha(0.5).Show(0, 0, 1, 1).click {
 			store.Small_date = int64(SA_Time())
 			store.Small_page = int64(SA_Time())
 		}
