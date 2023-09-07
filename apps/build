@@ -1,3 +1,7 @@
+#!/usr/bin/env bash
+
+START=$(date +%s);
+
 echo "base/main"
 (cp sdk.go base/main/sdk.go;cp sdk_wasi.go base/main/sdk_wasi.go;cd base/main;sh build;rm sdk.go;rm sdk_wasi.go;cd ../../) & 
 
@@ -20,3 +24,5 @@ echo "db/main"
 (cp sdk.go db/main/sdk.go;cp sdk_wasi.go db/main/sdk_wasi.go;cd db/main;sh build;rm sdk.go;rm sdk_wasi.go;cd ../../ ) &
 
 wait
+END=$(date +%s);
+echo $((END-START)) | awk '{print "Compiled in "int($1/60)"min "int($1%60)"sec"}'
