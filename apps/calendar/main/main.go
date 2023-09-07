@@ -375,7 +375,7 @@ func DateTimePicker(name string, date *int64, hour *int, minute *int) bool {
 	return err1 == nil && err2 == nil
 }
 
-func CreateEvent() {
+func EditEvent(rowid int64) {
 	SA_ColMax(0, 15)
 
 	//start date
@@ -401,7 +401,11 @@ func CreateEvent() {
 		SA_ColMax(0, 100)
 		SA_ColMax(1, 100)
 
-		if SA_Button(trns.ADD_EVENT).Enable(startOk && endOk && errTitle == nil).Show(0, 0, 1, 1).click {
+		bNm := trns.ADD_EVENT
+		if rowid >= 0 {
+			bNm = trns.EDIT
+		}
+		if SA_Button(bNm).Enable(startOk && endOk && errTitle == nil).Show(0, 0, 1, 1).click {
 			store.event_start_date -= store.event_start_date % (24 * 3600) //round to begin of day
 			store.event_end_date -= store.event_end_date % (24 * 3600)     //round to begin of day
 
@@ -409,7 +413,11 @@ func CreateEvent() {
 			end := store.event_end_date + (int64(store.event_end_hour) * 3600) + (int64(store.event_end_min) * 60)
 
 			//send file into db - maybe hex()? ...
-			SA_SqlWrite("", fmt.Sprintf("INSERT INTO events(start, end, title, description) VALUES(%d, %d, '%s', '%s');", start, end, store.event_title, store.event_description))
+			if rowid >= 0 {
+				SA_SqlWrite("", fmt.Sprintf("UPDATE events SET start=%d, end=%d, title='%s', description='%s' WHERE rowid=%d;", start, end, store.event_title, store.event_description, rowid))
+			} else {
+				SA_SqlWrite("", fmt.Sprintf("INSERT INTO events(start, end, title, description) VALUES(%d, %d, '%s', '%s');", start, end, store.event_title, store.event_description))
+			}
 			SA_DialogClose()
 		}
 		if SA_Button(trns.CANCEL).Show(1, 0, 1, 1).click {
@@ -422,6 +430,47 @@ func CreateEvent() {
 		}
 	}
 	SA_DivEnd()
+}
+
+func ShowEvent(rowid int64) {
+
+	query := SA_SqlRead("", fmt.Sprintf("SELECT start, end, title, description FROM events WHERE rowid=%d", rowid))
+	var start, end int64
+	var title, description string
+	if query.Next(&start, &end, &title, &description) {
+
+		SA_ColMax(0, 10)
+
+		SA_Text(GetTextDateTime(start)).ShowDescription(0, 0, 1, 1, trns.BEGIN, 3, 0)
+		SA_Text(GetTextDateTime(end)).ShowDescription(0, 1, 1, 1, trns.FINISH, 3, 0)
+		SA_Text(title).ShowDescription(0, 2, 1, 1, trns.TITLE, 3, 0)
+		SA_Text(description).ShowDescription(0, 3, 1, 1, trns.DESCRIPTION, 3, 0)
+
+		SA_DivStart(0, 4, 1, 1)
+		{
+			SA_ColMax(0, 4)
+			SA_ColMax(1, 100)
+			SA_ColMax(2, 2)
+			if SA_Button(trns.EDIT).Show(0, 0, 1, 1).click {
+				SA_DialogClose()
+				SA_DialogOpen(fmt.Sprintf("eventEdit_%d", rowid), 1)
+				store.event_start_date = start
+				store.event_end_date = end
+				store.event_start_hour = int(start%(24*3600)) / 3600
+				store.event_start_min = int(start%3600) / 60
+				store.event_end_hour = int(end%(24*3600)) / 3600
+				store.event_end_min = int(end%3600) / 60
+
+				store.event_title = title
+				store.event_description = description
+			}
+			if SA_Button(trns.DELETE).Show(2, 0, 1, 1).click {
+				SA_DialogClose()
+				SA_DialogOpen(fmt.Sprintf("eventRemove_%d", rowid), 1)
+			}
+		}
+		SA_DivEnd()
+	}
 }
 
 func Side() {
@@ -445,18 +494,15 @@ func Side() {
 			//init
 			store.event_start_date = int64(SA_Time())
 			store.event_end_date = int64(SA_Time())
-
 			tm := time.Unix(int64(SA_Time()), 0)
-
 			store.event_start_hour = tm.Hour()
 			store.event_start_min = tm.Minute()
-
 			store.event_end_hour = store.event_start_hour
 			store.event_end_min = store.event_start_min
 		}
 
 		if SA_DialogStart("NewEvent") {
-			CreateEvent()
+			EditEvent(-1)
 			SA_DialogEnd()
 		}
 
@@ -629,7 +675,7 @@ func ModeMonth() {
 						//fmt.Print(dtt)
 						t := dtt.Unix()
 						t -= t % (24 * 3600)
-						query := SA_SqlRead("", fmt.Sprintf("SELECT rowid, start, title FROM events WHERE start > %d AND start < %d ORDER BY start", t, t+(24*3600)))
+						query := SA_SqlRead("", fmt.Sprintf("SELECT rowid, start, title FROM events WHERE start >= %d AND start < %d ORDER BY start", t, t+(24*3600)))
 
 						SA_DivSetInfo("scrollVnarrow", 1)
 						//paintRect(borderWidth:0.03, margin: 0.1, color: themeGrey())
@@ -643,35 +689,11 @@ func ModeMonth() {
 						var title string
 						for query.Next(&rowid, &start, &title) {
 
-							//2) for SA_DialogStartPrefix("eventDetail_", &rowid) + SA_DialogEnd() ...
-							//3) SA_DialogIsInit(), vrací true když se volá poprvé ...
-							//4) SA_DialogCloseName("dd")
-
-							//openEdit := false
-							//openRemove := false
 							if SA_Button(title).Alpha(0.5).Title(GetTextTime(start)).Align(0).Margin(0.06).Show(0, y, 1, 1).click {
 								SA_DialogOpen(fmt.Sprintf("eventDetail_%d", rowid), 1)
 							}
 
-							//details
-							if SA_DialogStart(fmt.Sprintf("eventDetail_%d", rowid)) {
-								EventDetail(rowid)
-								SA_DialogEnd()
-							}
-
-							//edit
-							if SA_DialogStart(fmt.Sprintf("eventEdit_%d", rowid)) {
-								EventEdit(rowid)
-								SA_DialogEnd()
-							}
-
-							//remove
-							if SA_DialogStart(fmt.Sprintf("eventRemove_%d", rowid)) {
-								if SA_DialogConfirm() {
-									SA_SqlWrite("", fmt.Sprintf("DELETE FROM events WHERE rowid=%d;", rowid))
-								}
-								SA_DialogEnd()
-							}
+							eventDialogs(rowid)
 
 							y++
 						}
@@ -687,85 +709,27 @@ func ModeMonth() {
 	}
 }
 
-func EventDetail(rowid int64) {
+func eventDialogs(rowid int64) {
 
-	query := SA_SqlRead("", fmt.Sprintf("SELECT start, end, title, description FROM events WHERE rowid=%d", rowid))
-	var start, end int64
-	var title, description string
-	if query.Next(&start, &end, &title, &description) {
-
-		SA_ColMax(0, 10)
-
-		SA_Text(GetTextDateTime(start)).ShowDescription(0, 0, 1, 1, trns.BEGIN, 3, 0)
-		SA_Text(GetTextDateTime(end)).ShowDescription(0, 1, 1, 1, trns.FINISH, 3, 0)
-		SA_Text(title).ShowDescription(0, 2, 1, 1, trns.TITLE, 3, 0)
-		SA_Text(description).ShowDescription(0, 3, 1, 1, trns.DESCRIPTION, 3, 0)
-
-		SA_DivStart(0, 4, 1, 1)
-		{
-			SA_ColMax(0, 4)
-			SA_ColMax(1, 100)
-			SA_ColMax(2, 2)
-			if SA_Button(trns.EDIT).Show(0, 0, 1, 1).click {
-				SA_DialogClose()
-				SA_DialogOpen(fmt.Sprintf("eventEdit_%d", rowid), 1)
-			}
-			if SA_Button(trns.DELETE).Show(2, 0, 1, 1).click {
-				SA_DialogClose()
-				SA_DialogOpen(fmt.Sprintf("eventRemove_%d", rowid), 1)
-			}
-		}
-		SA_DivEnd()
-	}
-}
-
-func EventEdit(rowid int64) {
-
-	query := SA_SqlRead("", fmt.Sprintf("SELECT start, end, title, description FROM events WHERE rowid=%d", rowid))
-	var start, end int64
-	var title, description string
-	if query.Next(&start, &end, &title, &description) {
-
-		SA_ColMax(0, 15)
-
-		//...
-
-		//start date
-		/*SA_DivStart(0, 0, 1, 1)
-		startOk := DateTimePicker(trns.BEGIN, &store.event_start_date, &store.event_start_hour, &store.event_start_min)
-		SA_DivEnd()
-
-		//end date
-		SA_DivStart(0, 1, 1, 1)
-		endOk := DateTimePicker(trns.FINISH, &store.event_end_date, &store.event_end_hour, &store.event_end_min)
-		SA_DivEnd()
-
-		var errTitle error
-		if len(store.event_title) == 0 {
-			errTitle = errors.New(trns.EMPTY)
-		}
-		if SA_Editbox(&store.event_title).TempToValue(true).Error(errTitle).ShowDescription(0, 2, 1, 1, trns.TITLE, 3, 0).finished {
-			//sql write ...
-		}
-		if SA_Editbox(&store.event_description).ShowDescription(0, 3, 1, 1, trns.DESCRIPTION, 3, 0).finished {
-			//sql write ...
-		}
-		//SA_Editbox(&store.new_event_file).ShowDescription(0, 4, 1, 1, trns.FILE, 3, 0) //drag & drop ...
-		*/
-
-		SA_DivStart(0, 4, 1, 1)
-		{
-			SA_ColMax(0, 4)
-			SA_ColMax(1, 100)
-			SA_ColMax(2, 2)
-			if SA_Button(trns.DELETE).Show(2, 0, 1, 1).click {
-				SA_DialogClose()
-				SA_DialogOpen(fmt.Sprintf("eventRemove_%d", rowid), 1)
-			}
-		}
-		SA_DivEnd()
+	//details
+	if SA_DialogStart(fmt.Sprintf("eventDetail_%d", rowid)) {
+		ShowEvent(rowid)
+		SA_DialogEnd()
 	}
 
+	//edit
+	if SA_DialogStart(fmt.Sprintf("eventEdit_%d", rowid)) {
+		EditEvent(rowid)
+		SA_DialogEnd()
+	}
+
+	//remove
+	if SA_DialogStart(fmt.Sprintf("eventRemove_%d", rowid)) {
+		if SA_DialogConfirm() {
+			SA_SqlWrite("", fmt.Sprintf("DELETE FROM events WHERE rowid=%d;", rowid))
+		}
+		SA_DialogEnd()
+	}
 }
 
 func ModeWeek() {
@@ -850,13 +814,14 @@ func ModeWeek() {
 			SA_DivEnd()
 		}
 
-		for y := 0; y < 24; y++ {
-			for x := 0; x < 7; x++ {
-				SA_DivStart(1+x, y*2+1, 1, 1)
-				//db ...
-				//paintRect(borderWidth:0.03, margin: 0.1)
-				SA_DivEnd()
-			}
+		//events
+		dtt = GetStartWeekDay(time.Unix(store.Small_date, 0), format)
+		for x := 0; x < 7; x++ {
+			SA_DivStart(1+x, 0, 1, 24*2+1)
+			DayEvent(dtt.Unix())
+			SA_DivEnd()
+
+			dtt = dtt.AddDate(0, 0, 1) //add day
 		}
 
 		//time-line
@@ -870,14 +835,115 @@ func ModeWeek() {
 
 			SA_DivStart(1, 0, 7, 24*2+1)
 			{
-				SAPaint_Line(0, h, 1, h, SA_ThemeEdit(), 0.03)             //... marginY: 0.3/2)
-				SAPaint_Circle(float64(week)/7, h, 0.1, SA_ThemeEdit(), 0) //... marginX: 0.1, marginY: 0.3/2)
+				SA_DivSetInfo("touch_enable", 0)
+				SAPaint_Line(0, h, 1, h, SA_ThemeEdit(), 0.03)
+				SAPaint_Circle(float64(week)/7, h, 0.1, SA_ThemeEdit(), 0)
 			}
 			SA_DivEnd()
 		}
 
 	}
 	SA_DivEnd()
+}
+
+type EventItem struct {
+	rowid, start, end, endVisual int64
+	title                        string
+}
+
+func (a EventItem) HasCover(b EventItem) bool {
+
+	//b is before
+	if b.start < a.start && b.endVisual < a.start {
+		return false
+	}
+
+	//b is after
+	if b.start > a.endVisual && b.endVisual > a.endVisual {
+		return false
+	}
+
+	return true
+}
+
+func DayEvent(t int64) {
+	stT := t - (t % (24 * 3600))
+	enT := stT + (24 * 3600)
+
+	var cols [][]EventItem
+	query := SA_SqlRead("", fmt.Sprintf("SELECT rowid, start, end, title FROM events WHERE start >= %d AND start < %d ORDER BY start", stT, enT))
+	var item EventItem
+	for query.Next(&item.rowid, &item.start, &item.end, &item.title) {
+
+		item.endVisual = item.end
+		if (item.end - item.start) < 3600/4 {
+			item.endVisual = item.start + 3600/4
+		}
+
+		//find column
+		fcol := 0
+		for c := 0; c < len(cols); c++ {
+			found := false
+			for _, it := range cols[c] {
+				if it.HasCover(item) {
+					fcol++
+					found = true
+					break
+				}
+			}
+			if !found {
+				break
+			}
+		}
+
+		//add
+		if fcol == len(cols) {
+			cols = append(cols, []EventItem{})
+		}
+		cols[fcol] = append(cols[fcol], item)
+	}
+
+	SA_RowMax(0, 100)
+	for c := 0; c < len(cols); c++ {
+		SA_ColMax(c, 100)
+	}
+
+	height := SA_DivInfo("layoutHeight") - 0.15
+	for c := 0; c < len(cols); c++ {
+		SA_DivStart(c, 0, 1, 1)
+
+		{
+			SA_ColMax(0, 100)
+			last_end := float64(0)
+			for i, it := range cols[c] {
+
+				daySec := int64(24 * 3600)
+				start := float64(it.start%daySec) / float64(daySec)
+				end := float64(it.endVisual%daySec) / float64(daySec)
+				if it.endVisual/daySec > it.start/daySec {
+					end = 1
+				}
+
+				start *= height
+				end *= height
+				start += 0.15
+				end += 0.15
+
+				SA_Row(i*2+0, float64(start-last_end))
+				SA_Row(i*2+1, float64(end-start))
+				last_end = end
+			}
+
+			for i, it := range cols[c] {
+				if SA_Button(it.title).Align(1).Title(GetTextTime(it.start)+"-"+GetTextTime(it.end)).Show(0, i*2+1, 1, 1).click {
+					SA_DialogOpen(fmt.Sprintf("eventDetail_%d", it.rowid), 1)
+				}
+
+				eventDialogs(it.rowid)
+			}
+		}
+		SA_DivEnd()
+	}
 
 }
 
@@ -919,12 +985,11 @@ func ModeDay() {
 			SA_DivEnd()
 		}
 
-		for y := 0; y < 24; y++ {
-			SA_DivStart(1, y*2+1, 1, 1)
-			//db ...
-			//paintRect(borderWidth:0.03, margin: 0.1)
-			SA_DivEnd()
-		}
+		//events
+		SA_DivStart(1, 0, 1, 24*2+1)
+		dtt := time.Unix(store.Small_date, 0)
+		DayEvent(dtt.Unix())
+		SA_DivEnd()
 
 		//time-line
 		if CmpDates(time.Now().Unix(), store.Small_date) { //today == day
@@ -933,8 +998,9 @@ func ModeDay() {
 			h := (float64(dt.Hour()) + (float64(dt.Minute()) / 60)) / 24
 			SA_DivStart(1, 0, 1, 24*2+1)
 			{
-				SAPaint_Line(0, h, 1, h, SA_ThemeEdit(), 0.03) //... marginY: 0.3/2)
-				SAPaint_Circle(0, h, 0.1, SA_ThemeEdit(), 0)   //... marginX: 0.1, marginY: 0.3/2)
+				SA_DivSetInfo("touch_enable", 0)
+				SAPaint_Line(0, h, 1, h, SA_ThemeEdit(), 0.03)
+				SAPaint_Circle(0, h, 0.1, SA_ThemeEdit(), 0)
 			}
 			SA_DivEnd()
 		}
@@ -1080,5 +1146,5 @@ func save() ([]byte, bool) {
 	return nil, false //default json
 }
 func debug() (int, int, string) {
-	return -1, 12, "main"
+	return -1, 22, "main"
 }
