@@ -525,7 +525,7 @@ func TableView(table *Table) {
 			}
 		}
 
-		if SA_Button(trns.COLUMNS).Alpha(0.5).Highlight(hidden).Show(0, 0, 1, 1).click {
+		if SA_Button(trns.COLUMNS).Alpha(1).Border(true).Highlight(hidden).Show(0, 0, 1, 1).click {
 			SA_DialogOpen("Columns", 1)
 		}
 
@@ -568,7 +568,7 @@ func TableView(table *Table) {
 			SA_DialogEnd()
 		}
 
-		if SA_Button(trns.FILTER).Alpha(0.5).Highlight(table.Filter.Enable && len(table.Filter.Items) > 0).Show(2, 0, 1, 1).click || store.showFilterDialog {
+		if SA_Button(trns.FILTER).Alpha(1).Border(true).Highlight(table.Filter.Enable && len(table.Filter.Items) > 0).Show(2, 0, 1, 1).click || store.showFilterDialog {
 			store.showFilterDialog = false
 			SA_DialogOpen("Filter", 1)
 		}
@@ -617,14 +617,14 @@ func TableView(table *Table) {
 				y++
 			}
 
-			if SA_Button("+").Enable(table.Filter.Enable).Show(0, y, 1, 1).click {
+			if SA_Button("+").Alpha(0.5).Enable(table.Filter.Enable).Show(0, y, 1, 1).click {
 				table.Filter.Add("", 0)
 			}
 
 			SA_DialogEnd()
 		}
 
-		if SA_Button(trns.SORT).Alpha(0.5).Highlight(table.Sort.Enable && len(table.Sort.Items) > 0).Show(4, 0, 1, 1).click {
+		if SA_Button(trns.SORT).Alpha(1).Border(true).Highlight(table.Sort.Enable && len(table.Sort.Items) > 0).Show(4, 0, 1, 1).click {
 			SA_DialogOpen("Sort", 1)
 		}
 
@@ -663,7 +663,7 @@ func TableView(table *Table) {
 				y++
 			}
 
-			if SA_Button("+").Enable(table.Sort.Enable).Show(0, y, 2, 1).click {
+			if SA_Button("+").Alpha(0.5).Enable(table.Sort.Enable).Show(0, y, 2, 1).click {
 				table.Sort.Add("", 0)
 			}
 
@@ -951,9 +951,9 @@ func TableColumns(table *Table) {
 			SA_ColMax(0, 100)
 
 			if col.isRowId() {
-				SA_Button(nm).Show(0, 0, 1, 1)
+				SA_Text(nm).Align(1).Show(0, 0, 1, 1)
 			} else {
-				if SA_Button(nm).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(col.Type, col.Render))).MarginIcon(0.2).Show(0, 0, 1, 1).click && !col.isRowId() {
+				if SA_Button(nm).Align(0).Alpha(0.5).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(col.Type, col.Render))).MarginIcon(0.2).Show(0, 0, 1, 1).click && !col.isRowId() {
 					SA_DialogOpen("columnDetail_"+nm, 1)
 				}
 
@@ -971,7 +971,7 @@ func TableColumns(table *Table) {
 	}
 
 	//create column
-	if SA_Button("+").Show(x, 0, 1, 1).click {
+	if SA_Button("+").Alpha(0.5).Show(x, 0, 1, 1).click {
 		SA_DialogOpen("createColumn", 1)
 	}
 
@@ -1134,7 +1134,7 @@ func TableRows(table *Table) {
 					writeCell := false
 					if col.isRowId() {
 
-						if SA_Button(values[x]).Show(0, 0, 1, rowSize).click {
+						if SA_Button(values[x]).Alpha(0.5).Show(0, 0, 1, rowSize).click {
 							SA_DialogOpen("RowId_"+values[x], 1)
 						}
 
@@ -1294,7 +1294,7 @@ func TableStats(table *Table) {
 
 		if col.isRowId() {
 			//add row
-			if SA_Button("+").Align(1).Title(trns.ADD_ROW).Show(x, 0, 1, 1).click {
+			if SA_Button("+").Alpha(0.5).Align(1).Title(trns.ADD_ROW).Show(x, 0, 1, 1).click {
 				SA_SqlWrite("", "INSERT INTO "+table.Name+" DEFAULT VALUES;")
 				table.scrollDown = true
 			}
@@ -1557,5 +1557,5 @@ func save() ([]byte, bool) {
 	return nil, false //default json
 }
 func debug() (int, int, string) {
-	return -1, 10, "main"
+	return -1, 150, "main"
 }
