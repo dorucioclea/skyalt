@@ -17,15 +17,20 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 )
 
 type Storage struct {
-	Cam Cam
+	Cam         Cam
+	add_locator bool
 }
 
 type Translations struct {
+	ADD_LOCATOR string
+	ZOOM        string
+	REMOVE      string
 }
 
 type V2 struct {
@@ -238,6 +243,62 @@ func Map(cam *Cam) {
 		}
 	}
 
+	//Locators
+	{
+		query := SA_SqlRead("", "SELECT rowid, title, pos FROM locators")
+		var rowid int
+		var title string
+		var pos string
+		for query.Next(&rowid, &title, &pos) {
+			var ln, lt float64
+			_, err := fmt.Sscanf(pos, "%f,%f", &ln, &lt)
+			if err != nil {
+				continue
+			}
+
+			p := LonLatToPos(Cam{Lon: ln, Lat: lt, Zoom: zoom})
+
+			x := (p.X - bbStart.X) * tileW
+			y := (p.Y - bbStart.Y) * tileH
+
+			rad := 1.0
+			rad_x := rad / width
+			rad_y := rad / height
+
+			//SAPaint_Text()	//...
+			SAPaint_File(x-rad_x/2, y-rad_y, rad_x, rad_y, SA_ResourceBuildAssetPath("", "locator.png"), "", 0, 0, 0, SA_ThemeError(), 1, 0, false, false)
+			//SAPaint_Circle(x, y, 0.1, SA_ThemeError(), 0)
+
+			dnm := fmt.Sprintf("locator_%d", rowid)
+			if touch_x > x-rad_x/2 && touch_x < x+rad_x/2 &&
+				touch_y > y-rad_y && touch_y < y {
+
+				if end {
+					SA_DialogOpen(dnm, 2)
+					break
+				}
+				SAPaint_Cursor("hand")
+			}
+
+			//bug: bottom editbox is active ...
+			if SA_DialogStart(dnm) {
+				SA_ColMax(0, 5)
+
+				if SA_Editbox(&title).Show(0, 0, 1, 1).finished {
+					SA_SqlWrite("", fmt.Sprintf("UPDATE locators SET title='%s' WHERE rowid=%d;", title, rowid))
+				}
+				SA_Text(fmt.Sprintf("Lon: %.3f", ln)).Show(0, 1, 1, 1)
+				SA_Text(fmt.Sprintf("Lat: %.3f", lt)).Show(0, 2, 1, 1)
+
+				if SA_Button(trns.REMOVE).Show(0, 3, 1, 1).click {
+					SA_SqlWrite("", fmt.Sprintf("DELETE FROM locators WHERE rowid=%d;", rowid))
+				}
+
+				SA_DialogEnd()
+			}
+		}
+	}
+
 	//touch
 	if start && inside {
 		cam.start_pos.X = touch_x //rel, not pixels!
@@ -296,24 +357,53 @@ func Map(cam *Cam) {
 		}
 	}
 
-	//bottom info
-	SA_ColMax(1, 14)
-	SA_ColMax(2, 100) //space
-	SA_ColMax(3, 3)
-	SA_ColMax(4, 3)
-	SA_ColMax(5, 2.5)
-	SA_ColMax(6, 100) //space
-	SA_ColMax(7, 7)
-	SA_RowMax(2, 100)
+	if store.add_locator {
+		if end {
+			var pos V2
+			pos.X = bbStart.X + bbSize.X*touch_x
+			pos.Y = bbStart.Y + bbSize.Y*touch_y
+			ln, lt := PosToLonLat(pos, zoom)
 
-	SA_DivStart(0, 3, 2, 1)
-	Measure(*cam)
+			SA_SqlWrite("", fmt.Sprintf("INSERT INTO locators(title, pos) VALUES('un-named', '%f, %f');", ln, lt))
+			store.add_locator = false
+		}
+
+		SAPaint_Cursor("cross")
+	}
+
+	SA_ColMax(0, 100)
+	SA_RowMax(1, 100)
+
+	//top
+	SA_DivStart(0, 0, 1, 1)
+	{
+		if SA_Button("+").Title(trns.ADD_LOCATOR).Alpha(1).Border(true).BackCd(SA_ThemeBlack()).Highlight(store.add_locator).Show(0, 0, 1, 1).click {
+			store.add_locator = !store.add_locator
+		}
+	}
 	SA_DivEnd()
 
-	SA_Editbox(&cam.Lon).Precision(3).ShowDescription(3, 3, 1, 1, "Lon", 1.5, 2)
-	SA_Editbox(&cam.Lat).Precision(3).ShowDescription(4, 3, 1, 1, "Lat", 1.5, 2)
-	SA_Editbox(&cam.Zoom).Precision(0).ShowDescription(5, 3, 1, 1, "Zoom", 1.5, 2)
-	SA_Button("(c)OpenStreetMap contributors").Alpha(1).BackCd(SA_ThemeWhite()).Url("https://www.openstreetmap.org/copyright").Show(7, 3, 1, 1)
+	//bottom
+	SA_DivStart(0, 2, 1, 1)
+	{
+		SA_ColMax(1, 14)
+		SA_ColMax(2, 100) //space
+		SA_ColMax(3, 3)
+		SA_ColMax(4, 3)
+		SA_ColMax(5, 2.5)
+		SA_ColMax(6, 100) //space
+		SA_ColMax(7, 7)
+
+		SA_DivStart(0, 0, 2, 1)
+		Measure(*cam)
+		SA_DivEnd()
+
+		SA_Editbox(&cam.Lon).Precision(3).ShowDescription(3, 0, 1, 1, "Lon", 1.5, 2)
+		SA_Editbox(&cam.Lat).Precision(3).ShowDescription(4, 0, 1, 1, "Lat", 1.5, 2)
+		SA_Editbox(&cam.Zoom).Precision(0).ShowDescription(5, 0, 1, 1, trns.ZOOM, 1.5, 2)
+		SA_Button("(c)OpenStreetMap contributors").Alpha(1).BackCd(SA_ThemeWhite()).Url("https://www.openstreetmap.org/copyright").Show(7, 0, 1, 1)
+	}
+	SA_DivEnd()
 }
 
 //export render
