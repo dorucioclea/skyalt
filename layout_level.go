@@ -43,6 +43,7 @@ func NewLayoutLevel(name string, src_coordMoveCut OsV4, infoLayout *RS_LScroll, 
 	self.buff = NewPaintBuff(ui)
 	self.rootDiv = NewLayoutPack(nil, "", OsV4{}, infoLayout)
 
+	self.use = true
 	return &self
 }
 
