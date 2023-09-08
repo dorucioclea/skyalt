@@ -137,6 +137,9 @@ type Translations struct {
 	INVALID_NAME   string
 
 	IN_USE string
+
+	ADD_APP   string
+	CREATE_DB string
 }
 
 // https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
@@ -197,7 +200,7 @@ func Settings() {
 					changed = true
 				}
 
-				if SA_Button("X").Enable(len(langs) > 1 || i > 0).Show(3, 0, 1, 1).click {
+				if SA_Button("X").Enable(len(langs) > 1 || i > 0).Margin(0.06).Alpha(0.5).Show(3, 0, 1, 1).click {
 					langs = append(langs[:i], langs[i+1:]...)
 					changed = true
 				}
@@ -219,7 +222,7 @@ func Settings() {
 		}
 
 		SA_DivStart(1, y, 1, 1)
-		if SA_Button("+").Show(0, 0, 1, 1).click {
+		if SA_Button("+").Margin(0.1).Alpha(0.5).Show(0, 0, 1, 1).click {
 			SA_InfoSet("languages", SA_Info("languages")+"/")
 		}
 		y++
@@ -332,12 +335,12 @@ func Menu() {
 
 		dpi := SA_InfoFloat("dpi")
 		dpi_default := SA_InfoFloat("dpi_default")
-		if SA_Button("+").Show(1, 0, 1, 1).click {
+		if SA_Button("+").Margin(0.1).Alpha(0.5).Show(1, 0, 1, 1).click {
 			SA_InfoSetFloat("dpi", dpi+3)
 		}
 		dpiV := int(dpi / dpi_default * 100)
 		SA_Text(strconv.Itoa(dpiV)+"%").Align(1).Show(2, 0, 1, 1)
-		if SA_Button("-").Show(3, 0, 1, 1).click {
+		if SA_Button("-").Margin(0.1).Alpha(0.5).Show(3, 0, 1, 1).click {
 			SA_InfoSetFloat("dpi", dpi-3)
 		}
 	}
@@ -525,7 +528,7 @@ func Files() {
 			SA_DivEnd()
 
 			//add app
-			if SA_Button("+").Alpha(1).Show(2, 0, 1, 1).click {
+			if SA_Button("+").Title(trns.ADD_APP).Margin(0.15).Alpha(1).Border(true).BackCd(SA_ThemeCd().Aprox(SA_ThemeWhite(), 0.6)).Show(2, 0, 1, 1).click {
 				SA_DialogOpen("apps_"+file.Name, 1)
 			}
 			if SA_DialogStart("apps_" + file.Name) {
@@ -676,7 +679,7 @@ func Files() {
 	//new database
 	SA_DivStart(0, y, 1, 1)
 	{
-		if SA_Button("+").Show(0, 0, 1, 1).click {
+		if SA_Button("+").Title(trns.CREATE_DB).Margin(0.1).Alpha(0.5).Show(0, 0, 1, 1).click {
 			SA_DialogOpen("newFile", 1)
 		}
 		if SA_DialogStart("newFile") {

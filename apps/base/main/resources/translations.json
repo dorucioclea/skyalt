@@ -94,6 +94,12 @@
 
 
 "IN_USE.en": "in use", 
-"IN_USE.cs": "použitá"
+"IN_USE.cs": "použitá",
+
+"ADD_APP.en": "Add app",
+"ADD_APP.cs": "Přidat aplikaci",
+
+"CREATE_DB.en": "Create database",
+"CREATE_DB.cs": "Vytvořit databázi"
 
 }
