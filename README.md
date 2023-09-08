@@ -30,7 +30,7 @@ Most of today's apps run in a browser as Software as a Service. Here's the list 
 - 3rd party can access your data
 <br/><br/>
 
-SkyAlt solves them with [Local-first software](https://www.inkandswitch.com/local-first/). The biggest advantages can be summarized as:
+SkyAlt solves them with [Local-first software](https://www.inkandswitch.com/local-first/)([video](https://www.youtube.com/watch?v=KrPsyr8Ig6M)). The biggest advantages can be summarized as:
 - quick responses
 - works offline
 - ownership
