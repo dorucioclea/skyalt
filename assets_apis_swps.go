@@ -70,7 +70,7 @@ func (asset *Asset) swp_drawButton(backCd OsCd, frontCd OsCd,
 		drawBack = false
 	} else if alpha == 0.5 {
 		drawBack = true
-		backCd = OsCd_Aprox(themeBack(), themeBlack(), 0.05)
+		backCd = OsCd_Aprox(backCd, themeWhite(), 0.7)
 	}
 
 	if highlight > 0 {
@@ -118,10 +118,9 @@ func (asset *Asset) swp_drawButton(backCd OsCd, frontCd OsCd,
 
 	if drawBack {
 		st.buff.AddRect(asset.getCoord(0, 0, 1, 1, margin, 0, 0), backCd, 0)
-
-		if drawBorder > 0 {
-			st.buff.AddRect(asset.getCoord(0, 0, 1, 1, 0, 0, 0), iconCd, asset.getCellWidth(0.03))
-		}
+	}
+	if drawBorder > 0 {
+		st.buff.AddRect(asset.getCoord(0, 0, 1, 1, margin, 0, 0), backCd, asset.getCellWidth(0.03))
 	}
 
 	if len(value) > 0 && len(icon) > 0 {
