@@ -159,19 +159,28 @@ func Measure(cam Cam) {
 	SA_Text(unitText).RatioH(0.35).DrawPaint(0.8, 0.5, 0.2, 0.5)
 }
 
+func zoomClamp(z float64) float64 {
+	return clamp(z, 0, 6) //19
+}
+
+func isZooming(cam *Cam) (bool, float64, float64) {
+	ANIM_TIME := 0.4
+	dt := SA_Time() - cam.start_zoom_time
+	return (dt < ANIM_TIME), dt, ANIM_TIME
+}
+
 func Map(cam *Cam) {
 	zooming := 0
 
-	cam.Zoom = clamp(cam.Zoom, 0, 19)
+	cam.Zoom = zoomClamp(cam.Zoom) //check
 
 	lon := cam.Lon
 	lat := cam.Lat
 	zoom := cam.Zoom
 
 	scale := float64(1)
-	ANIM_TIME := 0.4
-	dt := SA_Time() - cam.start_zoom_time
-	if dt < ANIM_TIME {
+	isZooming, dt, ANIM_TIME := isZooming(cam)
+	if isZooming {
 		t := dt / ANIM_TIME
 		if cam.Zoom > cam.zoomOld {
 			scale = 1 + t
@@ -236,12 +245,21 @@ func Map(cam *Cam) {
 		cam.start_tile = LonLatToPos(Cam{Lon: lon, Lat: lat, Zoom: zoom})
 	}
 
-	if wheel != 0 && inside {
+	if wheel != 0 && inside && !isZooming {
 		cam.zoomOld = cam.Zoom
-		cam.Zoom = clamp(cam.Zoom-wheel, 0, 19)
+		cam.Zoom = zoomClamp(cam.Zoom - wheel)
 		if cam.zoomOld != cam.Zoom {
 			cam.lonOld = cam.Lon
 			cam.latOld = cam.Lat
+
+			//where the mouse is
+			if wheel < 0 {
+				var pos V2
+				pos.X = bbStart.X + bbSize.X*touch_x
+				pos.Y = bbStart.Y + bbSize.Y*touch_y
+				cam.Lon, cam.Lat = PosToLonLat(pos, zoom)
+			}
+
 			cam.start_zoom_time = SA_Time()
 		}
 	}
@@ -261,18 +279,21 @@ func Map(cam *Cam) {
 	}
 
 	//double click
-	if clicks > 1 && end {
-		cam.lonOld = cam.Lon
-		cam.latOld = cam.Lat
+	if clicks > 1 && end && !isZooming {
 		cam.zoomOld = cam.Zoom
+		cam.Zoom = zoomClamp(cam.Zoom + 1)
 
-		var pos V2
-		pos.X = bbStart.X + bbSize.X*touch_x
-		pos.Y = bbStart.Y + bbSize.Y*touch_y
-		cam.Lon, cam.Lat = PosToLonLat(pos, zoom)
+		if cam.zoomOld != cam.Zoom {
+			cam.lonOld = cam.Lon
+			cam.latOld = cam.Lat
 
-		cam.Zoom = clamp(cam.Zoom+1, 0, 19)
-		cam.start_zoom_time = SA_Time()
+			var pos V2
+			pos.X = bbStart.X + bbSize.X*touch_x
+			pos.Y = bbStart.Y + bbSize.Y*touch_y
+			cam.Lon, cam.Lat = PosToLonLat(pos, zoom)
+
+			cam.start_zoom_time = SA_Time()
+		}
 	}
 
 	//bottom info
@@ -314,5 +335,5 @@ func save() ([]byte, bool) {
 	return nil, false //default json
 }
 func debug() (int, int, string) {
-	return -1, 00, "main"
+	return -1, 156, "main"
 }
