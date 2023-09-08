@@ -27,6 +27,7 @@ type Storage struct {
 }
 
 type Translations struct {
+	TODAY     string
 	YEAR      string
 	MONTH     string
 	DAY       string
@@ -148,6 +149,22 @@ func CmpDates(a int64, b int64) int64 {
 	return 0
 }
 
+func GetWeekDay(date time.Time, format float64) int {
+	week := int(date.Weekday()) //sun=0, mon=1, etc.
+	if format != 1 {
+		//not "us"
+		week -= 1
+		if week < 0 {
+			week = 6
+		}
+	}
+	return week
+}
+func GetStartWeekDay(date time.Time, format float64) time.Time {
+	weekDay := GetWeekDay(date, format)
+	return date.AddDate(0, 0, -weekDay)
+}
+
 func Calendar(value int64, page int64) (int64, int64) {
 	format := SA_InfoFloat("date")
 
@@ -158,30 +175,9 @@ func Calendar(value int64, page int64) (int64, int64) {
 	//--Today--
 	{
 		act_tm := int64(SA_Time())
-		if SA_Button(Format(act_tm)).Show(0, 0, 7, 1).click {
+		if SA_Button(trns.TODAY+"("+Format(act_tm)+")").Alpha(1).Border(true).Show(0, 0, 7, 1).click {
 			value = act_tm
 			page = act_tm
-		}
-	}
-
-	//--Week header navigation--
-	{
-		tm := time.Unix(page, 0)
-
-		if SA_Button("<<").Show(0, 2, 1, 1).click {
-			page = tm.AddDate(-1, 0, 0).Unix()
-		}
-		if SA_Button("<").Show(1, 2, 1, 1).click {
-			page = tm.AddDate(0, -1, 0).Unix()
-		}
-
-		SA_Text(MonthText(int(tm.Month()))+" "+strconv.Itoa(tm.Year())).Align(1).Show(2, 2, 3, 1)
-
-		if SA_Button(">").Show(5, 2, 1, 1).click {
-			page = tm.AddDate(0, 1, 0).Unix()
-		}
-		if SA_Button(">>").Show(6, 2, 1, 1).click {
-			page = tm.AddDate(1, 0, 0).Unix()
 		}
 	}
 
@@ -191,49 +187,73 @@ func Calendar(value int64, page int64) (int64, int64) {
 		page = dtt.AddDate(0, 0, -(dtt.Day() - 1)).Unix()
 	}
 
+	//--Week header navigation--
+	{
+		tm := time.Unix(page, 0)
+
+		if SA_Button("<<").Alpha(0.5).Margin(0.1).Show(0, 1, 1, 1).click {
+			page = tm.AddDate(-1, 0, 0).Unix()
+		}
+		if SA_Button("<").Alpha(0.5).Margin(0.1).Show(1, 1, 1, 1).click {
+			page = tm.AddDate(0, -1, 0).Unix()
+		}
+
+		SA_Text(MonthText(int(tm.Month()))+" "+strconv.Itoa(tm.Year())).Align(1).Show(2, 1, 3, 1)
+
+		if SA_Button(">").Alpha(0.5).Margin(0.1).Show(5, 1, 1, 1).click {
+			page = tm.AddDate(0, 1, 0).Unix()
+		}
+		if SA_Button(">>").Alpha(0.5).Margin(0.1).Show(6, 1, 1, 1).click {
+			page = tm.AddDate(1, 0, 0).Unix()
+		}
+	}
+
 	//--Day names(sort)--
 	if format == 1 {
 		//"us"
-		SA_Text(DayTextShort(7)).Show(0, 3, 1, 1)
+		SA_Text(DayTextShort(7)).Show(0, 2, 1, 1)
 		for x := 1; x < 7; x++ {
-			SA_Text(DayTextShort(x)).Show(x, 3, 1, 1)
+			SA_Text(DayTextShort(x)).Show(x, 2, 1, 1)
 		}
 	} else {
 		for x := 1; x < 8; x++ {
-			SA_Text(DayTextShort(x)).Show(x-1, 3, 1, 1)
+			SA_Text(DayTextShort(x)).Show(x-1, 2, 1, 1)
 		}
 	}
 
 	//--Week days--
 	now := int64(SA_Time())
 	orig_dtt := time.Unix(page, 0)
-	dtt := orig_dtt
-	weekDay := int(dtt.Weekday()) //sun=0, mon=1, etc.
-	if format != 1 {
-		//not "us"
-		weekDay -= 1
-		if weekDay < 0 {
-			weekDay = 6
-		}
-	}
-	dtt = dtt.AddDate(0, 0, -weekDay)
+	dtt := GetStartWeekDay(orig_dtt, format)
 	for y := 0; y < 6; y++ {
 		for x := 0; x < 7; x++ {
+			alpha := float64(1)
 			backCd := SA_ThemeCd()
 			frontCd := SA_ThemeBlack()
 
-			if CmpDates(dtt.Unix(), value) > 0 { //highlightDate
+			isDayToday := CmpDates(dtt.Unix(), now) > 0
+			isDaySelected := CmpDates(dtt.Unix(), value) > 0
+			isDayInMonth := dtt.Month() == orig_dtt.Month()
 
-				//...
-				backCd = SA_ThemeBlack()
+			if isDayToday {
+				frontCd = SA_ThemeCd()
+			}
+
+			if isDaySelected && isDayInMonth { //selected day
+				alpha = 0 //show back
 				frontCd = SA_ThemeWhite()
+				backCd = SA_ThemeGrey(0.4)
+
+				if isDayToday {
+					backCd = SA_ThemeCd()
+				}
 			}
 
-			if dtt.Month() != orig_dtt.Month() {
-				backCd = SA_ThemeCd().Aprox(SA_ThemeWhite(), 0.7)
+			if !isDayInMonth { //is day in current month
+				frontCd = SA_ThemeGrey(0.7)
 			}
 
-			if SA_Button(strconv.Itoa(dtt.Day())).FrontCd(frontCd).BackCd(backCd).Border(CmpDates(dtt.Unix(), now) > 0).Show(x, 4+y, 1, 1).click {
+			if SA_Button(strconv.Itoa(dtt.Day())).Alpha(alpha).FrontCd(frontCd).BackCd(backCd).Show(x, 3+y, 1, 1).click {
 				value = dtt.Unix()
 				page = value
 			}
@@ -255,15 +275,15 @@ func CalendarButton(dialogNameMem SAMem, value int64, page int64, enable uint32)
 
 	SA_ColMax(0, 100)
 	SA_RowMax(0, 100)
-	if SA_Button(Format(value)).Enable(enable != 0).Show(0, 0, 1, 1).click {
+	if SA_Button(Format(value)).Alpha(1).Border(true).Enable(enable != 0).Show(0, 0, 1, 1).click {
 		SA_DialogOpen(dialogName, 1)
 		page = value
 	}
 
 	if SA_DialogStart(dialogName) {
 
-		SA_ColMax(0, 15)
-		SA_RowMax(0, 10)
+		SA_ColMax(0, 12)
+		SA_RowMax(0, 9)
 		SA_DivStart(0, 0, 1, 1)
 		value, page = Calendar(value, page)
 		SA_DivEnd()
