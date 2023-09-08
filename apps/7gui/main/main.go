@@ -161,12 +161,11 @@ func FlightBooker() {
 		FlightBookerDialog()
 		SA_DialogEnd()
 	}
-
 }
 
 func Timer() {
 
-	SA_ColMax(0, 100)
+	SA_ColMax(0, 5)
 	SA_ColMax(1, 100)
 
 	//init
@@ -193,7 +192,7 @@ func Timer() {
 	SA_Text("").ValueFloat(dt, 1).Show(1, 1, 1, 1)
 	SA_Slider(&store.MaxTime).Min(0.1).Max(120).Jump(1).Show(1, 2, 1, 1)
 
-	if SA_Button(trns.RESET_TIMER).Show(0, 3, 2, 1).click {
+	if SA_Button(trns.RESET_TIMER).Show(1, 3, 1, 1).click {
 		store.StartTime = SA_Time()
 	}
 }
@@ -316,7 +315,9 @@ func CircleDrawerCanvas() {
 	for i, it := range store.Circles {
 		if closest_i == i {
 			//highlight
-			SAPaint_Circle(it.X, it.Y, it.Rad, SA_ThemeGrey(0.5), 0) //select
+			selectCd := SA_ThemeGrey(0.5)
+			selectCd.a = 120
+			SAPaint_Circle(it.X, it.Y, it.Rad, selectCd, 0) //select
 			SAPaint_Cursor("hand")
 
 			if touch_clicked {
@@ -498,8 +499,8 @@ func render() uint32 {
 	SA_DivStart(1, y, 1, n)
 	Cells()
 	SA_DivEnd()
-	SA_RowSpacer(0, y+n, 3, 1)
-	y += n + 1
+	//SA_RowSpacer(0, y+n, 3, 1)
+	//y += n + 1
 
 	return 0
 }
@@ -515,7 +516,7 @@ func save() ([]byte, bool) {
 	return nil, false //default json
 }
 func debug() (int, int, string) {
-	return -1, 11, "main"
+	return -1, 153, "main"
 }
 
 //work-in-progress ...
