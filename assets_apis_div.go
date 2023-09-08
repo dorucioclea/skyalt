@@ -98,7 +98,6 @@ func (asset *Asset) renderStart() {
 
 	startTouch := enableInput && root.ui.io.touch.start && !root.ui.io.keys.alt
 	endTouch := enableInput && root.ui.io.touch.end
-
 	over := enableInput && st.stack.crop.Inside(root.ui.io.touch.pos)
 	inside := over
 	if inside && startTouch && enableInput {
@@ -119,10 +118,6 @@ func (asset *Asset) renderStart() {
 	st.stack.data.touch_inside = inside
 	st.stack.data.touch_active = touchActiveMove
 	st.stack.data.touch_end = (endTouch && touchActiveMove) //&& inside
-
-	/*if st.stack.parent != nil {
-		st.stack.parent.gridLock = true
-	}*/
 
 	st.buff.AddCrop(st.stack.crop)
 
