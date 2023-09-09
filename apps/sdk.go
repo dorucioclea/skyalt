@@ -32,8 +32,11 @@ func SA_Info(key string) string {
 	return ""
 }
 
+func SA_InfoSetVal(key string, value string) int {
+	return int(_sa_info_setString(_SA_stringToPtr(key), _SA_stringToPtr(value)))
+}
 func SA_InfoSet(key string, value string) bool {
-	return _sa_info_setString(_SA_stringToPtr(key), _SA_stringToPtr(value)) > 0
+	return SA_InfoSetVal(key, value) > 0
 }
 
 /* -------------------- Time/Date -------------------- */
