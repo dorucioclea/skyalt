@@ -359,10 +359,7 @@ func TablesList() {
 
 			isSelected := (store.SelectedTable == x)
 
-			//openTableMenu := false
-			//openRenameTable := false
-			//removeTableConfirm := false
-			if SA_Button(table.Name).Alpha(1).Align(1).Highlight(isSelected).Show(0, 0, 1, 1).click {
+			if SA_Button(table.Name).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", "table.png")).MarginIcon(0.2).Highlight(isSelected).Show(0, 0, 1, 1).click {
 				store.SelectedTable = x
 				if isSelected {
 					SA_DialogOpen("TableMenu_"+table.Name, 1)
