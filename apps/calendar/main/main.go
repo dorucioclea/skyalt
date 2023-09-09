@@ -77,10 +77,10 @@ type Translations struct {
 	SATURDAY  string
 	SUNDAY    string
 
-	NEW_ITEM string
-	OK       string
-	TODAY    string
-	BETWEEN  string
+	NEW_EVENT string
+	OK        string
+	TODAY     string
+	BETWEEN   string
 
 	TITLE       string
 	DESCRIPTION string
@@ -168,7 +168,9 @@ func DayTextShort(day int) string {
 	return ""
 }
 
-func GetWeekDayPure(date time.Time) int {
+func GetWeekDayPure(unix_sec int64) int {
+	date := time.Unix(unix_sec, 0)
+
 	week := int(date.Weekday()) //sun=0, mon=1, etc.
 	if week == 0 {
 		week = 7
@@ -176,7 +178,9 @@ func GetWeekDayPure(date time.Time) int {
 	return week
 }
 
-func GetWeekDay(date time.Time, format float64) int {
+func GetWeekDay(unix_sec int64, format float64) int {
+	date := time.Unix(unix_sec, 0)
+
 	week := int(date.Weekday()) //sun=0, mon=1, etc.
 	if format != 1 {
 		//not "us"
@@ -188,9 +192,47 @@ func GetWeekDay(date time.Time, format float64) int {
 	return week
 }
 
-func GetStartWeekDay(date time.Time, format float64) time.Time {
-	weekDay := GetWeekDay(date, format)
+func GetStartWeekDay(unix_sec int64, format float64) time.Time {
+	weekDay := GetWeekDay(unix_sec, format)
+
+	date := time.Unix(unix_sec, 0)
 	return date.AddDate(0, 0, -weekDay)
+}
+
+func GetYMD(unix_sec int64) (int, int, int) {
+	date := time.Unix(unix_sec, 0)
+	return date.Year(), int(date.Month()), date.Day()
+}
+
+func GetHM(unix_sec int64) (int, int) {
+	date := time.Unix(unix_sec, 0)
+	return date.Hour(), date.Minute()
+}
+
+func GetTextTime(unix_sec int64) string {
+	hour, min := GetHM(unix_sec)
+	return fmt.Sprintf("%d:%d", hour, min)
+}
+
+func GetTextDateTime(unix_sec int64) string {
+	return GetTextDate(unix_sec) + " " + GetTextTime(unix_sec)
+}
+
+func GetMonthYear(unix_sec int64) string {
+	tm := time.Unix(unix_sec, 0)
+	return MonthText(int(tm.Month())) + " " + strconv.Itoa(tm.Year())
+}
+
+func GetYear(unix_sec int64) string {
+	tm := time.Unix(unix_sec, 0)
+	return strconv.Itoa(tm.Year())
+}
+
+func CmpDates(a int64, b int64) bool {
+	ta := time.Unix(a, 0)
+	tb := time.Unix(b, 0)
+
+	return ta.Year() == tb.Year() && ta.Month() == tb.Month() && ta.Day() == tb.Day()
 }
 
 func GetTextDate(unix_sec int64) string {
@@ -219,35 +261,6 @@ func GetTextDate(unix_sec int64) string {
 	}
 
 	return ""
-}
-
-func GetTextTime(unix_sec int64) string {
-
-	hour := (unix_sec % (24 * 3600)) / 3600
-	min := (unix_sec % 3600) / 60
-
-	return fmt.Sprintf("%d:%d", hour, min)
-}
-
-func GetTextDateTime(unix_sec int64) string {
-	return GetTextDate(unix_sec) + " " + GetTextTime(unix_sec)
-}
-
-func GetMonthYear(unix_sec int64) string {
-	tm := time.Unix(unix_sec, 0)
-	return MonthText(int(tm.Month())) + " " + strconv.Itoa(tm.Year())
-}
-
-func GetYear(unix_sec int64) string {
-	tm := time.Unix(unix_sec, 0)
-	return strconv.Itoa(tm.Year())
-}
-
-func CmpDates(a int64, b int64) bool {
-	ta := time.Unix(a, 0)
-	tb := time.Unix(b, 0)
-
-	return ta.Year() == tb.Year() && ta.Month() == tb.Month() && ta.Day() == tb.Day()
 }
 
 func Calendar(value *int64, page *int64) {
@@ -283,9 +296,8 @@ func Calendar(value *int64, page *int64) {
 
 	//--Week days--
 	now := int64(SA_Time())
-	orig_dtt := time.Unix(*page, 0)
-	dtt := GetStartWeekDay(orig_dtt, format)
-
+	orig_month := time.Unix(*page, 0).Month()
+	dtt := GetStartWeekDay(*page, format)
 	for y := 0; y < 6; y++ {
 		for x := 0; x < 7; x++ {
 			alpha := float64(1)
@@ -294,7 +306,7 @@ func Calendar(value *int64, page *int64) {
 
 			isDayToday := CmpDates(dtt.Unix(), now)
 			isDaySelected := CmpDates(dtt.Unix(), *value)
-			isDayInMonth := dtt.Month() == orig_dtt.Month()
+			isDayInMonth := dtt.Month() == orig_month
 
 			if isDayToday {
 				frontCd = SA_ThemeCd()
@@ -487,16 +499,14 @@ func Side() {
 		SA_RowMax(5, 100)
 
 		//newEvent := false
-		if SA_Button(trns.NEW_ITEM).Show(0, 0, 1, 1).click {
+		if SA_Button(trns.NEW_EVENT).Show(0, 0, 1, 1).click {
 			//newEvent = true
 			SA_DialogOpen("NewEvent", 0)
 
 			//init
 			store.event_start_date = int64(SA_Time())
 			store.event_end_date = int64(SA_Time())
-			tm := time.Unix(int64(SA_Time()), 0)
-			store.event_start_hour = tm.Hour()
-			store.event_start_min = tm.Minute()
+			store.event_start_hour, store.event_start_min = GetHM(int64(SA_Time()))
 			store.event_end_hour = store.event_start_hour
 			store.event_end_min = store.event_start_min
 		}
@@ -642,15 +652,13 @@ func ModeMonth() {
 
 	{
 		//fix page(need to start with day 1)
-		orig_dtt := time.Unix(store.Small_page, 0)
-		//dtt := orig_dtt
-		//store.Small_page = dtt.AddDate(0, 0, -(dtt.Day() - 1)).Unix()
-		dtt := GetStartWeekDay(orig_dtt, format)
+		orig_month := time.Unix(store.Small_page, 0).Month()
+		dtt := GetStartWeekDay(store.Small_page, format)
 
 		for y := 0; y < 6; y++ {
 			for x := 0; x < 7; x++ {
 				frontCd := SA_ThemeBlack()
-				if dtt.Month() != orig_dtt.Month() { //is day in current month
+				if dtt.Month() != orig_month { //is day in current month
 					frontCd = SA_ThemeGrey(0.75)
 				}
 
@@ -740,8 +748,7 @@ func ModeWeek() {
 	SA_RowMax(1, 100)
 
 	//header
-	dtt := GetStartWeekDay(time.Unix(store.Small_date, 0), format)
-
+	dtt := GetStartWeekDay(store.Small_date, format)
 	SA_DivStart(0, 0, 1, 1)
 	{
 		SA_Col(0, 1.5) //time
@@ -815,7 +822,7 @@ func ModeWeek() {
 		}
 
 		//events
-		dtt = GetStartWeekDay(time.Unix(store.Small_date, 0), format)
+		dtt = GetStartWeekDay(store.Small_date, format)
 		for x := 0; x < 7; x++ {
 			SA_DivStart(1+x, 0, 1, 24*2+1)
 			DayEvent(dtt.Unix())
@@ -825,13 +832,14 @@ func ModeWeek() {
 		}
 
 		//time-line
-		w1 := GetStartWeekDay(time.Now(), format).Unix()
-		w2 := GetStartWeekDay(time.Unix(store.Small_date, 0), format).Unix()
+		w1 := GetStartWeekDay(int64(SA_Time()), format).Unix()
+		w2 := GetStartWeekDay(store.Small_date, format).Unix()
 		if CmpDates(w1, w2) { //today is in current week
 
-			dt := time.Now()
-			h := (float64(dt.Hour()) + (float64(dt.Minute()) / 60)) / 24
-			week := GetWeekDay(dt, format)
+			now := int64(SA_Time())
+			hour, minute := GetHM(now)
+			h := (float64(hour) + (float64(minute) / 60)) / 24
+			week := GetWeekDay(now, format)
 
 			SA_DivStart(1, 0, 7, 24*2+1)
 			{
@@ -958,7 +966,7 @@ func ModeDay() {
 		SA_ColMax(1, 100)
 
 		dtt := time.Unix(store.Small_date, 0)
-		SA_Text(strconv.Itoa(dtt.Day())+". "+DayTextFull(GetWeekDayPure(dtt))).RatioH(0.4).Show(1, 0, 1, 1)
+		SA_Text(strconv.Itoa(dtt.Day())+". "+DayTextFull(GetWeekDayPure(store.Small_date))).RatioH(0.4).Show(1, 0, 1, 1)
 	}
 	SA_DivEnd()
 
@@ -992,10 +1000,11 @@ func ModeDay() {
 		SA_DivEnd()
 
 		//time-line
-		if CmpDates(time.Now().Unix(), store.Small_date) { //today == day
+		if CmpDates(int64(SA_Time()), store.Small_date) { //today == day
 
-			dt := time.Now()
-			h := (float64(dt.Hour()) + (float64(dt.Minute()) / 60)) / 24
+			now := int64(SA_Time())
+			hour, minute := GetHM(now)
+			h := (float64(hour) + (float64(minute) / 60)) / 24
 			SA_DivStart(1, 0, 1, 24*2+1)
 			{
 				SA_DivSetInfo("touch_enable", 0)
@@ -1146,5 +1155,5 @@ func save() ([]byte, bool) {
 	return nil, false //default json
 }
 func debug() (int, int, string) {
-	return -1, 22, "main"
+	return -1, 155, "main"
 }
