@@ -18,7 +18,7 @@ package main
 
 type LayoutLevel struct {
 	name string
-	use  bool
+	use  int //init(-1), notUse(0), drawn(1)
 
 	buff *PaintBuff
 
@@ -43,7 +43,7 @@ func NewLayoutLevel(name string, src_coordMoveCut OsV4, infoLayout *RS_LScroll, 
 	self.buff = NewPaintBuff(ui)
 	self.rootDiv = NewLayoutPack(nil, "", OsV4{}, infoLayout)
 
-	self.use = true
+	self.use = -1
 	return &self
 }
 

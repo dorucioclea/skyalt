@@ -444,11 +444,11 @@ func (asset *Asset) div_dialogStart(name string) int64 {
 		return 0 //dialog not open, which is NOT error
 	}
 
-	if lev.use {
+	if lev.use == 1 {
 		asset.AddLogErr(errors.New("dialog already drawn into"))
 		return -1
 	}
-	lev.use = true
+	lev.use = 1
 
 	if lev.src_coordMoveCut.Size.X > 1 || lev.src_coordMoveCut.Size.Y > 1 { //for tp==1
 		if st.stack.lastChild != nil {
