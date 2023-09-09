@@ -166,3 +166,34 @@ func (sts *DbSettings) Rename(rowid int, file, app, name string) error {
 	}
 	return nil
 }
+
+func (sts *DbSettings) Duplicate(srcid int) (int, error) {
+
+	dstId := sts.AddSts_uid()
+
+	rows, err := sts.db.Query("SELECT asset, content FROM settings WHERE id=?", srcid)
+	if err != nil {
+		return -1, fmt.Errorf("Query(%s) failed: %w", sts.GetPath(), err)
+	}
+
+	for rows.Next() {
+
+		//get
+		var asset string
+		var content []byte
+		err := rows.Scan(&asset, &content)
+		if err != nil {
+			return -1, fmt.Errorf("Scan(%s) failed: %w", sts.GetPath(), err)
+		}
+
+		//insert
+		_, err = sts.db.Exec("INSERT INTO settings(id, asset, content) VALUES(?, ?, ?);", dstId, asset, content)
+		if err != nil {
+			return -1, fmt.Errorf("Exec(%s) failed: %w", sts.GetPath(), err)
+		}
+
+	}
+
+	return dstId, nil
+
+}

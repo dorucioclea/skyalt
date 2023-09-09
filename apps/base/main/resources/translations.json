@@ -79,6 +79,9 @@
 "RENAME.en": "Rename",
 "RENAME.cs": "Přejmenovat",
 
+"DUPLICATE.en": "Duplicate",
+"DUPLICATE.cs": "Duplikovat",
+
 "CREATE_FILE.en": "Create file",
 "CREATE_FILE.cs": "Vytvořit soubor",
 

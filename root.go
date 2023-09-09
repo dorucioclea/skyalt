@@ -318,6 +318,30 @@ func (root *Root) RenameDb(name string, newName string) bool {
 	return true
 }
 
+func (root *Root) DuplicateDb(name string, newName string) bool {
+
+	if strings.ContainsRune(newName, '/') || strings.ContainsRune(newName, '\\') {
+		fmt.Printf("newName(%s) has invalid character\n", name)
+		return false
+	}
+
+	path := root.folderDatabases + "/" + name + ".sqlite"
+	newPath := root.folderDatabases + "/" + newName + ".sqlite"
+	if OsFileExists(newPath) {
+		fmt.Printf("newPath(%s) already exist\n", newPath)
+		return false
+	}
+
+	//duplicate file
+	err := OsFileCopy(path, newPath)
+	if err != nil {
+		fmt.Printf("OsFileCopy(%s) failed: %v\n", path, err)
+	}
+
+	root.updateDbsList()
+	return true
+}
+
 func (root *Root) RemoveDb(name string) bool {
 
 	//finds

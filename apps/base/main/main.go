@@ -36,6 +36,14 @@ type File struct {
 	Expand bool
 }
 
+func (file *File) AddApp(file_i int, sts_id int, label string, app string) {
+	file.Apps = append(file.Apps, &App{Name: app, Label: label, Sts_id: sts_id})
+	file.Expand = true
+	store.SelectedFile = file_i
+	store.SelectedApp = len(file.Apps) - 1
+	store.SearchApp = ""
+}
+
 func FindInArray(arr []string, name string) int {
 	for i, it := range arr {
 		if it == name {
@@ -50,7 +58,8 @@ func FindSelectedFile() *File {
 	if store.SelectedFile >= 0 && store.SelectedFile < len(store.Files) {
 		return store.Files[store.SelectedFile]
 	}
-	store.SelectedFile = -1
+	store.SelectedFile = len(store.Files) - 1 //= -1
+
 	return nil
 }
 
@@ -94,7 +103,8 @@ type Storage struct {
 	SearchFiles string
 	SearchApp   string
 
-	createFile string
+	createFile    string
+	duplicateName string
 }
 type Translations struct {
 	SAVE            string
@@ -130,6 +140,7 @@ type Translations struct {
 	NAME        string
 	REMOVE      string
 	RENAME      string
+	DUPLICATE   string
 	CREATE_FILE string
 
 	ALREADY_EXISTS string
@@ -404,11 +415,7 @@ func Apps(file *File, file_i int) {
 
 		if SA_Button(nm).Alpha(1).Show(0, y, 1, 1).click {
 			sts_id := int(SA_InfoFloat("sts_uid"))
-			file.Apps = append(file.Apps, &App{Name: app, Label: app, Sts_id: sts_id})
-			file.Expand = true
-			store.SelectedFile = file_i
-			store.SelectedApp = len(file.Apps) - 1
-			store.SearchApp = ""
+			file.AddApp(file_i, sts_id, app, app)
 			SA_DialogClose()
 		}
 		y++
@@ -447,15 +454,6 @@ func ProjectFiles() {
 
 	//check selected
 	FindSelectedApp()
-	/*f := FindFile(store.SelectedFile)
-	if f != nil {
-		if f.FindApp(store.SelectedApp_sts_id) == nil {
-			store.SelectedApp_sts_id = -1
-		}
-	} else {
-		store.SelectedFile = ""
-		store.SelectedApp_sts_id = -1
-	}*/
 }
 
 func Files() {
@@ -541,16 +539,22 @@ func Files() {
 				SA_DialogOpen("fileContext_"+file.Name, 1)
 			}
 
-			//renameFile := false
-			//removeFileConfirm := false
 			if SA_DialogStart("fileContext_" + file.Name) {
 				SA_ColMax(0, 5)
 
 				if SA_Button(trns.RENAME).Alpha(1).Align(0).Show(0, 0, 1, 1).click {
+					SA_DialogClose()
 					SA_DialogOpen("RenameFile_"+file.Name, 1)
 				}
 
-				if SA_Button(trns.REMOVE).Alpha(1).Align(0).Show(0, 1, 1, 1).click {
+				if SA_Button(trns.DUPLICATE).Alpha(1).Align(0).Show(0, 1, 1, 1).click {
+					SA_DialogClose()
+					SA_DialogOpen("DuplicateFile_"+file.Name, 1)
+					store.duplicateName = file.Name + "_2"
+				}
+
+				if SA_Button(trns.REMOVE).Alpha(1).Align(0).Show(0, 2, 1, 1).click {
+					SA_DialogClose()
 					SA_DialogOpen("RemoveFileConfirm_"+file.Name, 1)
 				}
 
@@ -562,9 +566,24 @@ func Files() {
 				SA_ColMax(0, 7)
 
 				newName := file.Name
-				if SA_Editbox(&newName).Error(nil).Show(0, 0, 1, 1).finished {
+				if SA_Editbox(&newName).Error(nil).Show(0, 0, 1, 1).finished { //check if file name exist ...
 					if SA_InfoSet("rename_file", file.Name+"/"+newName) {
 						file.Name = newName
+					}
+					SA_DialogClose()
+				}
+
+				SA_DialogEnd()
+			}
+
+			if SA_DialogStart("DuplicateFile_" + file.Name) {
+
+				SA_ColMax(0, 7)
+
+				SA_Editbox(&store.duplicateName).Error(nil).Show(0, 0, 1, 1)
+				if SA_Button(trns.DUPLICATE).Enable(len(store.duplicateName) > 0).Show(0, 1, 1, 1).click { //check if file name exist ...
+					if SA_InfoSet("duplicate_file", file.Name+"/"+store.duplicateName) {
+						file.Name = store.duplicateName
 					}
 					SA_DialogClose()
 				}
@@ -580,7 +599,7 @@ func Files() {
 					}
 					SA_InfoSet("remove_file", file.Name)
 				}
-				SA_DialogEnd() //pokud je pod ním context, tak nastaví context, né root ...
+				SA_DialogEnd()
 			}
 		}
 		SA_DivEnd()
@@ -626,16 +645,22 @@ func Files() {
 						SA_DialogOpen("appContext_"+file.Name+"_"+strconv.Itoa(app.Sts_id), 1)
 					}
 
-					//renameApp := false
-					//removeAppConfirm := false
 					if SA_DialogStart("appContext_" + file.Name + "_" + strconv.Itoa(app.Sts_id)) {
 						SA_ColMax(0, 5)
 
 						if SA_Button(trns.RENAME).Alpha(1).Align(0).Show(0, 0, 1, 1).click {
+							SA_DialogClose()
 							SA_DialogOpen("RenameApp_"+file.Name+"_"+strconv.Itoa(app.Sts_id), 1)
 						}
 
-						if SA_Button(trns.REMOVE).Alpha(1).Align(0).Show(0, 1, 1, 1).click {
+						if SA_Button(trns.DUPLICATE).Alpha(1).Align(0).Show(0, 1, 1, 1).click {
+							SA_DialogClose()
+							SA_DialogOpen("DuplicateApp_"+file.Name+"_"+strconv.Itoa(app.Sts_id), 1)
+							store.duplicateName = app.Name + "_2"
+						}
+
+						if SA_Button(trns.REMOVE).Alpha(1).Align(0).Show(0, 2, 1, 1).click {
+							SA_DialogClose()
 							SA_DialogOpen("RemoveAppConfirm_"+file.Name+"_"+strconv.Itoa(app.Sts_id), 1)
 
 						}
@@ -651,6 +676,21 @@ func Files() {
 							}
 							SA_DialogClose()
 						}
+						SA_DialogEnd()
+					}
+
+					if SA_DialogStart("DuplicateApp_" + file.Name + "_" + strconv.Itoa(app.Sts_id)) {
+						SA_ColMax(0, 7)
+
+						SA_Editbox(&store.duplicateName).Error(nil).Show(0, 0, 1, 1)
+						if SA_Button(trns.DUPLICATE).Enable(len(store.duplicateName) > 0).Show(0, 1, 1, 1).click { //check if file name exist ...
+							dupId := SA_InfoSetVal("duplicate_setting", strconv.Itoa(app.Sts_id))
+							if dupId > 0 {
+								file.AddApp(file_i, dupId, store.duplicateName, app.Name)
+							}
+							SA_DialogClose()
+						}
+
 						SA_DialogEnd()
 					}
 

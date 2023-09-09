@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -220,11 +221,35 @@ func (asset *Asset) info_setString(key string, value string) int64 {
 			}
 		}
 		return -1
+
+	case "duplicate_file":
+		d := strings.IndexByte(value, '/')
+		if d > 0 && d < len(value)-1 {
+			if asset.app.root.DuplicateDb(value[:d], value[d+1:]) {
+				return 1
+			}
+		}
+		return -1
+
 	case "remove_file":
 		if asset.app.root.RemoveDb(value) {
 			return 1
 		}
 		return -1
+
+	case "duplicate_setting":
+		srcid, err := strconv.Atoi(value)
+		if err != nil {
+			asset.AddLogErr(err)
+			return -1
+		}
+
+		dstid, err := asset.app.root.settings.Duplicate(srcid)
+		if err != nil {
+			asset.AddLogErr(err)
+			return -1
+		}
+		return int64(dstid)
 
 	default:
 		fmt.Println("info_setString(): Unknown key: ", key)
