@@ -275,7 +275,7 @@ func Map(cam *Cam) {
 
 				if end {
 					SA_DialogOpen(dnm, 2)
-					break
+					end = false
 				}
 				SAPaint_Cursor("hand")
 			}
