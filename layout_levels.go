@@ -56,22 +56,13 @@ func (levels *LayoutLevels) Destroy(scrollPath string) {
 }
 
 func (levels *LayoutLevels) AddDialog(name string, src_coordMoveCut OsV4, ui *Ui) {
-	levels.dialogs = append(levels.dialogs, NewLayoutLevel(name, src_coordMoveCut, &levels.infoLayout, ui))
-}
 
-func (levels *LayoutLevels) StartCall(lev *LayoutLevel) {
+	newDialog := NewLayoutLevel(name, src_coordMoveCut, &levels.infoLayout, ui)
+	levels.dialogs = append(levels.dialogs, newDialog)
 
-	//init level
-	lev.stack = lev.rootDiv
-
-	//add
-	levels.calls = append(levels.calls, lev)
-
-	//deactivate bottom
-	n := len(levels.calls)
-	for i, l := range levels.calls {
-		enabled := (i == n-1)
-
+	//disable bottom dialogs
+	for _, l := range levels.calls {
+		enabled := (l == newDialog)
 		div := l.stack
 		for div != nil {
 			div.enableInput = enabled
@@ -79,6 +70,14 @@ func (levels *LayoutLevels) StartCall(lev *LayoutLevel) {
 		}
 	}
 
+}
+
+func (levels *LayoutLevels) StartCall(lev *LayoutLevel) {
+	//init level
+	lev.stack = lev.rootDiv
+
+	//add
+	levels.calls = append(levels.calls, lev)
 }
 func (levels *LayoutLevels) EndCall() error {
 
@@ -93,7 +92,7 @@ func (levels *LayoutLevels) EndCall() error {
 
 func (levels *LayoutLevels) isSomeClose() bool {
 	for _, l := range levels.dialogs {
-		if !l.use || l.close {
+		if l.use == 0 || l.close {
 			return true
 		}
 	}
@@ -102,13 +101,13 @@ func (levels *LayoutLevels) isSomeClose() bool {
 
 func (levels *LayoutLevels) Maintenance() {
 
-	levels.GetBaseDialog().use = true //base level is always use
+	levels.GetBaseDialog().use = 1 //base level is always use
 
 	//remove unused or closed
 	if levels.isSomeClose() {
 		var lvls []*LayoutLevel
 		for _, l := range levels.dialogs {
-			if l.use && !l.close {
+			if l.use != 0 && !l.close {
 				lvls = append(lvls, l)
 			}
 		}
@@ -119,7 +118,7 @@ func (levels *LayoutLevels) Maintenance() {
 	//layout
 	for _, l := range levels.dialogs {
 		l.rootDiv.Maintenance(&levels.infoLayout)
-		l.use = false
+		l.use = 0
 	}
 }
 
