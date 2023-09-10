@@ -10,13 +10,13 @@
 
 
 # SkyAlt
-Build local-first apps on top of .sqlite files.
+Build local-first apps on top of SQLite files.
 
 https://www.skyalt.com/
 
 
 
-# From SaaS to Local-first
+## From SaaS to Local-first software
 Most of today's apps run in a browser as Software as a Service. Here's the list of problems you may experience:
 - delay between client and server
 - none or simple export
@@ -39,12 +39,12 @@ SkyAlt solves them with [Local-first software](https://www.inkandswitch.com/loca
 
 
 
-# From Webkit to WASM
+## From Webkit to WASM
 There are few implementations of local-first platforms and most of them use Webkit. Webkit is huge and browsers are most complex things humans build and maintain. SkyAlt is heading in oposite direction - build large and complex worlds with few simple tools.
 
 **Front-end**: Instead of writing app in HTML/CSS/JS, you pick up from many languages which compile to WASM and you use SkyAlt's apis() to draw on screen through [Immediate mode GUI](https://en.wikipedia.org/wiki/Immediate_mode_GUI) model. Every WASM file is an asset, which can be compose with other assets together into an app.
 
-**Back-end**: There is no back-end. Front-end uses SQL to read/write data from local .sqlite files.
+**Back-end**: There is no back-end. Front-end uses SQL to read/write data from local SQLite files.
 
 **Debugging**: The best tools to write and debug code are the ones developers already use. Every SkyAlt app can be compile into WASM *or* can be run as binary in separate process, which connects to SkyAlt and communicate over TCP socket. That means that developer can use any IDE and debugger, iterate quickly and compile app into wasm for final shipping.
 
@@ -116,6 +116,6 @@ Twitter: https://twitter.com/milansuk/
 ## Contributing
 Your feedback and code are welcome!
 
-For bug reports or questions, please use [GitHub's issues](https://github.com/MilanSuk/skyalt/issues)
+For bug report or question, please use [GitHub's issues](https://github.com/MilanSuk/skyalt/issues)
 
 SkyAlt is licensed under **Apache v2.0** license. This repository includes 100% of the code.
