@@ -45,19 +45,34 @@ func (asset *Asset) info_float(key string) float64 {
 	switch strings.ToLower(key) {
 	case "theme":
 		return float64(asset.app.root.ui.io.ini.Theme)
+
 	case "date":
 		return float64(asset.app.root.ui.io.ini.Date)
-	case "time":
+
+	case "time_zone":
+		_, o := time.Now().Zone()
+		return float64(o) / 3600
+
+	case "time_utc":
 		return float64(time.Now().UnixMicro()) / 1000000 //seconds
+
+	case "time":
+		tm := time.Now()
+		_, zone_sec := tm.Zone()
+		return (float64(tm.UnixMicro()) / 1000000) + float64(zone_sec) //seconds
 
 	case "dpi":
 		return float64(asset.app.root.ui.io.ini.Dpi)
+
 	case "dpi_default":
 		return float64(asset.app.root.ui.io.ini.Dpi_default)
+
 	case "fullscreen":
 		return OsTrnFloat(asset.app.root.ui.io.ini.Fullscreen, 1, 0)
+
 	case "stats":
 		return OsTrnFloat(asset.app.root.ui.io.ini.Stats, 1, 0)
+
 	case "grid":
 		return OsTrnFloat(asset.app.root.ui.io.ini.Grid, 1, 0)
 
