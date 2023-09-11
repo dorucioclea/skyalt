@@ -12,7 +12,9 @@
 # SkyAlt
 Build local-first apps on top of SQLite files.
 
-https://www.skyalt.com/
+Web: https://www.skyalt.com/
+
+Twitter: https://twitter.com/skyalt
 
 
 
@@ -108,6 +110,8 @@ Milan Suk
 Email: milan@skyalt.com
 
 Twitter: https://twitter.com/milansuk/
+
+Sponsor: https://github.com/sponsors/MilanSuk
 
 *Feel free to follow or contact me with any idea, question or problem.*
 
