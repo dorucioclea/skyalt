@@ -7,6 +7,7 @@
 <img src="https://raw.githubusercontent.com/MilanSuk/skyalt/main/screenshots/screenshot_2.png" style="border:1px solid LightGrey" />
 </p>
 
+[More screenshots here](https://github.com/MilanSuk/skyalt/tree/main/screenshots)
 
 
 # SkyAlt
