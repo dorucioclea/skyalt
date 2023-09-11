@@ -70,7 +70,7 @@ There are few implementations of local-first platforms and most of them use Webk
 - **Experimental**
 - go-lang SDK only
 - Linux / Windows / Mac(untested)
-- ~13K LOC
+- ~14K LOC
 
 *SkyAlt is ~40 days old. Right now, highest priority is providing best developer experience through high range of use-cases so we iterate and change apis() a lot => apps need to be edited and recompiled to wasm!*
 
