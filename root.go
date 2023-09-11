@@ -128,7 +128,7 @@ func NewRoot(debugPORT int, folderApps string, folderDbs string, folderDevice st
 	}
 
 	root.baseApp = "base"
-	root.baseDb = "base"
+	root.baseDb = "settings"
 
 	root.updateDbsList()
 	root.updateAppsList()
@@ -511,7 +511,7 @@ func (root *Root) updateDbsList() {
 	for _, file := range dir {
 		if !file.IsDir() {
 			ext := filepath.Ext(file.Name())
-			if strings.EqualFold(ext, ".sqlite") && file.Name() != DbSettings_GetName() && file.Name() != "base.sqlite" {
+			if strings.EqualFold(ext, ".sqlite") && file.Name() != root.settings.DbSettings_GetName() {
 				root.dbsList += strings.TrimSuffix(file.Name(), ext) + "/"
 			}
 		}

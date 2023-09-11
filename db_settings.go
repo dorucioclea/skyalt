@@ -17,7 +17,6 @@ limitations under the License.
 package main
 
 import (
-	"database/sql"
 	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -25,7 +24,7 @@ import (
 
 type DbSettings struct {
 	root *Root
-	db   *sql.DB
+	db   *Db
 
 	max_sts_uid int
 }
@@ -35,20 +34,21 @@ func NewDbSettings(root *Root) (*DbSettings, error) {
 	sts.root = root
 
 	var err error
-	sts.db, err = sql.Open("sqlite3", "file:"+sts.GetPath()+"?&_journal_mode=WAL")
+	sts.db, err = root.AddDb("settings")
 	if err != nil {
-		return nil, fmt.Errorf("Open(%s) failed: %w", sts.GetPath(), err)
+		return nil, fmt.Errorf("AddDb() failed: %w", err)
 	}
 
-	_, err = sts.db.Exec("CREATE TABLE IF NOT EXISTS settings(id INT, asset TEXT, content BLOB);")
+	_, err = sts.db.Write("CREATE TABLE IF NOT EXISTS settings(id INT, asset TEXT, content BLOB);")
 	if err != nil {
-		return nil, fmt.Errorf("Exec(%s) failed: %w", sts.GetPath(), err)
+		return nil, fmt.Errorf("Write() failed: %w", err)
 	}
+	sts.db.Commit()
 
 	{
-		rows, err := sts.db.Query("SELECT MAX(id) FROM settings")
+		rows, err := sts.db.db.Query("SELECT MAX(id) FROM settings")
 		if err != nil {
-			return nil, fmt.Errorf("Query(%s) failed: %w", sts.GetPath(), err)
+			return nil, fmt.Errorf("query MAX(id) failed: %w", err)
 		}
 
 		if rows.Next() {
@@ -61,19 +61,16 @@ func NewDbSettings(root *Root) (*DbSettings, error) {
 			//}
 		}
 	}
+
 	return &sts, nil
 }
 
 func (sts *DbSettings) Destroy() error {
-	return sts.db.Close()
+	return nil
 }
 
-func DbSettings_GetName() string {
-	return "settings.sqlite"
-}
-
-func (sts *DbSettings) GetPath() string {
-	return sts.root.folderDatabases + "/" + DbSettings_GetName()
+func (sts *DbSettings) DbSettings_GetName() string {
+	return sts.db.name + ".sqlite"
 }
 
 func (sts *DbSettings) AddSts_uid() int {
@@ -84,30 +81,31 @@ func (sts *DbSettings) AddSts_uid() int {
 func (sts *DbSettings) Add(id int, asset string) (int, error) {
 	sts.max_sts_uid = OsMax(sts.max_sts_uid, id)
 
-	res, err := sts.db.Exec("INSERT INTO settings(id, asset) VALUES(?, ?);", id, asset)
+	res, err := sts.db.Write("INSERT INTO settings(id, asset) VALUES(?, ?);", id, asset)
 	if err != nil {
-		return -1, fmt.Errorf("Exec(%s) failed: %w", sts.GetPath(), err)
+		return -1, fmt.Errorf("Write() failed: %w", err)
 	}
 
 	rowid, err := res.LastInsertId()
 	if err != nil {
-		return -1, fmt.Errorf("LastInsertId(%s) failed: %w", sts.GetPath(), err)
+		return -1, fmt.Errorf("LastInsertId() failed: %w", err)
 	}
 
+	sts.db.Commit()
 	return int(rowid), nil
 }
 
 func (sts *DbSettings) Find(id int, asset string) (int, error) {
-	rows, err := sts.db.Query("SELECT rowid FROM settings WHERE id=? AND asset=?", id, asset)
+	rows, err := sts.db.db.Query("SELECT rowid FROM settings WHERE id=? AND asset=?", id, asset)
 	if err != nil {
-		return -1, fmt.Errorf("Query(%s) failed: %w", sts.GetPath(), err)
+		return -1, fmt.Errorf("query SELECT failed: %w", err)
 	}
 
 	rowid := -1 //not found
 	if rows.Next() {
 		err := rows.Scan(&rowid)
 		if err != nil {
-			return -1, fmt.Errorf("Scan(%s) failed: %w", sts.GetPath(), err)
+			return -1, fmt.Errorf("Scan() failed: %w", err)
 		}
 	}
 	return rowid, nil
@@ -131,39 +129,44 @@ func (sts *DbSettings) FindOrAdd(id int, asset string) (int, error) {
 
 func (sts *DbSettings) GetContent(rowid int) ([]byte, error) {
 
-	rows := sts.db.QueryRow("SELECT content FROM settings WHERE rowid=?", rowid)
+	rows := sts.db.db.QueryRow("SELECT content FROM settings WHERE rowid=?", rowid)
 
 	var content []byte
 	err := rows.Scan(&content)
 	if err != nil {
-		return nil, fmt.Errorf("Scan(%s) failed: %w", sts.GetPath(), err)
+		return nil, fmt.Errorf("Scan() failed: %w", err)
 	}
 	return content, nil
 }
 
 func (sts *DbSettings) SetContent(rowid int, content []byte) error {
 
-	_, err := sts.db.Exec("UPDATE settings SET content=? WHERE rowid=?;", content, rowid)
+	_, err := sts.db.Write("UPDATE settings SET content=? WHERE rowid=?;", content, rowid)
 	if err != nil {
-		return fmt.Errorf("Exec(%s) failed: %w", sts.GetPath(), err)
+		return fmt.Errorf("Write() failed: %w", err)
 	}
+
+	sts.db.Commit()
 	return nil
 }
 
 func (sts *DbSettings) Remove(rowid int) error {
-	_, err := sts.db.Exec("DELETE FROM settings WHERE rowid=?;", rowid)
+	_, err := sts.db.Write("DELETE FROM settings WHERE rowid=?;", rowid)
 	if err != nil {
-		return fmt.Errorf("Exec(%s) failed: %w", sts.GetPath(), err)
+		return fmt.Errorf("Write() failed: %w", err)
 	}
+	sts.db.Commit()
 	return nil
 }
 
 func (sts *DbSettings) Rename(rowid int, file, app, name string) error {
 
-	_, err := sts.db.Exec("UPDATE settings SET file=?, app=?, name=? WHERE rowid=?;", file, app, name, rowid)
+	_, err := sts.db.Write("UPDATE settings SET file=?, app=?, name=? WHERE rowid=?;", file, app, name, rowid)
 	if err != nil {
-		return fmt.Errorf("Exec(%s) failed: %w", sts.GetPath(), err)
+		return fmt.Errorf("query UPDATE(name) failed: %w", err)
 	}
+
+	sts.db.Commit()
 	return nil
 }
 
@@ -171,9 +174,9 @@ func (sts *DbSettings) Duplicate(srcid int) (int, error) {
 
 	dstId := sts.AddSts_uid()
 
-	rows, err := sts.db.Query("SELECT asset, content FROM settings WHERE id=?", srcid)
+	rows, err := sts.db.db.Query("SELECT asset, content FROM settings WHERE id=?", srcid)
 	if err != nil {
-		return -1, fmt.Errorf("Query(%s) failed: %w", sts.GetPath(), err)
+		return -1, fmt.Errorf("query SELECT failed: %w", err)
 	}
 
 	for rows.Next() {
@@ -183,17 +186,17 @@ func (sts *DbSettings) Duplicate(srcid int) (int, error) {
 		var content []byte
 		err := rows.Scan(&asset, &content)
 		if err != nil {
-			return -1, fmt.Errorf("Scan(%s) failed: %w", sts.GetPath(), err)
+			return -1, fmt.Errorf("Scan() failed: %w", err)
 		}
 
 		//insert
-		_, err = sts.db.Exec("INSERT INTO settings(id, asset, content) VALUES(?, ?, ?);", dstId, asset, content)
+		_, err = sts.db.Write("INSERT INTO settings(id, asset, content) VALUES(?, ?, ?);", dstId, asset, content)
 		if err != nil {
-			return -1, fmt.Errorf("Exec(%s) failed: %w", sts.GetPath(), err)
+			return -1, fmt.Errorf("Write() failed: %w", err)
 		}
-
 	}
 
+	sts.db.Commit()
 	return dstId, nil
 
 }
