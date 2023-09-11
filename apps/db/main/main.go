@@ -1365,21 +1365,21 @@ func GetQueryWHERE(table *Table) string {
 			nfilters++
 		}
 
-		if nfilters > 1 {
-			fmt.Print("d")
-		}
-
 		i := 0
 		queryFilter := ""
 		for _, f := range table.Filter.Items {
-			op := f.GetOpString()
-			if f.Column == "" {
+			col := table.FindColumn(f.Column)
+			if col == nil {
 				continue
 			}
 
+			op := f.GetOpString()
 			val := f.Value
 			if len(f.Value) == 0 {
 				val = "''"
+			}
+			if col.Type == "TEXT" {
+				val = "'" + val + "'" //add quotes
 			}
 
 			queryFilter += f.Column + op + val
