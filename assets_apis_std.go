@@ -218,7 +218,11 @@ func (asset *Asset) _sa_info_string_len(keyMem uint64) int64 {
 func (asset *Asset) info_setString(key string, value string) int64 {
 	switch strings.ToLower(key) {
 	case "languages":
-		asset.app.root.ui.io.ini.Languages = strings.Split(value, "/")
+		if len(value) > 0 {
+			asset.app.root.ui.io.ini.Languages = strings.Split(value, "/")
+		} else {
+			asset.app.root.ui.io.ini.Languages = nil
+		}
 		asset.app.root.ReloadTranslations()
 		return 1
 

@@ -55,10 +55,17 @@ func FindInArray(arr []string, name string) int {
 
 func FindSelectedFile() *File {
 
-	if store.SelectedFile >= 0 && store.SelectedFile < len(store.Files) {
+	if store.SelectedFile < 0 {
+		store.SelectedFile = 0
+	}
+
+	if store.SelectedFile >= len(store.Files) {
+		store.SelectedFile = len(store.Files) - 1 //= -1
+	}
+
+	if store.SelectedFile >= 0 {
 		return store.Files[store.SelectedFile]
 	}
-	store.SelectedFile = len(store.Files) - 1 //= -1
 
 	return nil
 }
@@ -181,8 +188,11 @@ func Settings() {
 		SA_Text(trns.LANGUAGES).Align(1).Show(1, y, 1, 1)
 		y++
 
-		langs := strings.Split(SA_Info("languages"), "/") //read
-
+		inf_langs := SA_Info("languages")
+		var langs []string
+		if len(inf_langs) > 0 {
+			langs = strings.Split(inf_langs, "/")
+		}
 		for i, lng := range langs {
 
 			lang_id := FindLangCode(lng)
@@ -399,7 +409,11 @@ func Apps(file *File, file_i int) {
 	SA_Editbox(&store.SearchApp).TempToValue(true).Ghost(trns.SEARCH).Show(0, 0, 1, 1)
 	y++
 
-	apps := strings.Split(SA_Info("apps"), "/") //read
+	inf_apps := SA_Info("apps")
+	var apps []string
+	if len(inf_apps) > 0 {
+		apps = strings.Split(inf_apps, "/")
+	}
 	for _, app := range apps {
 
 		if len(store.SearchApp) > 0 {
@@ -424,8 +438,16 @@ func Apps(file *File, file_i int) {
 }
 
 func ProjectFiles() {
-	files := strings.Split(SA_Info("files"), "/") //read
-	apps := strings.Split(SA_Info("apps"), "/")   //read
+	inf_files := SA_Info("files")
+	inf_apps := SA_Info("apps")
+	var files []string
+	var apps []string
+	if len(inf_files) > 0 {
+		files = strings.Split(inf_files, "/")
+	}
+	if len(inf_apps) > 0 {
+		apps = strings.Split(inf_apps, "/")
+	}
 
 	//add
 	for _, nm := range files {
@@ -758,7 +780,6 @@ func CheckFileName(name string, alreadyExist bool) error {
 
 //export render
 func render() uint32 {
-
 	SA_Col(0, 4.5) //min
 	SA_ColResize(0, 7)
 	SA_ColMax(1, 100)
@@ -801,21 +822,11 @@ func render() uint32 {
 	app := FindSelectedApp()
 	if app != nil {
 		SA_DivStartName(1, 0, 1, 2, strconv.Itoa(app.Sts_id)+"_"+strconv.Itoa(file.Sts_id))
-
-		//file := FindFile(store.SelectedFile)
-		//if file != nil {
-		//app := file.FindApp(store.SelectedApp_sts_id)
-		//if app != nil {
 		SA_RenderApp(app.Name, file.Name, app.Sts_id)
-		//}
-		//}
 		SA_DivEnd()
 	} else if file != nil {
 		SA_DivStartName(1, 0, 1, 2, "_tables_"+strconv.Itoa(file.Sts_id))
-		//file := FindFile(store.SelectedFile)
-		//if file != nil {
 		SA_RenderApp("db", file.Name, file.Sts_id)
-		//}
 		SA_DivEnd()
 	}
 

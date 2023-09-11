@@ -517,7 +517,10 @@ func (asset *Asset) swp_drawCombo(cd_r, cd_g, cd_b, cd_a uint32,
 	root := asset.app.root
 	div := root.levels.GetStack().stack
 
-	options := strings.Split(optionsIn, "|")
+	var options []string
+	if len(optionsIn) > 0 {
+		options = strings.Split(optionsIn, "|")
+	}
 	var val string
 	if value >= uint64(len(options)) {
 		val = ""
