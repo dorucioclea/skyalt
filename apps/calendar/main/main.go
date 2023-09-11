@@ -652,8 +652,8 @@ func ModeMonth() {
 
 	{
 		//fix page(need to start with day 1)
-		orig_month := time.Unix(store.Small_page, 0).Month()
-		dtt := GetStartWeekDay(store.Small_page, format)
+		orig_month := time.Unix(store.Small_date, 0).Month()
+		dtt := GetStartWeekDay(store.Small_date, format)
 
 		for y := 0; y < 6; y++ {
 			for x := 0; x < 7; x++ {
