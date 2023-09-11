@@ -104,12 +104,11 @@ func TemperatureConverter() {
 	SA_ColMax(3, 100)
 	SA_ColMax(4, 100)
 
-	if SA_Editbox(&store.Celsius).TempToValue(true).AsNumber(true).Show(0, 0, 1, 1).changed {
-		store.Fahrenheit = store.Celsius*(9/5.0) + 32
-	}
-
+	SA_Editbox(&store.Celsius).TempToValue(true).AsNumber(true).Show(0, 0, 1, 1)
 	if SA_Editbox(&store.Fahrenheit).TempToValue(true).AsNumber(true).Show(3, 0, 1, 1).changed {
 		store.Celsius = (store.Fahrenheit - 32) * (5 / 9.0)
+	} else {
+		store.Fahrenheit = store.Celsius*(9/5.0) + 32
 	}
 
 	SA_Text(trns.CELSIUS).Show(1, 0, 1, 1)
