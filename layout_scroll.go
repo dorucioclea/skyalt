@@ -185,25 +185,24 @@ func (scroll *LayerScroll) _GetTempScroll(srcl int, ui *Ui) int {
 	return ui.Cell() * srcl
 }
 
-func (scroll *LayerScroll) IsTopMove(packLayout *LayoutDiv, root *Root, wheel_add int) bool {
+func (scroll *LayerScroll) IsMove(packLayout *LayoutDiv, root *Root, wheel_add int, deep int) bool {
 	inside := packLayout.CropWithScroll(root.ui).Inside(root.ui.io.touch.pos)
-	if !inside {
-		return false
-	}
+	if inside {
 
-	//test childs
-	for _, div := range packLayout.childs {
-		if div.data.scrollV.IsTopMove(div, root, wheel_add) {
-			return false
+		//test childs
+		for _, div := range packLayout.childs {
+			if div.data.scrollV.IsMove(div, root, wheel_add, deep+1) {
+				return deep > 0 //bottom layer must return false(can't scroll, because upper layer can scroll)
+			}
+			if div.data.scrollH.IsMove(div, root, wheel_add, deep+1) {
+				return deep > 0 //bottom layer must return false(can't scroll, because upper layer can scroll)
+			}
 		}
-		if div.data.scrollH.IsTopMove(div, root, wheel_add) {
-			return false
-		}
-	}
 
-	if inside && scroll.show {
-		curr := scroll.GetWheel()
-		return scroll._getWheel(curr+wheel_add) != curr
+		if scroll.Is() {
+			curr := scroll.GetWheel()
+			return scroll._getWheel(curr+wheel_add) != curr //can move => true
+		}
 	}
 
 	return false
@@ -218,9 +217,12 @@ func (scroll *LayerScroll) TouchV(packLayout *LayoutDiv, root *Root) {
 		ui.PaintCursor("default")
 	}
 
-	canUp := scroll.IsTopMove(packLayout, root, -1)
-	canDown := scroll.IsTopMove(packLayout, root, +1)
+	canUp := scroll.IsMove(packLayout, root, -1, 0)
+	canDown := scroll.IsMove(packLayout, root, +1, 0)
 	if ui.io.touch.wheel != 0 && !ui.io.keys.shift {
+
+		canUp = scroll.IsMove(packLayout, root, -1, 0)
+
 		if (ui.io.touch.wheel < 0 && canUp) || (ui.io.touch.wheel > 0 && canDown) {
 			if scroll.SetWheel(scroll.GetWheel() + scroll._GetTempScroll(ui.io.touch.wheel, ui)) {
 				ui.io.touch.wheel = 0 // let child scroll
@@ -302,10 +304,10 @@ func (scroll *LayerScroll) TouchH(needShiftWheel bool, packLayout *LayoutDiv, ro
 		ui.PaintCursor("default")
 	}
 
-	canUp := scroll.IsTopMove(packLayout, root, -1)
-	canDown := scroll.IsTopMove(packLayout, root, +1)
+	canLeft := scroll.IsMove(packLayout, root, -1, 0)
+	canRight := scroll.IsMove(packLayout, root, +1, 0)
 	if ui.io.touch.wheel != 0 && (!needShiftWheel || ui.io.keys.shift) {
-		if (ui.io.touch.wheel < 0 && canUp) || (ui.io.touch.wheel > 0 && canDown) {
+		if (ui.io.touch.wheel < 0 && canLeft) || (ui.io.touch.wheel > 0 && canRight) {
 			if scroll.SetWheel(scroll.GetWheel() + scroll._GetTempScroll(ui.io.touch.wheel, ui)) {
 				ui.io.touch.wheel = 0 // let child scroll
 			}
@@ -313,34 +315,34 @@ func (scroll *LayerScroll) TouchH(needShiftWheel bool, packLayout *LayoutDiv, ro
 	}
 
 	if !root.touch.IsAnyActive() && (!needShiftWheel || ui.io.keys.shift) {
-		if ui.io.keys.arrowL && canUp {
+		if ui.io.keys.arrowL && canLeft {
 			if scroll.SetWheel(scroll.GetWheel() - ui.Cell()) {
 				ui.io.keys.arrowL = false
 			}
 		}
-		if ui.io.keys.arrowR && canDown {
+		if ui.io.keys.arrowR && canRight {
 			if scroll.SetWheel(scroll.GetWheel() + ui.Cell()) {
 				ui.io.keys.arrowR = false
 			}
 		}
 
-		if ui.io.keys.home && canUp {
+		if ui.io.keys.home && canLeft {
 			if scroll.SetWheel(0) {
 				ui.io.keys.home = false
 			}
 		}
-		if ui.io.keys.end && canDown {
+		if ui.io.keys.end && canRight {
 			if scroll.SetWheel(scroll.data_height) {
 				ui.io.keys.end = false
 			}
 		}
 
-		if ui.io.keys.pageU && canUp {
+		if ui.io.keys.pageU && canLeft {
 			if scroll.SetWheel(scroll.GetWheel() - scroll.screen_height) {
 				ui.io.keys.pageU = false
 			}
 		}
-		if ui.io.keys.pageD && canDown {
+		if ui.io.keys.pageD && canRight {
 			if scroll.SetWheel(scroll.GetWheel() + scroll.screen_height) {
 				ui.io.keys.pageD = false
 			}
