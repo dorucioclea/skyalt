@@ -510,6 +510,12 @@ func open(buff []byte) bool {
 	//init
 	store.Cells = make(map[string]string)
 
+	//init
+	store.People = append(store.People, Person{Surname: "Emil", Name: "Hans"})
+	store.People = append(store.People, Person{Surname: "Mustermann", Name: "Max"})
+	store.People = append(store.People, Person{Surname: "Tisch", Name: "Roman"})
+	store.People = append(store.People, Person{Surname: "Romba", Name: "John"})
+
 	return false //default json
 }
 func save() ([]byte, bool) {
