@@ -515,6 +515,7 @@ func open(buff []byte) bool {
 	store.People = append(store.People, Person{Surname: "Mustermann", Name: "Max"})
 	store.People = append(store.People, Person{Surname: "Tisch", Name: "Roman"})
 	store.People = append(store.People, Person{Surname: "Romba", Name: "John"})
+	store.SelectedPerson = -1
 
 	return false //default json
 }
