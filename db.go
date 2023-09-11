@@ -261,3 +261,18 @@ func (db *Db) AddCache(query string) (*DbCache, error) {
 	db.cache = append(db.cache, cache)
 	return cache, nil
 }
+
+func (db *Db) Write(query string, params ...any) (sql.Result, error) {
+
+	tx, err := db.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := tx.Exec(query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("query(%s) failed: %w", query, err)
+	}
+
+	return res, nil
+}

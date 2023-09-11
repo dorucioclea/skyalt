@@ -37,12 +37,7 @@ func (asset *Asset) sql_write(dbName string, query string) (int64, error) {
 		return -1, err
 	}
 
-	db.tx, err = db.Begin()
-	if err != nil {
-		return -1, fmt.Errorf("Begin(%s) failed: %w", db.GetPath(), err)
-	}
-
-	res, err := db.tx.Exec(query)
+	res, err := db.Write(query)
 	if err != nil {
 		return -1, fmt.Errorf("Exec(%s) for query(%s) failed: %w", db.GetPath(), query, err)
 	}
