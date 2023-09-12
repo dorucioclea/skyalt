@@ -112,7 +112,7 @@ Email: milan@skyalt.com
 
 Twitter: https://twitter.com/milansuk/
 
-Sponsor: https://github.com/sponsors/MilanSuk
+**Sponsor**: https://github.com/sponsors/MilanSuk
 
 *Feel free to follow or contact me with any idea, question or problem.*
 
