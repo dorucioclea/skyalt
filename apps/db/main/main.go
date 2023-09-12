@@ -216,7 +216,7 @@ func GetDbStructure() []*Table {
 		table.Filter.Enable = true
 		table.Sort.Enable = true
 		// rowid column
-		table.Columns = append(table.Columns, &Column{Name: "rowid", Type: "INTEGER"})
+		table.Columns = append(table.Columns, &Column{Name: "rowid", Type: "INT"})
 
 		//column
 		qc := SA_SqlRead("", "pragma table_info("+tname+");")
@@ -370,7 +370,7 @@ func TablesList() {
 
 			if SA_DialogStart("TableMenu_" + table.Name) {
 				SA_ColMax(0, 5)
-				SA_Row(1, 0.3)
+				SA_Row(2, 0.3)
 
 				if SA_Button(trns.RENAME).Alpha(1).Show(0, 0, 1, 1).click {
 					store.renameTable = table.Name
@@ -378,10 +378,16 @@ func TablesList() {
 					SA_DialogOpen("RenameTable_"+table.Name, 1)
 				}
 
-				//space
-				SA_RowSpacer(0, 1, 1, 1)
+				if SA_Button(trns.DUPLICATE).Alpha(1).Show(0, 1, 1, 1).click {
+					store.renameTable = table.Name
+					SA_DialogClose()
+					SA_DialogOpen("DuplicateTable_"+table.Name, 1)
+				}
 
-				if SA_Button(trns.REMOVE).BackCd(SA_ThemeWarning()).Show(0, 2, 1, 1).click {
+				//space
+				SA_RowSpacer(0, 2, 1, 1)
+
+				if SA_Button(trns.REMOVE).Alpha(0.5).BackCd(SA_ThemeWarning()).Show(0, 3, 1, 1).click {
 					SA_DialogClose()
 					SA_DialogOpen("RemoveTableConfirm_"+table.Name, 1)
 				}
@@ -391,6 +397,11 @@ func TablesList() {
 
 			if SA_DialogStart("RenameTable_" + table.Name) {
 				RenameTable(table)
+				SA_DialogEnd()
+			}
+
+			if SA_DialogStart("DuplicateTable_" + table.Name) {
+				DuplicateTable(table)
 				SA_DialogEnd()
 			}
 
@@ -453,6 +464,27 @@ func RenameTable(table *Table) {
 			SA_SqlWrite("", "ALTER TABLE "+table.Name+" RENAME TO "+store.renameTable+";")
 		}
 		table.Name = store.renameTable
+		SA_DialogClose()
+	}
+}
+
+func DuplicateTable(table *Table) {
+	SA_ColMax(0, 7)
+	SA_ColMax(1, 3)
+
+	err := CheckName(store.renameTable, FindTable(store.Tables, store.renameTable) != nil)
+
+	SA_Editbox(&store.renameTable).Error(err).TempToValue(true).Show(0, 0, 1, 1)
+
+	if SA_Button(trns.DUPLICATE).Enable(err == nil).Show(1, 0, 1, 1).click {
+
+		SA_SqlWrite("", "CREATE TABLE "+store.renameTable+" AS SELECT * FROM "+table.Name+";")
+
+		//bug: columns,sorts,filters are pointers -> need to do deep copy ...
+		//copy := *FindTable(store.Tables, table.Name)
+		//store.Tables = append(store.Tables, &copy)
+
+		table.Name = store.renameTable //select
 		SA_DialogClose()
 	}
 }
@@ -701,14 +733,38 @@ func ColumnsCombo(table *Table, selectedColumn *string, enable bool) {
 	}
 }
 
+func IsInteger(tp string) bool {
+	return tp == "INT" || tp == "INTEGER" || tp == "TINYINT" || tp == "SMALLINT" || tp == "MEDIUMINT" || tp == "BIGINT" || tp == "INT2" || tp == "INT8"
+}
+func IsFloat(tp string) bool {
+	return tp == "REAL" || tp == "DOUBLE" || tp == "DOUBLE PRECISION" || tp == "FLOAT"
+}
+func IsText(tp string) bool {
+	if tp == "TEXT" || tp == "CLOB" {
+		return true
+	}
+	if strings.Index(tp, "CHARACTER") == 0 || strings.Index(tp, "VARCHAR") == 0 || strings.Index(tp, "NCHAR") == 0 || strings.Index(tp, "NVARCHAR") == 0 {
+		return true
+	}
+	return false
+}
+
+func IsBlob(tp string) bool {
+	return tp == "BLOB"
+}
+
+func IsDate(tp string) bool {
+	return tp == "DATE" || tp == "DATETIME"
+}
+
 func (column *Column) GetColumnName() string {
 	nm := column.Type
-	if column.Type == "INTEGER" || column.Type == "REAL" {
+	if IsInteger(column.Type) || IsFloat(column.Type) {
 		switch column.Render {
 		case "":
-			if column.Type == "INTEGER" {
+			if IsInteger(column.Type) {
 				nm = trns.INTEGER
-			} else if column.Type == "REAL" {
+			} else if IsFloat(column.Type) {
 				nm = trns.REAL
 			}
 		case "PERCENT":
@@ -761,18 +817,18 @@ func ColumnDetail(table *Table, column *Column) {
 		}
 
 		//convert type
-		if SA_Button(column.GetColumnName()).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, column.Render))).MarginIcon(0.2).Enable(column.Type != "BLOB").Show(1, 0, 1, 1).click {
+		if SA_Button(column.GetColumnName()).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, column.Render))).MarginIcon(0.2).Enable(!IsBlob(column.Type)).Show(1, 0, 1, 1).click {
 			SA_DialogOpen("changeType", 1)
 		}
 		if SA_DialogStart("changeType") {
 
 			SA_ColMax(0, 5)
 
-			if column.Type == "TEXT" {
+			if IsText(column.Type) {
 				y := 0
 
-				if SA_Button(trns.INTEGER).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INTEGER", ""))).MarginIcon(0.2).Enable(column.Render != "PERCENT").Show(0, y, 1, 1).click {
-					column.Convert(table, "INTEGER", "")
+				if SA_Button(trns.INTEGER).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INT", ""))).MarginIcon(0.2).Enable(column.Render != "PERCENT").Show(0, y, 1, 1).click {
+					column.Convert(table, "INT", "")
 				}
 				y++
 
@@ -781,7 +837,7 @@ func ColumnDetail(table *Table, column *Column) {
 				}
 				y++
 
-			} else if column.Type == "REAL" {
+			} else if IsFloat(column.Type) {
 				y := 0
 
 				if SA_Button(trns.REAL).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, ""))).MarginIcon(0.2).Enable(column.Render != "").Show(0, y, 1, 1).click {
@@ -797,8 +853,8 @@ func ColumnDetail(table *Table, column *Column) {
 				SA_RowSpacer(0, y, 1, 1)
 				y++
 
-				if SA_Button(trns.INTEGER).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INTEGER", ""))).MarginIcon(0.2).Enable(column.Render != "PERCENT").Show(0, y, 1, 1).click {
-					column.Convert(table, "INTEGER", "")
+				if SA_Button(trns.INTEGER).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INT", ""))).MarginIcon(0.2).Enable(column.Render != "PERCENT").Show(0, y, 1, 1).click {
+					column.Convert(table, "INT", "")
 				}
 				y++
 
@@ -807,7 +863,7 @@ func ColumnDetail(table *Table, column *Column) {
 				}
 				y++
 
-			} else if column.Type == "INTEGER" {
+			} else if IsInteger(column.Type) {
 				y := 0
 
 				if SA_Button(trns.INTEGER).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, ""))).MarginIcon(0.2).Enable(column.Render != "").Show(0, y, 1, 1).click {
@@ -955,12 +1011,10 @@ func Tablee(table *Table) {
 }
 
 func _getColumnIcon(tp string, render string) string {
-
-	switch tp {
-	case "TEXT":
+	if IsText(tp) {
 		return "type_text.png"
-
-	case "INTEGER":
+	}
+	if IsInteger(tp) {
 		switch render {
 		case "":
 			return "type_number.png"
@@ -971,15 +1025,16 @@ func _getColumnIcon(tp string, render string) string {
 		case "RATING":
 			return "type_rating.png"
 		}
-
-	case "REAL":
+	}
+	if IsFloat(tp) {
 		switch render {
 		case "":
 			return "type_number.png"
 		case "PERCENT":
 			return "type_percent.png"
 		}
-	case "BLOB":
+	}
+	if IsBlob(tp) {
 		return "type_blob.png"
 	}
 
@@ -1058,8 +1113,8 @@ func TableColumns(table *Table) {
 		}
 		y++
 
-		if SA_Button(trns.INTEGER).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INTEGER", ""))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
-			add_type = "INTEGER"
+		if SA_Button(trns.INTEGER).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INT", ""))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
+			add_type = "INT"
 			defValue = "0"
 		}
 		y++
@@ -1075,15 +1130,15 @@ func TableColumns(table *Table) {
 		}
 		y++
 
-		if SA_Button(trns.CHECK_BOX).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INTEGER", "CHECK_BOX"))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
-			add_type = "INTEGER"
+		if SA_Button(trns.CHECK_BOX).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INT", "CHECK_BOX"))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
+			add_type = "INT"
 			defValue = "0"
 			render = "CHECK_BOX"
 		}
 		y++
 
-		if SA_Button(trns.DATE).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INTEGER", "DATE"))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
-			add_type = "INTEGER"
+		if SA_Button(trns.DATE).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INT", "DATE"))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
+			add_type = "INT"
 			defValue = "0"
 			render = "DATE"
 		}
@@ -1096,8 +1151,8 @@ func TableColumns(table *Table) {
 		}
 		y++
 
-		if SA_Button(trns.RATING).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INTEGER", "RATING"))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
-			add_type = "INTEGER"
+		if SA_Button(trns.RATING).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INT", "RATING"))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
+			add_type = "INT"
 			defValue = "0"
 			render = "RATING"
 
@@ -1212,7 +1267,7 @@ func TableRows(table *Table) {
 							SA_DialogEnd()
 						}
 
-					} else if col.Type == "BLOB" {
+					} else if IsBlob(col.Type) {
 
 						r, err := strconv.Atoi(values[x])
 						if r > 0 && err == nil {
@@ -1244,7 +1299,7 @@ func TableRows(table *Table) {
 							}
 							SA_DivEnd()
 						}
-					} else if col.Type == "REAL" {
+					} else if IsFloat(col.Type) {
 
 						switch col.Render {
 						case "":
@@ -1259,7 +1314,7 @@ func TableRows(table *Table) {
 								writeCell = true
 							}
 						}
-					} else if col.Type == "INTEGER" {
+					} else if IsInteger(col.Type) {
 
 						switch col.Render {
 						case "":
@@ -1297,7 +1352,7 @@ func TableRows(table *Table) {
 							SA_DivEnd()
 						}
 
-					} else if col.Type == "TEXT" {
+					} else if IsText(col.Type) {
 						if SA_Editbox(&values[x]).Margin(0.02).Show(x, 0, 1, rowSize).finished {
 							writeCell = true
 						}
@@ -1307,7 +1362,7 @@ func TableRows(table *Table) {
 
 					if writeCell {
 						v := values[x]
-						if col.Type == "TEXT" {
+						if IsText(col.Type) {
 							v = "'" + v + "'"
 						}
 						SA_SqlWrite("", fmt.Sprintf("UPDATE %s SET %s=%s WHERE rowid=%s;", table.Name, col.Name, v, values[0]))
@@ -1375,7 +1430,7 @@ func TableStats(table *Table) {
 
 				SA_ColMax(0, 5)
 				y := 0
-				if col.Type == "INTEGER" || col.Type == "REAL" {
+				if IsInteger(col.Type) || IsFloat(col.Type) {
 
 					if SA_Button(trns.MIN).Alpha(1).Align(0).Show(0, y, 1, 1).click {
 						col.StatFunc = "min"
@@ -1443,19 +1498,21 @@ func GetQueryWHERE(table *Table) string {
 			val := f.Value
 
 			//convert
-			switch col.Type {
-			case "TEXT":
+			if IsText(col.Type) {
 				val = "'" + val + "'" //add quotes
-
-			case "INTEGER":
+			}
+			if IsInteger(col.Type) {
 				v, _ := strconv.Atoi(val)
 				val = strconv.Itoa(v)
-			case "REAL":
+			}
+			if IsFloat(col.Type) {
 				v, _ := strconv.ParseFloat(val, 64)
 				val = strconv.FormatFloat(v, 'f', -1, 64)
-			case "BLOB":
+			}
+			if IsBlob(col.Type) {
 				//...
 			}
+
 			queryFilter += f.Column + op + val
 			if i+1 < nfilters {
 				if table.Filter.Rel == 0 {
@@ -1534,14 +1591,11 @@ func GetQueryBasic(table *Table) (string, int) {
 			continue
 		}
 
-		switch col.Type {
-		case "BLOB":
+		if IsBlob(col.Type) {
 			query += "rowid AS " + col.Name
-
-		case "DATE":
+		} else if IsDate(col.Type) {
 			query += "DATE(" + col.Name + ")"
-
-		default:
+		} else {
 			query += col.Name
 		}
 
