@@ -1375,13 +1375,21 @@ func GetQueryWHERE(table *Table) string {
 
 			op := f.GetOpString()
 			val := f.Value
-			if len(f.Value) == 0 {
-				val = "''"
-			}
-			if col.Type == "TEXT" {
-				val = "'" + val + "'" //add quotes
-			}
 
+			//convert
+			switch col.Type {
+			case "TEXT":
+				val = "'" + val + "'" //add quotes
+
+			case "INTEGER":
+				v, _ := strconv.Atoi(val)
+				val = strconv.Itoa(v)
+			case "REAL":
+				v, _ := strconv.ParseFloat(val, 64)
+				val = strconv.FormatFloat(v, 'f', -1, 64)
+			case "BLOB":
+				//...
+			}
 			queryFilter += f.Column + op + val
 			if i+1 < nfilters {
 				if table.Filter.Rel == 0 {
