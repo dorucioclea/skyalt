@@ -28,6 +28,7 @@ type Storage struct {
 	SelectedTable int
 
 	renameTable  string
+	renameColumn string
 	createTable  string
 	createColumn string
 
@@ -757,6 +758,20 @@ func IsDate(tp string) bool {
 	return tp == "DATE" || tp == "DATETIME"
 }
 
+func GetColumnDefault(tp string) string {
+
+	if IsInteger(tp) {
+		return "0"
+	}
+	if IsFloat(tp) {
+		return "0"
+	}
+	if IsText(tp) {
+		return "''"
+	}
+	return "" //blob
+}
+
 func (column *Column) GetColumnName() string {
 	nm := column.Type
 	if IsInteger(column.Type) || IsFloat(column.Type) {
@@ -959,6 +974,7 @@ func ColumnDetail(table *Table, column *Column) {
 	{
 		SA_ColMax(0, 100)
 		SA_ColMax(1, 100)
+		SA_ColMax(2, 100)
 
 		//hide
 		if SA_Button(trns.HIDE).Alpha(0.5).Show(0, 0, 1, 1).click {
@@ -966,9 +982,40 @@ func ColumnDetail(table *Table, column *Column) {
 			SA_DialogClose()
 		}
 
+		//duplicate
+		if SA_Button(trns.DUPLICATE).Alpha(0.5).Show(1, 0, 1, 1).click {
+			store.renameColumn = column.Name
+			SA_DialogOpen("DuplicateColumn"+column.Name, 1)
+		}
+
 		//remove
-		if SA_Button(trns.REMOVE).BackCd(SA_ThemeWarning()).Show(1, 0, 1, 1).click {
+		if SA_Button(trns.REMOVE).BackCd(SA_ThemeWarning()).Show(2, 0, 1, 1).click {
 			SA_DialogOpen("RemoveColumnConfirm", 1)
+		}
+
+		if SA_DialogStart("DuplicateColumn" + column.Name) {
+			SA_ColMax(0, 7)
+			SA_ColMax(1, 3)
+
+			SA_Editbox(&store.renameColumn).Show(0, 0, 1, 1) //err ...
+			if SA_Button(trns.DUPLICATE).Show(1, 0, 1, 1).click {
+
+				var add_def string
+				defValue := GetColumnDefault(column.Type)
+				if len(defValue) > 0 {
+					add_def = "DEFAULT " + defValue + " NOT NULL"
+				}
+
+				SA_SqlWrite("", "ALTER TABLE "+table.Name+" ADD "+store.renameColumn+" "+column.Type+" "+add_def+";")
+				SA_SqlWrite("", "UPDATE "+table.Name+" SET "+store.renameColumn+" = "+column.Name+";")
+
+				copy := *column
+				copy.Name = store.renameColumn
+				table.Columns = append(table.Columns, &copy)
+				SA_DialogClose()
+			}
+
+			SA_DialogEnd()
 		}
 
 		if SA_DialogStart("RemoveColumnConfirm") {
@@ -1098,7 +1145,7 @@ func TableColumns(table *Table) {
 		SA_ColMax(0, 5)
 		y := 0
 		add_type := ""
-		defValue := ""
+		//defValue := ""
 		render := ""
 
 		//name
@@ -1109,19 +1156,16 @@ func TableColumns(table *Table) {
 		//types
 		if SA_Button(trns.TEXT).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("TEXT", ""))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "TEXT"
-			defValue = "''"
 		}
 		y++
 
 		if SA_Button(trns.INTEGER).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INT", ""))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "INT"
-			defValue = "0"
 		}
 		y++
 
 		if SA_Button(trns.REAL).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("REAL", ""))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "REAL"
-			defValue = "0"
 		}
 		y++
 
@@ -1132,36 +1176,32 @@ func TableColumns(table *Table) {
 
 		if SA_Button(trns.CHECK_BOX).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INT", "CHECK_BOX"))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "INT"
-			defValue = "0"
 			render = "CHECK_BOX"
 		}
 		y++
 
 		if SA_Button(trns.DATE).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INT", "DATE"))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "INT"
-			defValue = "0"
 			render = "DATE"
 		}
 		y++
 
 		if SA_Button(trns.PERCENT).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("REAL", "PERCENT"))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "REAL"
-			defValue = "0"
 			render = "PERCENT"
 		}
 		y++
 
 		if SA_Button(trns.RATING).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INT", "RATING"))).MarginIcon(0.2).Enable(err == nil).Show(0, y, 1, 1).click {
 			add_type = "INT"
-			defValue = "0"
 			render = "RATING"
 
 		}
 		y++
 
 		if len(add_type) > 0 {
-
 			var add_def string
+			defValue := GetColumnDefault(add_type)
 			if len(defValue) > 0 {
 				add_def = "DEFAULT " + defValue + " NOT NULL"
 			}
