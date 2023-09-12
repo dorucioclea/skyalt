@@ -538,6 +538,10 @@ func Files() {
 				if SA_Button(file.Name).Alpha(1).Align(0).Highlight(isSelected).Title("id: "+strconv.Itoa(file.Sts_id)).Show(0, 0, 1, 1).click {
 					store.SelectedFile = file_i
 					store.SelectedApp = -1
+
+					if SA_DivInfoPos("touchClicks", 0, 0) > 1 { //double click
+						SA_DialogOpen("RenameFile_"+file.Name, 1)
+					}
 				}
 				SA_Div_SetDrag("file", uint64(file_i))
 				src, pos, done := SA_Div_IsDrop("file", true, false, false)
@@ -589,7 +593,7 @@ func Files() {
 
 				newName := file.Name
 				if SA_Editbox(&newName).Error(nil).Show(0, 0, 1, 1).finished { //check if file name exist ...
-					if SA_InfoSet("rename_file", file.Name+"/"+newName) {
+					if file.Name != newName && SA_InfoSet("rename_file", file.Name+"/"+newName) {
 						file.Name = newName
 					}
 					SA_DialogClose()
@@ -649,6 +653,10 @@ func Files() {
 						if SA_Button(app.Label).Alpha(1).Align(0).Highlight(isSelected).Title("app: "+app.Name+", id: "+strconv.Itoa(app.Sts_id)).Show(0, 0, 1, 1).click {
 							store.SelectedFile = file_i
 							store.SelectedApp = app_i
+
+							if SA_DivInfoPos("touchClicks", 0, 0) > 1 { //double click
+								SA_DialogOpen("RenameApp_"+file.Name+"_"+strconv.Itoa(app.Sts_id), 1)
+							}
 						}
 
 						id := (uint64(file_i) << uint64(32)) | uint64(app_i)
