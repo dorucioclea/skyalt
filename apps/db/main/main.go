@@ -1298,8 +1298,18 @@ func TableRows(table *Table) {
 
 						if SA_DialogStart("RowId_" + values[x]) {
 							SA_ColMax(0, 5)
+							SA_Row(1, 0.5)
 
-							if SA_Button(trns.REMOVE).BackCd(SA_ThemeWarning()).Show(0, 0, 1, 1).click {
+							if SA_Button(trns.DUPLICATE).Alpha(1).Show(0, 0, 1, 1).click {
+
+								SA_SqlWrite("", fmt.Sprintf("INSERT INTO %s SELECT * FROM %s WHERE rowId=%s;", table.Name, table.Name, values[x]))
+
+								SA_DialogClose()
+							}
+
+							SA_RowSpacer(0, 1, 1, 1)
+
+							if SA_Button(trns.REMOVE).Alpha(0.5).BackCd(SA_ThemeWarning()).Show(0, 2, 1, 1).click {
 								SA_SqlWrite("", "DELETE FROM "+table.Name+" WHERE rowid="+values[x]+";")
 								SA_DialogClose()
 							}
