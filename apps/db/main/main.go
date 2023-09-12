@@ -704,6 +704,9 @@ func ColumnsCombo(table *Table, selectedColumn *string, enable bool) {
 func ColumnDetail(table *Table, column *Column) {
 
 	SA_ColMax(0, 10)
+	SA_Row(1, 0.5)
+	SA_Row(3, 0.5)
+	SA_Row(7, 0.5)
 
 	SA_DivStart(0, 0, 1, 1)
 	{
@@ -797,24 +800,16 @@ func ColumnDetail(table *Table, column *Column) {
 	SA_DivEnd()
 
 	//sort/filter
-	SA_DivStart(0, 2, 1, 2)
+	SA_DivStart(0, 2, 1, 1)
 	{
 		SA_ColMax(0, 100)
 		SA_ColMax(1, 100)
 		SA_ColMax(2, 100)
-		SA_Text(trns.SORT).Show(0, 0, 1, 1)
 
-		//sort
-		sort_notUse := table.Sort.Find(column.Name) == nil
-		if SA_Button("A -> Z").Enable(sort_notUse).Show(1, 0, 1, 1).click {
-			table.Sort.Add(column.Name, 0)
-		}
-		if SA_Button("Z -> A").Enable(sort_notUse).Show(2, 0, 1, 1).click {
-			table.Sort.Add(column.Name, 1)
-		}
+		SA_RowMax(0, 100)
 
 		//filter
-		if SA_Button(trns.FILTER).Align(0).Show(0, 1, 1, 1).click {
+		if SA_Button(trns.FILTER).Align(0).Alpha(0.5).Icon(SA_ResourceBuildAssetPath("", "filter.png")).MarginIcon(0.2).Show(0, 0, 1, 1).click {
 			table.Sort.Add(column.Name, 0)
 
 			table.Filter.Add(column.Name, 0)
@@ -822,11 +817,22 @@ func ColumnDetail(table *Table, column *Column) {
 			store.showFilterDialog = true
 			SA_DialogClose()
 		}
+
+		//sort
+		sort_notUse := table.Sort.Find(column.Name) == nil
+		if SA_Button(trns.SORT).Align(0).Alpha(0.5).Icon(SA_ResourceBuildAssetPath("", "sort_az.png")).MarginIcon(0.2).Enable(sort_notUse).Show(1, 0, 1, 1).click {
+			table.Sort.Add(column.Name, 0)
+		}
+
+		//sort
+		if SA_Button(trns.SORT).Align(0).Alpha(0.5).Icon(SA_ResourceBuildAssetPath("", "sort_za.png")).MarginIcon(0.2).Enable(sort_notUse).Show(2, 0, 1, 1).click {
+			table.Sort.Add(column.Name, 1)
+		}
 	}
 	SA_DivEnd()
 
 	//properties
-	SA_DivStart(0, 5, 1, 3)
+	SA_DivStart(0, 4, 1, 3)
 	{
 		if column.Render == "RATING" {
 			SA_ColMax(0, 100)
@@ -839,25 +845,31 @@ func ColumnDetail(table *Table, column *Column) {
 	}
 	SA_DivEnd()
 
-	//hide
-	if SA_Button(trns.HIDE).Show(0, 8, 1, 1).click {
-		column.Show = false
-		SA_DialogClose()
-	}
+	SA_DivStart(0, 8, 1, 1)
+	{
+		SA_ColMax(0, 100)
+		SA_ColMax(1, 100)
 
-	//remove
-	if SA_Button(trns.REMOVE).BackCd(SA_ThemeWarning()).Show(0, 10, 1, 1).click {
-		SA_DialogOpen("RemoveColumnConfirm", 1)
-	}
-
-	if SA_DialogStart("RemoveColumnConfirm") {
-		if SA_DialogConfirm() {
-			SA_SqlWrite("", "ALTER TABLE "+table.Name+" DROP COLUMN "+column.Name+";")
+		//hide
+		if SA_Button(trns.HIDE).Alpha(0.5).Show(0, 0, 1, 1).click {
+			column.Show = false
 			SA_DialogClose()
 		}
-		SA_DialogEnd()
-	}
 
+		//remove
+		if SA_Button(trns.REMOVE).BackCd(SA_ThemeWarning()).Show(1, 0, 1, 1).click {
+			SA_DialogOpen("RemoveColumnConfirm", 1)
+		}
+
+		if SA_DialogStart("RemoveColumnConfirm") {
+			if SA_DialogConfirm() {
+				SA_SqlWrite("", "ALTER TABLE "+table.Name+" DROP COLUMN "+column.Name+";")
+				SA_DialogClose()
+			}
+			SA_DialogEnd()
+		}
+	}
+	SA_DivEnd()
 }
 
 func Tablee(table *Table) {
@@ -1562,5 +1574,5 @@ func save() ([]byte, bool) {
 	return nil, false //default json
 }
 func debug() (int, int, string) {
-	return -1, 150, "main"
+	return -1, 230, "main"
 }
