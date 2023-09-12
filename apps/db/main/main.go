@@ -701,6 +701,42 @@ func ColumnsCombo(table *Table, selectedColumn *string, enable bool) {
 	}
 }
 
+func (column *Column) GetColumnName() string {
+	nm := column.Type
+	if column.Type == "INTEGER" || column.Type == "REAL" {
+		switch column.Render {
+		case "":
+			if column.Type == "INTEGER" {
+				nm = trns.INTEGER
+			} else if column.Type == "REAL" {
+				nm = trns.REAL
+			}
+		case "PERCENT":
+			nm = trns.PERCENT
+		case "CHECK_BOX":
+			nm = trns.CHECK_BOX
+		case "DATE":
+			nm = trns.DATE
+		case "RATING":
+			nm = trns.RATING
+		}
+	}
+	return nm
+}
+
+func (column *Column) Convert(table *Table, colType string, renderType string) {
+
+	addCol := fmt.Sprintf("ALTER TABLE %s ADD COLUMN __skyalt_temp_column__ %s;", table.Name, colType)
+	copyCol := fmt.Sprintf("UPDATE %s SET __skyalt_temp_column__ = CAST(%s as %s);", table.Name, column.Name, colType)
+	delCol := fmt.Sprintf("ALTER TABLE %s DROP COLUMN %s;", table.Name, column.Name)
+	renameCol := fmt.Sprintf("ALTER TABLE %s RENAME COLUMN __skyalt_temp_column__ TO %s;", table.Name, column.Name)
+
+	SA_SqlWrite("", addCol+copyCol+delCol+renameCol)
+
+	column.Type = colType
+	column.Render = renderType
+}
+
 func ColumnDetail(table *Table, column *Column) {
 
 	SA_ColMax(0, 10)
@@ -713,6 +749,7 @@ func ColumnDetail(table *Table, column *Column) {
 		SA_ColMax(0, 100)
 		SA_ColMax(1, 4)
 
+		//rename
 		origName := column.Name
 		if SA_Editbox(&column.Name).ShowDescription(0, 0, 1, 1, trns.NAME, 2, 0).finished {
 			if origName != column.Name {
@@ -723,38 +760,28 @@ func ColumnDetail(table *Table, column *Column) {
 			table.UpdateColumn(origName, column.Name)
 		}
 
-		{
-			changeType := (column.Type == "INTEGER" || column.Type == "REAL")
-			nm := column.Type
-			if changeType {
-				switch column.Render {
-				case "":
-					if column.Type == "INTEGER" {
-						nm = trns.INTEGER
-					} else if column.Type == "REAL" {
-						nm = trns.REAL
-					}
-				case "PERCENT":
-					nm = trns.PERCENT
-				case "CHECK_BOX":
-					nm = trns.CHECK_BOX
-				case "DATE":
-					nm = trns.DATE
-				case "RATING":
-					nm = trns.RATING
-				}
-			}
-			if SA_Button(nm).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, column.Render))).MarginIcon(0.2).Enable(changeType).Show(1, 0, 1, 1).click {
-				SA_DialogOpen("changeType", 1)
-			}
+		//convert type
+		if SA_Button(column.GetColumnName()).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, column.Render))).MarginIcon(0.2).Enable(column.Type != "BLOB").Show(1, 0, 1, 1).click {
+			SA_DialogOpen("changeType", 1)
 		}
-
-		//convert column type
 		if SA_DialogStart("changeType") {
 
 			SA_ColMax(0, 5)
 
-			if column.Type == "REAL" {
+			if column.Type == "TEXT" {
+				y := 0
+
+				if SA_Button(trns.INTEGER).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INTEGER", ""))).MarginIcon(0.2).Enable(column.Render != "PERCENT").Show(0, y, 1, 1).click {
+					column.Convert(table, "INTEGER", "")
+				}
+				y++
+
+				if SA_Button(trns.REAL).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("REAL", ""))).MarginIcon(0.2).Enable(column.Render != "PERCENT").Show(0, y, 1, 1).click {
+					column.Convert(table, "REAL", "")
+				}
+				y++
+
+			} else if column.Type == "REAL" {
 				y := 0
 
 				if SA_Button(trns.REAL).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, ""))).MarginIcon(0.2).Enable(column.Render != "").Show(0, y, 1, 1).click {
@@ -764,6 +791,19 @@ func ColumnDetail(table *Table, column *Column) {
 
 				if SA_Button(trns.PERCENT).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon(column.Type, "PERCENT"))).MarginIcon(0.2).Enable(column.Render != "PERCENT").Show(0, y, 1, 1).click {
 					column.Render = "PERCENT"
+				}
+				y++
+
+				SA_RowSpacer(0, y, 1, 1)
+				y++
+
+				if SA_Button(trns.INTEGER).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("INTEGER", ""))).MarginIcon(0.2).Enable(column.Render != "PERCENT").Show(0, y, 1, 1).click {
+					column.Convert(table, "INTEGER", "")
+				}
+				y++
+
+				if SA_Button(trns.TEXT).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("TEXT", ""))).MarginIcon(0.2).Enable(column.Render != "PERCENT").Show(0, y, 1, 1).click {
+					column.Convert(table, "TEXT", "")
 				}
 				y++
 
@@ -792,6 +832,20 @@ func ColumnDetail(table *Table, column *Column) {
 					}
 				}
 				y++
+
+				SA_RowSpacer(0, y, 1, 1)
+				y++
+
+				if SA_Button(trns.REAL).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("REAL", ""))).MarginIcon(0.2).Enable(column.Render != "PERCENT").Show(0, y, 1, 1).click {
+					column.Convert(table, "REAL", "")
+				}
+				y++
+
+				if SA_Button(trns.TEXT).Alpha(1).Align(0).Icon(SA_ResourceBuildAssetPath("", _getColumnIcon("TEXT", ""))).MarginIcon(0.2).Enable(column.Render != "PERCENT").Show(0, y, 1, 1).click {
+					column.Convert(table, "TEXT", "")
+				}
+				y++
+
 			}
 			SA_DialogEnd()
 		}
@@ -1574,5 +1628,5 @@ func save() ([]byte, bool) {
 	return nil, false //default json
 }
 func debug() (int, int, string) {
-	return -1, 230, "main"
+	return -1, 232, "main"
 }
