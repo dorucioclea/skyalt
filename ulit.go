@@ -309,6 +309,18 @@ func (q OsV4) AddSpace(space int) OsV4 {
 	return r.AddSpaceY(space)
 }
 
+func (q OsV4) Inner(top, bottom, left, right int) OsV4 {
+	for q.Size.X < (left + right) { //for!
+		left--
+		right--
+	}
+	for q.Size.Y < (top + bottom) { //for!
+		top--
+		bottom--
+	}
+	return InitOsQuad(q.Start.X+left, q.Start.Y+top, q.Size.X-(left+right), q.Size.Y-(top+bottom))
+}
+
 func (v OsV4) Middle() OsV2 {
 	return v.Start.Add(v.Size.MulV(0.5))
 }
