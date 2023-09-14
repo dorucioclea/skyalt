@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 #smaller exe
 #go build -ldflags="-s -w"
 
