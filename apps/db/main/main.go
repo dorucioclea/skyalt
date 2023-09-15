@@ -1337,7 +1337,7 @@ func TableRows(table *Table) {
 							res := SA_ResourceBuildDbPath("", table.Name, col.Name, r)
 							SA_DivStart(x, 0, 1, rowSize)
 							{
-								SAPaint_File(0, 0, 1, 1, res, "", 0.03, 0, 0, SA_ThemeWhite(), 1, 1, false, false)
+								SAPaint_File(0, 0, 1, 1, res, "", 0.03, 0, 0, SA_ThemeWhite(), 1, 1, false)
 								SAPaint_Rect(0, 0, 1, 1, 0, SA_ThemeGrey(0.3), 0.03)
 
 								inside := SA_DivInfo("touchInside") > 0
@@ -1352,7 +1352,7 @@ func TableRows(table *Table) {
 								if SA_DialogStart("Image_" + values[x]) {
 									SA_ColMax(0, 15)
 									SA_RowMax(0, 15)
-									SAPaint_File(0, 0, 1, 1, res, "", 0.03, 0, 0, SA_ThemeWhite(), 1, 1, false, false)
+									SAPaint_File(0, 0, 1, 1, res, "", 0.03, 0, 0, SA_ThemeWhite(), 1, 1, false)
 									if SA_DivInfo("touchInside") > 0 && SA_DivInfo("touchEnd") > 0 {
 										SA_DialogClose()
 									}

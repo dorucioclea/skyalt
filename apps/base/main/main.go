@@ -311,7 +311,7 @@ func About() {
 
 	SA_Text(trns.ABOUT).Align(1).Show(0, 0, 1, 1)
 
-	SA_Image(SA_ResourceBuildAssetPath("", "logo.png")).InverseColor(true).Show(0, 1, 1, 1)
+	SA_Image(SA_ResourceBuildAssetPath("", "logo.png")).Show(0, 1, 1, 1)
 
 	SA_Text("v0.2").Align(1).Show(0, 2, 1, 1)
 

@@ -246,17 +246,8 @@ func SAPaint_CircleEx(x, y, w, h float64, margin float64, sx, sy, rad float64, c
 	return _sa_paint_circle(x, y, w, h, margin, sx, sy, rad, uint32(cd.R), uint32(cd.G), uint32(cd.G), uint32(cd.A), borderWidth) > 0
 }
 
-func SAPaint_File(x, y, w, h float64, file string, title string, margin, marginX, marginY float64, cd SACd, alignV, alignH uint32, fill bool, inverse bool) bool {
-
-	var fillB uint32
-	var inverseB uint32
-	if fill {
-		fillB = 1
-	}
-	if inverse {
-		inverseB = 1
-	}
-	return _sa_paint_file(x, y, w, h, _SA_stringToPtr(file), _SA_stringToPtr(title), margin, marginX, marginY, uint32(cd.R), uint32(cd.G), uint32(cd.G), uint32(cd.A), alignV, alignH, fillB, inverseB) > 0
+func SAPaint_File(x, y, w, h float64, file string, title string, margin, marginX, marginY float64, cd SACd, alignV, alignH uint32, fill bool) bool {
+	return _sa_paint_file(x, y, w, h, _SA_stringToPtr(file), _SA_stringToPtr(title), margin, marginX, marginY, uint32(cd.R), uint32(cd.G), uint32(cd.G), uint32(cd.A), alignV, alignH, _SA_boolToUint32(fill)) > 0
 }
 
 func SAPaint_Text(x, y, w, h float64, value string, margin float64, marginX float64, marginY float64, cd SACd,
@@ -1280,10 +1271,9 @@ type _SA_Image struct {
 	align   uint32
 	alignV  uint32
 
-	enable    bool
-	fill      bool
-	inverseCd bool
-	cd        SACd
+	enable bool
+	fill   bool
+	cd     SACd
 }
 
 func SA_Image(file string) *_SA_Image {
@@ -1311,18 +1301,13 @@ func (b *_SA_Image) Margin(v float64) *_SA_Image {
 	return b
 }
 
-func (b *_SA_Image) InverseColor(v bool) *_SA_Image {
-	b.inverseCd = v
-	return b
-}
-
 func (b *_SA_Image) Show(x, y, w, h int) {
 
 	if SA_DivStart(x, y, w, h) {
 		_sa_paint_file(0, 0, 1, 1,
 			_SA_stringToPtr(b.file), _SA_stringToPtr(b.title), b.margin, b.marginX, b.marginY,
 			uint32(b.cd.R), uint32(b.cd.G), uint32(b.cd.B), uint32(b.cd.A),
-			b.align, b.alignV, _SA_boolToUint32(b.fill), _SA_boolToUint32(b.inverseCd))
+			b.align, b.alignV, _SA_boolToUint32(b.fill))
 
 	}
 	defer SA_DivEnd()
@@ -1666,7 +1651,7 @@ func SA_Rating(value int, max_value int, cdActive SACd, cdDeactive SACd, icon st
 				changed = (value != old_value)
 			}
 
-			SAPaint_File(0, 0, 1, 1, icon, "", 0.1, 0, 0, cd, 1, 1, false, false)
+			SAPaint_File(0, 0, 1, 1, icon, "", 0.1, 0, 0, cd, 1, 1, false)
 		}
 		SA_DivEnd()
 	}

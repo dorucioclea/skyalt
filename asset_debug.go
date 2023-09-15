@@ -382,8 +382,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			alignV := uint32(ad.ReadUint64())
 			alignH := uint32(ad.ReadUint64())
 			fill := uint32(ad.ReadUint64())
-			inverse := uint32(ad.ReadUint64())
-			ret := asset.paint_file(x, y, w, h, file, title, margin, marginX, marginY, r, g, b, a, alignV, alignH, fill, inverse)
+			ret := asset.paint_file(x, y, w, h, file, title, margin, marginX, marginY, r, g, b, a, alignV, alignH, fill)
 			ad.WriteUint64(uint64(ret))
 
 		case 54:

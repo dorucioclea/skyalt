@@ -129,7 +129,7 @@ func _sa_paint_line(x, y, w, h float64, margin float64, sx, sy, ex, ey float64, 
 func _sa_paint_circle(x, y, w, h float64, margin float64, sx, sy, rad float64, r, g, b, a uint32, borderWidth float64) int64
 
 //export _sa_paint_file
-func _sa_paint_file(x, y, w, h float64, fileMem SAMem, titleMem SAMem, margin, marginX, marginY float64, r, g, b, a uint32, alignV, alignH uint32, fill, inverse uint32) int64
+func _sa_paint_file(x, y, w, h float64, fileMem SAMem, titleMem SAMem, margin, marginX, marginY float64, r, g, b, a uint32, alignV, alignH uint32, fill uint32) int64
 
 //export _sa_paint_text
 func _sa_paint_text(x, y, w, h float64,

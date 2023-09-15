@@ -449,7 +449,7 @@ func _sa_paint_circle(x, y, w, h float64, margin float64, sx, sy, rad float64, r
 	return int64(ReadUint64())
 }
 
-func _sa_paint_file(x, y, w, h float64, fileMem SAMem, titleMem SAMem, margin, marginX, marginY float64, r, g, b, a uint32, alignV, alignH uint32, fill, inverse uint32) int64 {
+func _sa_paint_file(x, y, w, h float64, fileMem SAMem, titleMem SAMem, margin, marginX, marginY float64, r, g, b, a uint32, alignV, alignH uint32, fill uint32) int64 {
 	WriteUint64(53)
 	WriteFloat64(x)
 	WriteFloat64(y)
@@ -467,7 +467,6 @@ func _sa_paint_file(x, y, w, h float64, fileMem SAMem, titleMem SAMem, margin, m
 	WriteUint64(uint64(alignV))
 	WriteUint64(uint64(alignH))
 	WriteUint64(uint64(fill))
-	WriteUint64(uint64(inverse))
 
 	return int64(ReadUint64())
 }

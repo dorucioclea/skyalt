@@ -97,7 +97,7 @@ func (asset *Asset) _sa_paint_circle(x, y, w, h float64, margin float64, sx, sy,
 	return 1
 }
 
-func (asset *Asset) paint_file(x, y, w, h float64, file string, title string, margin, marginX, marginY float64, r, g, b, a uint32, alignV, alignH uint32, fill, inverse uint32) int64 {
+func (asset *Asset) paint_file(x, y, w, h float64, file string, title string, margin, marginX, marginY float64, r, g, b, a uint32, alignV, alignH uint32, fill uint32) int64 {
 
 	st := asset.app.root.levels.GetStack()
 	if st.stack == nil || st.stack.crop.IsZero() {
@@ -113,7 +113,7 @@ func (asset *Asset) paint_file(x, y, w, h float64, file string, title string, ma
 		return -1
 	}
 
-	st.buff.AddImage(path, inverse != 0, coord, cd, int(alignV), int(alignH), fill != 0)
+	st.buff.AddImage(path, false, coord, cd, int(alignV), int(alignH), fill != 0)
 
 	if len(title) > 0 {
 		asset.paint_title(0, 0, 1, 1, title)
@@ -121,7 +121,7 @@ func (asset *Asset) paint_file(x, y, w, h float64, file string, title string, ma
 
 	return 1
 }
-func (asset *Asset) _sa_paint_file(x, y, w, h float64, fileMem uint64, titleMem uint64, margin, marginX, marginY float64, r, g, b, a uint32, alignV, alignH uint32, fill, inverse uint32) int64 {
+func (asset *Asset) _sa_paint_file(x, y, w, h float64, fileMem uint64, titleMem uint64, margin, marginX, marginY float64, r, g, b, a uint32, alignV, alignH uint32, fill uint32) int64 {
 
 	file, err := asset.ptrToString(fileMem)
 	if asset.AddLogErr(err) {
@@ -132,7 +132,7 @@ func (asset *Asset) _sa_paint_file(x, y, w, h float64, fileMem uint64, titleMem 
 		return -1
 	}
 
-	return asset.paint_file(x, y, w, h, file, title, margin, marginX, marginY, r, g, b, a, alignV, alignH, fill, inverse)
+	return asset.paint_file(x, y, w, h, file, title, margin, marginX, marginY, r, g, b, a, alignV, alignH, fill)
 }
 
 func (asset *Asset) paint_title(x, y, w, h float64, text string) int64 {
