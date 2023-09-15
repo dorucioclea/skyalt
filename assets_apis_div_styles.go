@@ -31,10 +31,11 @@ type DivStyle struct {
 	Padding_top_color, Padding_bottom_color, Padding_left_color, Padding_right_color OsCd
 	Content_color                                                                    OsCd
 
+	Color OsCd
+
 	Image_fill                 bool
 	Image_alignV, Image_alignH int
 
-	Font_color               OsCd
 	Font_path                string
 	Font_height              float64 //from cell
 	Font_alignV, Font_alignH int
@@ -144,7 +145,7 @@ func (st *DivStyle) Paint(coord OsV4, text string, image_path string, image_marg
 		} else {
 			coordImg = coordImg.Inner(asset.getCellWidth(image_margin), asset.getCellWidth(image_margin), asset.getCellWidth(image_margin), asset.getCellWidth(image_margin))
 
-			stt.buff.AddImage(path, false, coordImg, st.Font_color, st.Image_alignV, st.Image_alignH, st.Image_fill)
+			stt.buff.AddImage(path, false, coordImg, st.Color, st.Image_alignV, st.Image_alignH, st.Image_fill)
 		}
 	}
 
@@ -155,7 +156,7 @@ func (st *DivStyle) Paint(coord OsV4, text string, image_path string, image_marg
 			font = asset.app.root.fonts.Get(SKYALT_FONT_0) //load default
 		}
 		if font != nil {
-			stt.buff.AddText(text, coordText, font, st.Font_color, asset.getCellWidth(st.Font_height), OsV2{st.Font_alignH, st.Font_alignV}, nil)
+			stt.buff.AddText(text, coordText, font, st.Color, asset.getCellWidth(st.Font_height), OsV2{st.Font_alignH, st.Font_alignV}, nil)
 		}
 	}
 
@@ -289,7 +290,7 @@ func DivStyles_getDefaults(asset *Asset) DivDefaultStyles {
 		b := &stls.Button.Main
 		b.Cursor = "hand"
 		b.Content_color = asset.themeCd()
-		b.Font_color = themeBlack()
+		b.Color = themeBlack()
 		b.Image_alignV = 1
 		b.Image_alignH = 0
 		b.Font_path = SKYALT_FONT_0
@@ -308,9 +309,9 @@ func DivStyles_getDefaults(asset *Asset) DivDefaultStyles {
 		stls.Button.Touch_out.Content_color = stls.Button.Hover.Content_color
 
 		stls.Button.Touch_hover.Content_color = themeBack()
-		stls.Button.Touch_hover.Font_color = asset.themeCd()
+		stls.Button.Touch_hover.Color = asset.themeCd()
 
-		stls.Button.Disable.Font_color = OsCd_Aprox(stls.Button.Main.Font_color, themeWhite(), 0.35)
+		stls.Button.Disable.Color = OsCd_Aprox(stls.Button.Main.Color, themeWhite(), 0.35)
 		stls.Button.Disable.Content_color = OsCd_Aprox(stls.Button.Main.Content_color, themeWhite(), 0.7)
 	}
 
@@ -322,7 +323,7 @@ func DivStyles_getDefaults(asset *Asset) DivDefaultStyles {
 		stls.ButtonLight.Touch_hover.Content_color.A = a
 		stls.ButtonLight.Touch_out.Content_color.A = a
 		stls.ButtonLight.Disable.Content_color.A = a
-		stls.ButtonLight.Disable.Font_color.A = a
+		stls.ButtonLight.Disable.Color.A = a
 	}
 
 	{
@@ -331,7 +332,7 @@ func DivStyles_getDefaults(asset *Asset) DivDefaultStyles {
 		stls.ButtonAlpha.Hover.Content_color = OsCd_Aprox(asset.themeCd(), themeWhite(), 0.7)
 		stls.ButtonAlpha.Touch_out.Content_color = OsCd{}
 		stls.ButtonAlpha.Disable.Content_color = OsCd{}
-		stls.ButtonAlpha.Disable.Font_color = OsCd_Aprox(asset.themeCd(), themeWhite(), 0.7)
+		stls.ButtonAlpha.Disable.Color = OsCd_Aprox(asset.themeCd(), themeWhite(), 0.7)
 	}
 
 	{
@@ -368,9 +369,9 @@ func DivStyles_getDefaults(asset *Asset) DivDefaultStyles {
 		stls.ButtonLogo.Touch_hover.Content_color.A = 0
 		stls.ButtonLogo.Touch_out.Content_color.A = 0 //refactor ...
 
-		stls.ButtonLogo.Hover.Font_color = OsCd_Aprox(stls.ButtonLogo.Main.Font_color, themeWhite(), 0.5)
-		stls.ButtonLogo.Touch_hover.Font_color = asset.themeCd()
-		stls.ButtonLogo.Touch_out.Font_color = stls.ButtonLogo.Hover.Font_color
+		stls.ButtonLogo.Hover.Color = OsCd_Aprox(stls.ButtonLogo.Main.Color, themeWhite(), 0.5)
+		stls.ButtonLogo.Touch_hover.Color = asset.themeCd()
+		stls.ButtonLogo.Touch_out.Color = stls.ButtonLogo.Hover.Color
 	}
 
 	{

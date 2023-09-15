@@ -1164,20 +1164,20 @@ var g_ButtonH1OutsideMonth _SA_Style
 func open(buff []byte) bool {
 	//styles
 	g_ButtonSelect = styles.Button
-	g_ButtonSelect.Main.Font_color = SA_ThemeWhite()
+	g_ButtonSelect.Main.Color = SA_ThemeWhite()
 	g_ButtonSelect.Main.Content_color = SA_ThemeGrey(0.4)
 	g_ButtonSelect.Id = 0
 
 	g_ButtonToday = styles.ButtonAlpha
-	g_ButtonToday.Main.Font_color = SA_ThemeCd()
+	g_ButtonToday.Main.Color = SA_ThemeCd()
 	g_ButtonToday.Id = 0
 
 	g_ButtonOutsideMonth = styles.ButtonAlpha
-	g_ButtonOutsideMonth.Main.Font_color = SA_ThemeGrey(0.7)
+	g_ButtonOutsideMonth.Main.Color = SA_ThemeGrey(0.7)
 	g_ButtonOutsideMonth.Id = 0
 
 	g_ButtonOutsideMonthSelect = styles.Button
-	g_ButtonOutsideMonthSelect.Main.Font_color = SA_ThemeGrey(0.7)
+	g_ButtonOutsideMonthSelect.Main.Color = SA_ThemeGrey(0.7)
 	g_ButtonOutsideMonthSelect.Id = 0
 
 	g_ButtonEvent = styles.ButtonLight
@@ -1185,7 +1185,7 @@ func open(buff []byte) bool {
 	g_ButtonEvent.Id = 0
 
 	g_ButtonH1OutsideMonth = styles.ButtonBig
-	g_ButtonH1OutsideMonth.Main.Font_color = SA_ThemeGrey(0.7)
+	g_ButtonH1OutsideMonth.Main.Color = SA_ThemeGrey(0.7)
 	g_ButtonH1OutsideMonth.Id = 0
 
 	//init store
