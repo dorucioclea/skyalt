@@ -348,28 +348,33 @@ func (font *Font) GetTextPos(touchPos OsV2, text string, coord OsV4, h int, alig
 }
 
 type Fonts struct {
-	fonts [2]*Font
+	fonts []*Font
 }
 
 func NewFonts() *Fonts {
-	var self Fonts
-
-	self.fonts[0] = NewFont(SKYALT_FONT_0)
-	self.fonts[1] = NewFont(SKYALT_FONT_1)
-
-	return &self
+	var fonts Fonts
+	return &fonts
 }
 
-func (font *Fonts) Destroy() error {
-
-	for _, it := range font.fonts {
+func (fonts *Fonts) Destroy() error {
+	for _, it := range fonts.fonts {
 		it.Destroy()
 	}
 	return nil
 }
 
-func (font *Fonts) Get(i int) *Font {
+func (fonts *Fonts) Get(path string) *Font {
+	//find
+	for _, f := range fonts.fonts {
+		if f.path == path {
+			return f
+		}
+	}
 
-	i = OsClamp(i, 0, len(font.fonts))
-	return font.fonts[i]
+	//add
+	f := NewFont(path)
+	if f != nil {
+		fonts.fonts = append(fonts.fonts, f)
+	}
+	return f
 }
