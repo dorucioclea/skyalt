@@ -799,7 +799,7 @@ func render() uint32 {
 		SA_ColMax(1, 100)
 
 		//Menu + dialogs
-		if SA_ButtonAlpha("").Icon(SA_ResourceBuildAssetPath("", "logo_small.png"), 0).Show(0, 0, 1, 1).click {
+		if SA_ButtonStyle("", &styles.ButtonLogo).Icon(SA_ResourceBuildAssetPath("", "logo_small.png"), 0).Show(0, 0, 1, 1).click {
 			SA_DialogOpen("Menu", 1)
 		}
 		if SA_DialogStart("Menu") {

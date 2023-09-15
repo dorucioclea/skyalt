@@ -1821,8 +1821,10 @@ type SA_Styles struct {
 	ButtonMenuBig  _SA_Style
 
 	ButtonAlphaBorder _SA_Style
-	ButtonDanger      _SA_Style
-	ButtonDangerMenu  _SA_Style
+	ButtonLogo        _SA_Style
+
+	ButtonDanger     _SA_Style
+	ButtonDangerMenu _SA_Style
 
 	ButtonIcon _SA_Style
 }

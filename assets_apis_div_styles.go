@@ -227,6 +227,15 @@ func (b *SwpStyle) BorderCd(v OsCd) *SwpStyle {
 	return b
 }
 
+func (b *SwpStyle) ImageColor(v OsCd) *SwpStyle {
+	b.Main.Image_color = v
+	b.Hover.Image_color = v
+	b.Touch_hover.Image_color = v
+	b.Touch_ouside.Image_color = v
+	b.Disable.Image_color = v
+	return b
+}
+
 func (style *SwpStyle) Paint(coord OsV4, text string, image_path string, image_margin float64, enable bool, asset *Asset) (bool, bool) {
 
 	st := asset.app.root.levels.GetStack()
@@ -276,6 +285,8 @@ type DivDefaultStyles struct {
 	ButtonMenuBig  SwpStyle
 
 	ButtonAlphaBorder SwpStyle
+
+	ButtonLogo SwpStyle
 
 	ButtonDanger     SwpStyle
 	ButtonDangerMenu SwpStyle
@@ -364,6 +375,17 @@ func DivStyles_getDefaults(asset *Asset) DivDefaultStyles {
 		//stls.ButtonAlphaBorder.Margin(0.1)
 		stls.ButtonAlphaBorder.Border(0.03)
 		stls.ButtonAlphaBorder.BorderCd(asset.themeCd())
+	}
+
+	{
+		stls.ButtonLogo = stls.ButtonAlpha
+		stls.ButtonLogo.Hover.Content_color.A = 0
+		stls.ButtonLogo.Touch_hover.Content_color.A = 0
+		stls.ButtonLogo.Touch_ouside.Content_color.A = 0 //refactor ...
+
+		stls.ButtonLogo.Hover.Font_color = OsCd_Aprox(stls.ButtonLogo.Main.Font_color, themeWhite(), 0.5)
+		stls.ButtonLogo.Touch_hover.Font_color = asset.themeCd()
+		stls.ButtonLogo.Touch_ouside.Font_color = stls.ButtonLogo.Hover.Font_color
 	}
 
 	{
