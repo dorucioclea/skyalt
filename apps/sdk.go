@@ -1755,19 +1755,19 @@ func (b *_SAStyle_Div) PaddingColor(v SACd) *_SAStyle_Div {
 }
 
 type _SA_Style struct {
-	Id           uint32
-	Main         _SAStyle_Div
-	Hover        _SAStyle_Div
-	Touch_hover  _SAStyle_Div
-	Touch_ouside _SAStyle_Div
-	Disable      _SAStyle_Div
+	Id          uint32
+	Main        _SAStyle_Div
+	Hover       _SAStyle_Div
+	Touch_hover _SAStyle_Div
+	Touch_out   _SAStyle_Div
+	Disable     _SAStyle_Div
 }
 
 func (b *_SA_Style) Padding(v float64) *_SA_Style {
 	b.Main.Padding(v)
 	b.Hover.Padding(v)
 	b.Touch_hover.Padding(v)
-	b.Touch_ouside.Padding(v)
+	b.Touch_out.Padding(v)
 	b.Disable.Padding(v)
 	return b
 }
@@ -1775,7 +1775,7 @@ func (b *_SA_Style) Margin(v float64) *_SA_Style {
 	b.Main.Margin(v)
 	b.Hover.Margin(v)
 	b.Touch_hover.Margin(v)
-	b.Touch_ouside.Margin(v)
+	b.Touch_out.Margin(v)
 	b.Disable.Margin(v)
 	return b
 }
@@ -1784,7 +1784,7 @@ func (b *_SA_Style) FontAlignH(v int) *_SA_Style {
 	b.Main.Font_alignH = v
 	b.Hover.Font_alignH = v
 	b.Touch_hover.Font_alignH = v
-	b.Touch_ouside.Font_alignH = v
+	b.Touch_out.Font_alignH = v
 	b.Disable.Font_alignH = v
 	return b
 }
@@ -1792,7 +1792,7 @@ func (b *_SA_Style) FontAlignV(v int) *_SA_Style {
 	b.Main.Font_alignV = v
 	b.Hover.Font_alignV = v
 	b.Touch_hover.Font_alignV = v
-	b.Touch_ouside.Font_alignV = v
+	b.Touch_out.Font_alignV = v
 	b.Disable.Font_alignV = v
 	return b
 }
@@ -1801,7 +1801,7 @@ func (b *_SA_Style) FontH(v float64) *_SA_Style {
 	b.Main.Font_height = v
 	b.Hover.Font_height = v
 	b.Touch_hover.Font_height = v
-	b.Touch_ouside.Font_height = v
+	b.Touch_out.Font_height = v
 	b.Disable.Font_height = v
 	return b
 }

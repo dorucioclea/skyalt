@@ -168,18 +168,18 @@ func (st *DivStyle) Paint(coord OsV4, text string, image_path string, image_marg
 }
 
 type SwpStyle struct {
-	Main         DivStyle
-	Hover        DivStyle
-	Touch_hover  DivStyle
-	Touch_ouside DivStyle
-	Disable      DivStyle
+	Main        DivStyle
+	Hover       DivStyle
+	Touch_hover DivStyle
+	Touch_out   DivStyle
+	Disable     DivStyle
 }
 
 func (b *SwpStyle) FontH(v float64) *SwpStyle {
 	b.Main.Font_height = v
 	b.Hover.Font_height = v
 	b.Touch_hover.Font_height = v
-	b.Touch_ouside.Font_height = v
+	b.Touch_out.Font_height = v
 	b.Disable.Font_height = v
 	return b
 }
@@ -188,7 +188,7 @@ func (b *SwpStyle) FontAlignH(v int) *SwpStyle {
 	b.Main.Font_alignH = v
 	b.Hover.Font_alignH = v
 	b.Touch_hover.Font_alignH = v
-	b.Touch_ouside.Font_alignH = v
+	b.Touch_out.Font_alignH = v
 	b.Disable.Font_alignH = v
 	return b
 }
@@ -196,7 +196,7 @@ func (b *SwpStyle) FontAlignV(v int) *SwpStyle {
 	b.Main.Font_alignV = v
 	b.Hover.Font_alignV = v
 	b.Touch_hover.Font_alignV = v
-	b.Touch_ouside.Font_alignV = v
+	b.Touch_out.Font_alignV = v
 	b.Disable.Font_alignV = v
 	return b
 }
@@ -205,7 +205,7 @@ func (b *SwpStyle) Margin(v float64) *SwpStyle {
 	b.Main.Margin(v)
 	b.Hover.Margin(v)
 	b.Touch_hover.Margin(v)
-	b.Touch_ouside.Margin(v)
+	b.Touch_out.Margin(v)
 	b.Disable.Margin(v)
 	return b
 }
@@ -214,7 +214,7 @@ func (b *SwpStyle) Border(v float64) *SwpStyle {
 	b.Main.Border(v)
 	b.Hover.Border(v)
 	b.Touch_hover.Border(v)
-	b.Touch_ouside.Border(v)
+	b.Touch_out.Border(v)
 	b.Disable.Border(v)
 	return b
 }
@@ -222,7 +222,7 @@ func (b *SwpStyle) BorderCd(v OsCd) *SwpStyle {
 	b.Main.BorderCd(v)
 	b.Hover.BorderCd(v)
 	b.Touch_hover.BorderCd(v)
-	b.Touch_ouside.BorderCd(v)
+	b.Touch_out.BorderCd(v)
 	b.Disable.BorderCd(v)
 	return b
 }
@@ -231,7 +231,7 @@ func (b *SwpStyle) ImageColor(v OsCd) *SwpStyle {
 	b.Main.Image_color = v
 	b.Hover.Image_color = v
 	b.Touch_hover.Image_color = v
-	b.Touch_ouside.Image_color = v
+	b.Touch_out.Image_color = v
 	b.Disable.Image_color = v
 	return b
 }
@@ -251,7 +251,7 @@ func (style *SwpStyle) Paint(coord OsV4, text string, image_path string, image_m
 			if inside {
 				style.Touch_hover.Paint(coord, text, image_path, image_margin, inside, asset)
 			} else {
-				style.Touch_ouside.Paint(coord, text, image_path, image_margin, inside, asset)
+				style.Touch_out.Paint(coord, text, image_path, image_margin, inside, asset)
 			}
 		} else {
 			if inside {
@@ -312,11 +312,11 @@ func DivStyles_getDefaults(asset *Asset) DivDefaultStyles {
 		//copy .main to others
 		stls.Button.Hover = *b
 		stls.Button.Touch_hover = *b
-		stls.Button.Touch_ouside = *b
+		stls.Button.Touch_out = *b
 		stls.Button.Disable = *b
 
 		stls.Button.Hover.Content_color = OsCd_Aprox(stls.Button.Main.Content_color, themeWhite(), 0.5)
-		stls.Button.Touch_ouside.Content_color = stls.Button.Hover.Content_color
+		stls.Button.Touch_out.Content_color = stls.Button.Hover.Content_color
 
 		stls.Button.Touch_hover.Content_color = themeBack()
 		stls.Button.Touch_hover.Image_color = asset.themeCd()
@@ -333,7 +333,7 @@ func DivStyles_getDefaults(asset *Asset) DivDefaultStyles {
 		stls.ButtonLight.Main.Content_color.A = a
 		stls.ButtonLight.Hover.Content_color.A = a
 		stls.ButtonLight.Touch_hover.Content_color.A = a
-		stls.ButtonLight.Touch_ouside.Content_color.A = a
+		stls.ButtonLight.Touch_out.Content_color.A = a
 		stls.ButtonLight.Disable.Content_color.A = a
 		stls.ButtonLight.Disable.Image_color.A = a
 		stls.ButtonLight.Disable.Font_color.A = a
@@ -343,7 +343,7 @@ func DivStyles_getDefaults(asset *Asset) DivDefaultStyles {
 		stls.ButtonAlpha = stls.Button
 		stls.ButtonAlpha.Main.Content_color = OsCd{}
 		stls.ButtonAlpha.Hover.Content_color = OsCd_Aprox(asset.themeCd(), themeWhite(), 0.7)
-		stls.ButtonAlpha.Touch_ouside.Content_color = OsCd{}
+		stls.ButtonAlpha.Touch_out.Content_color = OsCd{}
 		stls.ButtonAlpha.Disable.Content_color = OsCd{}
 		stls.ButtonAlpha.Disable.Image_color = OsCd_Aprox(asset.themeCd(), themeWhite(), 0.7)
 		stls.ButtonAlpha.Disable.Font_color = OsCd_Aprox(asset.themeCd(), themeWhite(), 0.7)
@@ -381,11 +381,11 @@ func DivStyles_getDefaults(asset *Asset) DivDefaultStyles {
 		stls.ButtonLogo = stls.ButtonAlpha
 		stls.ButtonLogo.Hover.Content_color.A = 0
 		stls.ButtonLogo.Touch_hover.Content_color.A = 0
-		stls.ButtonLogo.Touch_ouside.Content_color.A = 0 //refactor ...
+		stls.ButtonLogo.Touch_out.Content_color.A = 0 //refactor ...
 
 		stls.ButtonLogo.Hover.Font_color = OsCd_Aprox(stls.ButtonLogo.Main.Font_color, themeWhite(), 0.5)
 		stls.ButtonLogo.Touch_hover.Font_color = asset.themeCd()
-		stls.ButtonLogo.Touch_ouside.Font_color = stls.ButtonLogo.Hover.Font_color
+		stls.ButtonLogo.Touch_out.Font_color = stls.ButtonLogo.Hover.Font_color
 	}
 
 	{
@@ -393,7 +393,7 @@ func DivStyles_getDefaults(asset *Asset) DivDefaultStyles {
 		stls.ButtonDanger.Main.Content_color = themeWarning()
 		stls.ButtonDanger.Hover.Content_color = themeWarning()
 		stls.ButtonDanger.Touch_hover.Content_color = themeWarning()
-		stls.ButtonDanger.Touch_ouside.Content_color = themeWarning()
+		stls.ButtonDanger.Touch_out.Content_color = themeWarning()
 		stls.ButtonDanger.Disable.Content_color = OsCd_Aprox(stls.ButtonDanger.Main.Content_color, themeWhite(), 0.5)
 	}
 
