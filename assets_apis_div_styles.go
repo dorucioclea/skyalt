@@ -31,7 +31,6 @@ type DivStyle struct {
 	Padding_top_color, Padding_bottom_color, Padding_left_color, Padding_right_color OsCd
 	Content_color                                                                    OsCd
 
-	Image_color                OsCd
 	Image_fill                 bool
 	Image_alignV, Image_alignH int
 
@@ -227,15 +226,6 @@ func (b *SwpStyle) BorderCd(v OsCd) *SwpStyle {
 	return b
 }
 
-func (b *SwpStyle) ImageColor(v OsCd) *SwpStyle {
-	b.Main.Image_color = v
-	b.Hover.Image_color = v
-	b.Touch_hover.Image_color = v
-	b.Touch_out.Image_color = v
-	b.Disable.Image_color = v
-	return b
-}
-
 func (style *SwpStyle) Paint(coord OsV4, text string, image_path string, image_margin float64, enable bool, asset *Asset) (bool, bool) {
 
 	st := asset.app.root.levels.GetStack()
@@ -302,7 +292,6 @@ func DivStyles_getDefaults(asset *Asset) DivDefaultStyles {
 		b.Font_color = themeBlack()
 		b.Image_alignV = 1
 		b.Image_alignH = 0
-		b.Image_color = themeBlack()
 		b.Font_path = SKYALT_FONT_0
 		b.Font_alignV = 1
 		b.Font_alignH = 1
@@ -319,11 +308,9 @@ func DivStyles_getDefaults(asset *Asset) DivDefaultStyles {
 		stls.Button.Touch_out.Content_color = stls.Button.Hover.Content_color
 
 		stls.Button.Touch_hover.Content_color = themeBack()
-		stls.Button.Touch_hover.Image_color = asset.themeCd()
 		stls.Button.Touch_hover.Font_color = asset.themeCd()
 
 		stls.Button.Disable.Font_color = OsCd_Aprox(stls.Button.Main.Font_color, themeWhite(), 0.35)
-		stls.Button.Disable.Image_color = OsCd_Aprox(stls.Button.Main.Font_color, themeWhite(), 0.7)
 		stls.Button.Disable.Content_color = OsCd_Aprox(stls.Button.Main.Content_color, themeWhite(), 0.7)
 	}
 
@@ -335,7 +322,6 @@ func DivStyles_getDefaults(asset *Asset) DivDefaultStyles {
 		stls.ButtonLight.Touch_hover.Content_color.A = a
 		stls.ButtonLight.Touch_out.Content_color.A = a
 		stls.ButtonLight.Disable.Content_color.A = a
-		stls.ButtonLight.Disable.Image_color.A = a
 		stls.ButtonLight.Disable.Font_color.A = a
 	}
 
@@ -345,7 +331,6 @@ func DivStyles_getDefaults(asset *Asset) DivDefaultStyles {
 		stls.ButtonAlpha.Hover.Content_color = OsCd_Aprox(asset.themeCd(), themeWhite(), 0.7)
 		stls.ButtonAlpha.Touch_out.Content_color = OsCd{}
 		stls.ButtonAlpha.Disable.Content_color = OsCd{}
-		stls.ButtonAlpha.Disable.Image_color = OsCd_Aprox(asset.themeCd(), themeWhite(), 0.7)
 		stls.ButtonAlpha.Disable.Font_color = OsCd_Aprox(asset.themeCd(), themeWhite(), 0.7)
 	}
 

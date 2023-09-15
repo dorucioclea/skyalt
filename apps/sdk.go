@@ -1671,7 +1671,6 @@ type _SAStyle_Div struct {
 	Padding_top_color, Padding_bottom_color, Padding_left_color, Padding_right_color SACd
 	Content_color                                                                    SACd
 
-	Image_color                SACd
 	Image_margin               float64
 	Image_fill                 bool
 	Image_alignV, Image_alignH int
