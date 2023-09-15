@@ -195,7 +195,7 @@ func (b *PaintBuff) AddImage(path ResourcePath, inverserRGB bool, coord OsV4, cd
 
 	img, err := PaintImage_load(path, inverserRGB, b.ui)
 	if err != nil {
-		b.AddText(path.GetString()+" has error", coord, path.root.fonts.Get(0), OsCd_error(), path.root.ui.io.GetDPI()/8, OsV2{1, 1}, nil)
+		b.AddText(path.GetString()+" has error", coord, path.root.fonts.Get(SKYALT_FONT_0), OsCd_error(), path.root.ui.io.GetDPI()/8, OsV2{1, 1}, nil)
 		return
 	}
 	if img == nil {
