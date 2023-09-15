@@ -579,7 +579,7 @@ func (asset *Asset) _VmDraw_Text_line(coord OsV4, lineY int, lineEnd OsV2,
 	}
 	textH := asset.getCellWidth(ratioH)
 
-	font := root.fonts.Get(int(fontId))
+	font := root.fonts.Get(SKYALT_FONT_0) //...int(fontId))
 	edit := &root.ui.io.edit
 	keys := &root.ui.io.keys
 	touch := &root.ui.io.touch

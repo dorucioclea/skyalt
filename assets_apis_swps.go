@@ -35,6 +35,9 @@ func themeBlack() OsCd {
 func themeGrey(t float64) OsCd {
 	return OsCd{byte(255 * t), byte(255 * t), byte(255 * t), 255}
 }
+func themeWarning() OsCd {
+	return OsCd{230, 110, 50, 255}
+}
 
 func (asset *Asset) themeCd() OsCd {
 
@@ -52,113 +55,16 @@ func (asset *Asset) themeCd() OsCd {
 	return cd
 }
 
-func (asset *Asset) swp_drawButton(backCd OsCd, frontCd OsCd,
-	value string, icon string, url string, title string,
-	font uint32, alpha float64, alphaNoBack uint32, iconInverseColor uint32,
-
-	margin float64, marginIcon float64, align uint32, ratioH float64,
-	enable uint32, highlight uint32, drawBorder uint32) (bool, bool, int64) {
+func (asset *Asset) swp_drawButton(style uint32, value string, icon string, icon_margin float64, url string, title string, enable bool) (bool, bool, int64) {
 
 	root := asset.app.root
 	st := root.levels.GetStack()
 
-	drawBack := true
-	//backCd := OsCd{byte(backCd_r), byte(backCd_g), byte(backCd_b), byte(backCd_a)}
-	//frontCd := OsCd{byte(frontCd_r), byte(frontCd_g), byte(frontCd_b), byte(frontCd_a)}
-
-	if alpha == 1 {
-		drawBack = false
-	} else if alpha == 0.5 {
-		drawBack = true
-		backCd = OsCd_Aprox(backCd, themeWhite(), 0.7)
-	}
-
-	if highlight > 0 {
-		drawBack = true
-		backCd = asset.themeCd()
-	}
-
 	var click, rclick bool
-	if enable > 0 {
-		active := st.stack.data.touch_active
-		inside := st.stack.data.touch_inside
-		end := st.stack.data.touch_end
-		force := root.ui.io.touch.rm
 
-		if active || inside {
-			backCd = OsCd_Aprox(backCd, themeWhite(), 0.5)
-			drawBack = true
-			if len(icon) > 0 && highlight == 0 {
-				drawBack = false
-			}
-
-			if alpha > 0 && alphaNoBack > 0 {
-				frontCd = asset.themeCd()
-				drawBack = false
-			}
-
-			asset.paint_cursor("hand")
-		}
-		if active && inside {
-			backCd = themeBack()
-			frontCd = asset.themeCd()
-		}
-
-		if inside && end {
-			click = true
-			rclick = force
-		}
-	}
-
-	iconCd := frontCd
-	if enable == 0 {
-		backCd = OsCd_Aprox(themeWhite(), backCd, 0.5)
-		iconCd = OsCd_Aprox(themeWhite(), iconCd, 0.3)
-	}
-
-	if drawBack {
-		st.buff.AddRect(asset.getCoord(0, 0, 1, 1, margin, 0, 0), backCd, 0)
-	}
-	if drawBorder > 0 {
-		st.buff.AddRect(asset.getCoord(0, 0, 1, 1, margin, 0, 0), backCd, asset.getCellWidth(0.03))
-	}
-
-	if len(value) > 0 && len(icon) > 0 {
-
-		w := float64(root.ui.Cell()) / float64(st.stack.canvas.Size.X)
-
-		path, err := InitResourcePath(asset.app.root, icon, asset.app.name)
-		if err != nil {
-			asset.AddLogErr(err)
-			return false, false, -1
-		}
-
-		st.buff.AddImage(path, iconInverseColor != 0, asset.getCoord(0, 0, w, 1, marginIcon, 0, 0), iconCd, 1, 1, false)
-
-		asset.paint_text(w, 0, 1-w, 1,
-			value, value,
-			margin, 0, 0,
-			frontCd,
-			ratioH, 1,
-			0, align, 1,
-			0, 0, 0, enable) //has 'enable' - will shades inside
-
-	} else if len(value) > 0 {
-
-		asset.paint_text(0, 0, 1, 1,
-			value, value,
-			margin, 0, 0,
-			frontCd,
-			ratioH, 1,
-			0, align, 1,
-			0, 0, 0, enable)
-	} else if len(icon) > 0 {
-		path, err := InitResourcePath(asset.app.root, icon, asset.app.name)
-		if err != nil {
-			asset.AddLogErr(err)
-			return false, false, -1
-		}
-		st.buff.AddImage(path, iconInverseColor != 0, asset.getCoord(0, 0, 1, 1, marginIcon, 0, 0), iconCd, 1, 1, false)
+	stylee := asset.styles.Get(style)
+	if stylee != nil {
+		click, rclick = stylee.Paint(st.stack.canvas, value, icon, icon_margin, enable, asset)
 	}
 
 	if click && len(url) > 0 {
@@ -175,14 +81,7 @@ func (asset *Asset) swp_drawButton(backCd OsCd, frontCd OsCd,
 	return click, rclick, 1
 }
 
-func (asset *Asset) _sa_swp_drawButton(backCd_r, backCd_g, backCd_b, backCd_a uint32,
-	frontCd_r, frontCd_g, frontCd_b, frontCd_a uint32,
-	valueMem uint64, iconMem uint64, urlMem uint64, titleMem uint64,
-	font uint32, alpha float64, alphaNoBack uint32, iconInverseColor uint32,
-
-	margin float64, marginIcon float64, align uint32, ratioH float64,
-	enable uint32, highlight uint32, drawBorder uint32,
-	outMem uint64) int64 {
+func (asset *Asset) _sa_swp_drawButton(style uint32, valueMem uint64, iconMem uint64, icon_margin float64, urlMem uint64, titleMem uint64, enable uint32, outMem uint64) int64 {
 
 	value, err := asset.ptrToString(valueMem)
 	if asset.AddLogErr(err) {
@@ -201,13 +100,7 @@ func (asset *Asset) _sa_swp_drawButton(backCd_r, backCd_g, backCd_b, backCd_a ui
 		return -1
 	}
 
-	click, rclick, ret := asset.swp_drawButton(InitOsCd32(backCd_r, backCd_g, backCd_b, backCd_a),
-		InitOsCd32(frontCd_r, frontCd_g, frontCd_b, frontCd_a),
-		value, icon, url, title,
-		font, alpha, alphaNoBack, iconInverseColor,
-
-		margin, marginIcon, align, ratioH,
-		enable, highlight, drawBorder)
+	click, rclick, ret := asset.swp_drawButton(style, value, icon, icon_margin, url, title, enable > 0)
 
 	out, err := asset.ptrToBytesDirect(outMem)
 	if asset.AddLogErr(err) {
@@ -573,7 +466,7 @@ func (asset *Asset) swp_drawCombo(cd_r, cd_g, cd_b, cd_a uint32,
 
 		for i, opt := range options {
 			asset.div_start(0, uint64(i), 1, 1, "")
-			click, _, ret := asset.swp_drawButton(OsCd_black(), cd, opt, "", "", "", 0, 1, 1, 0, margin, 0, 0, ratioH, 1, uint32(OsTrn(value == uint64(i), 1, 0)), 0)
+			click, _, ret := asset.swp_drawButton(asset.styles.buttonMenu, opt, "", 0, "", "", value != uint64(i))
 			if ret > 0 && click {
 				value = uint64(i)
 				asset._sa_div_dialogClose()
@@ -702,7 +595,7 @@ func (asset *Asset) paint_textWidth(value string, fontId uint32, ratioH float64,
 	root := asset.app.root
 
 	textH := asset.getCellWidth(ratioH)
-	font := root.fonts.Get(int(fontId))
+	font := root.fonts.Get(SKYALT_FONT_0) //...int(fontId))
 	cell := float64(asset.app.root.ui.Cell())
 	if cursorPos < 0 {
 

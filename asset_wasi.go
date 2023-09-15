@@ -49,7 +49,7 @@ func NewAssetWasm(asset *Asset) (*AssetWasm, error) {
 
 func (aw *AssetWasm) SaveData() {
 	if aw.mod != nil {
-		aw.mod.ExportedFunction("_sa_save").Call(aw.asset.app.root.ctx)
+		aw.mod.ExportedFunction("_sa_exit").Call(aw.asset.app.root.ctx)
 	}
 }
 
@@ -107,6 +107,8 @@ func (aw *AssetWasm) InstantiateEnv() error {
 
 	env.NewFunctionBuilder().WithFunc(aw.asset._sa_div_drag).Export("_sa_div_drag")
 	env.NewFunctionBuilder().WithFunc(aw.asset._sa_div_drop).Export("_sa_div_drop")
+
+	env.NewFunctionBuilder().WithFunc(aw.asset._sa_register_style).Export("_sa_register_style")
 
 	env.NewFunctionBuilder().WithFunc(aw.asset._sa_render_app).Export("_sa_render_app")
 

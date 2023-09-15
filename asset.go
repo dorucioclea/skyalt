@@ -18,6 +18,7 @@ package main
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -44,6 +45,8 @@ type Asset struct {
 	logs []AssetLog
 
 	sts_rowid int
+
+	styles *DivStyles
 }
 
 func (asset *Asset) AddLogErr(err error) bool {
@@ -74,6 +77,8 @@ func NewAsset(app *App, name string) (*Asset, error) {
 	asset.translations = NewTranslations(asset.getTranslationsPath())
 
 	asset.UpdateResources()
+
+	asset.styles = NewDivStyles(&asset)
 
 	asset.Tick()
 
@@ -122,6 +127,19 @@ func (asset *Asset) CallSet(js []byte, fnName string) {
 	data = append(data, TpBytes)
 	data = binary.LittleEndian.AppendUint64(data, uint64(len(js)))
 	data = append(data, js...)
+
+	asset.Call(fnName, data)
+}
+
+func (asset *Asset) CallSet2(js1 []byte, js2 []byte, fnName string) {
+	var data []byte
+	data = append(data, TpBytes)
+	data = binary.LittleEndian.AppendUint64(data, uint64(len(js1)))
+	data = append(data, js1...)
+
+	data = append(data, TpBytes)
+	data = binary.LittleEndian.AppendUint64(data, uint64(len(js2)))
+	data = append(data, js2...)
 
 	asset.Call(fnName, data)
 }
@@ -178,12 +196,18 @@ func (asset *Asset) UpdateResources() {
 }
 
 func (asset *Asset) loadData() {
-	js, err := asset.app.root.settings.GetContent(asset.sts_rowid)
+	jsStore, err := asset.app.root.settings.GetContent(asset.sts_rowid)
 	if asset.AddLogErr(err) {
 		return
 	}
 
-	asset.CallSet(js, "_sa_open")
+	defs := DivStyles_getDefaults(asset)
+	jsStyles, err := json.MarshalIndent(&defs, "", "")
+	if asset.AddLogErr(err) {
+		return
+	}
+
+	asset.CallSet2(jsStore, jsStyles, "_sa_init")
 }
 
 func (asset *Asset) Tick() {

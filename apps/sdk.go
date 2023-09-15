@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"math"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 
 var store Storage
 var trns Translations
+var styles SA_Styles
 
 /* -------------------- App information -------------------- */
 
@@ -228,20 +230,20 @@ func SA_DivRangeVer(itemSize float64, x, y int) (int, int) {
 /* -------------------- Paint -------------------- */
 
 func SAPaint_Rect(x, y, w, h float64, margin float64, cd SACd, borderWidth float64) bool {
-	return _sa_paint_rect(x, y, w, h, margin, uint32(cd.r), uint32(cd.g), uint32(cd.g), uint32(cd.a), borderWidth) > 0
+	return _sa_paint_rect(x, y, w, h, margin, uint32(cd.R), uint32(cd.G), uint32(cd.G), uint32(cd.A), borderWidth) > 0
 }
 func SAPaint_Line(sx, sy, ex, ey float64, cd SACd, width float64) bool {
-	return _sa_paint_line(0, 0, 1, 1, 0, sx, sy, ex, ey, uint32(cd.r), uint32(cd.g), uint32(cd.g), uint32(cd.a), width) > 0
+	return _sa_paint_line(0, 0, 1, 1, 0, sx, sy, ex, ey, uint32(cd.R), uint32(cd.G), uint32(cd.G), uint32(cd.A), width) > 0
 }
 func SAPaint_LineEx(x, y, w, h float64, margin float64, sx, sy, ex, ey float64, cd SACd, width float64) bool {
-	return _sa_paint_line(x, y, w, h, margin, sx, sy, ex, ey, uint32(cd.r), uint32(cd.g), uint32(cd.g), uint32(cd.a), width) > 0
+	return _sa_paint_line(x, y, w, h, margin, sx, sy, ex, ey, uint32(cd.R), uint32(cd.G), uint32(cd.G), uint32(cd.A), width) > 0
 }
 
 func SAPaint_Circle(sx, sy, rad float64, cd SACd, borderWidth float64) bool {
-	return _sa_paint_circle(0, 0, 1, 1, 0, sx, sy, rad, uint32(cd.r), uint32(cd.g), uint32(cd.g), uint32(cd.a), borderWidth) > 0
+	return _sa_paint_circle(0, 0, 1, 1, 0, sx, sy, rad, uint32(cd.R), uint32(cd.G), uint32(cd.G), uint32(cd.A), borderWidth) > 0
 }
 func SAPaint_CircleEx(x, y, w, h float64, margin float64, sx, sy, rad float64, cd SACd, borderWidth float64) bool {
-	return _sa_paint_circle(x, y, w, h, margin, sx, sy, rad, uint32(cd.r), uint32(cd.g), uint32(cd.g), uint32(cd.a), borderWidth) > 0
+	return _sa_paint_circle(x, y, w, h, margin, sx, sy, rad, uint32(cd.R), uint32(cd.G), uint32(cd.G), uint32(cd.A), borderWidth) > 0
 }
 
 func SAPaint_File(x, y, w, h float64, file string, title string, margin, marginX, marginY float64, cd SACd, alignV, alignH uint32, fill bool, inverse bool) bool {
@@ -254,7 +256,7 @@ func SAPaint_File(x, y, w, h float64, file string, title string, margin, marginX
 	if inverse {
 		inverseB = 1
 	}
-	return _sa_paint_file(x, y, w, h, _SA_stringToPtr(file), _SA_stringToPtr(title), margin, marginX, marginY, uint32(cd.r), uint32(cd.g), uint32(cd.g), uint32(cd.a), alignV, alignH, fillB, inverseB) > 0
+	return _sa_paint_file(x, y, w, h, _SA_stringToPtr(file), _SA_stringToPtr(title), margin, marginX, marginY, uint32(cd.R), uint32(cd.G), uint32(cd.G), uint32(cd.A), alignV, alignH, fillB, inverseB) > 0
 }
 
 func SAPaint_Text(x, y, w, h float64, value string, margin float64, marginX float64, marginY float64, cd SACd,
@@ -264,7 +266,7 @@ func SAPaint_Text(x, y, w, h float64, value string, margin float64, marginX floa
 	return _sa_paint_text(x, y, w, h,
 		_SA_stringToPtr(value),
 		margin, marginX, marginY,
-		uint32(cd.r), uint32(cd.g), uint32(cd.g), uint32(cd.a),
+		uint32(cd.R), uint32(cd.G), uint32(cd.G), uint32(cd.A),
 		ratioH, lineH, font, align, alignV,
 		_SA_boolToUint32(selection), _SA_boolToUint32(edit), _SA_boolToUint32(tabIsChar), _SA_boolToUint32(enable)) > 0
 }
@@ -530,64 +532,77 @@ func SA_PrintFloat(val float64) {
 /* -------------------- SWPs(Skyalt Widgets Proposals) -------------------- */
 
 type _SA_Button struct {
-	value string
-	icon  string
-	title string
-	url   string
+	style *_SA_Style
 
-	font             uint32
-	alpha            float64
-	alphaNoBack      bool
-	iconInverseColor bool
-
-	cd      SACd
-	frontCd SACd
-
-	margin     float64
-	marginIcon float64
-	align      uint32
-	ratioH     float64
-	enable     bool
-	highlight  bool
-	drawBorder bool
+	value       string
+	icon        string
+	icon_margin float64
+	title       string
+	url         string
+	enable      bool
 }
 type _SA_ButtonOut struct {
 	click  bool
 	rclick bool
 }
 
-func SA_Button(value string) *_SA_Button {
+func SA_ButtonStyle(value string, style *_SA_Style) *_SA_Button {
 	var b _SA_Button
 
 	b.value = value
 	b.enable = true
-	b.cd = SA_ThemeCd()
-	b.frontCd = SA_ThemeBlack()
-
-	b.margin = 0.03
-	b.marginIcon = 0.06
-	b.align = 1
-	b.ratioH = 0.35
+	b.style = style
 
 	return &b
 }
+
+func SA_Button(value string) *_SA_Button {
+	return SA_ButtonStyle(value, &styles.Button)
+}
+func SA_ButtonLight(value string) *_SA_Button {
+	return SA_ButtonStyle(value, &styles.ButtonLight)
+}
+
+func SA_ButtonAlpha(value string) *_SA_Button {
+	return SA_ButtonStyle(value, &styles.ButtonAlpha)
+}
+func SA_ButtonMenu(value string) *_SA_Button {
+	return SA_ButtonStyle(value, &styles.ButtonMenu)
+}
+
+func SA_ButtonAlphaBorder(value string) *_SA_Button {
+	return SA_ButtonStyle(value, &styles.ButtonAlphaBorder)
+}
+func SA_ButtonDanger(value string) *_SA_Button {
+	return SA_ButtonStyle(value, &styles.ButtonDanger)
+}
+func SA_ButtonDangerMenu(value string) *_SA_Button {
+	return SA_ButtonStyle(value, &styles.ButtonDangerMenu)
+}
+
 func (b *_SA_Button) Value(v string) *_SA_Button {
 	b.value = v
 	return b
 }
 
-func (b *_SA_Button) FrontCd(cd SACd) *_SA_Button {
-	b.frontCd = cd
+func (b *_SA_Button) Highlight(condition bool, style *_SA_Style) *_SA_Button {
+	if condition {
+		b.style = style
+	}
 	return b
 }
-func (b *_SA_Button) BackCd(cd SACd) *_SA_Button {
-	b.cd = cd
-	return b
-}
-func (b *_SA_Button) Icon(path string) *_SA_Button {
+
+func (b *_SA_Button) Icon(path string, margin float64) *_SA_Button {
 	b.icon = path
+	b.icon_margin = margin
 	return b
 }
+
+func (b *_SA_Button) Url(v string) *_SA_Button {
+	b.url = v
+	return b
+}
+
 func (b *_SA_Button) Title(v string) *_SA_Button {
 	b.title = v
 	return b
@@ -597,64 +612,27 @@ func (b *_SA_Button) Enable(v bool) *_SA_Button {
 	return b
 }
 
-func (b *_SA_Button) Alpha(v float64) *_SA_Button {
-	b.alpha = v
-	return b
-}
-func (b *_SA_Button) Align(v int) *_SA_Button {
-	b.align = uint32(v)
-	return b
-}
-func (b *_SA_Button) Highlight(v bool) *_SA_Button {
-	b.highlight = v
-	return b
-}
-
-func (b *_SA_Button) Border(v bool) *_SA_Button {
-	b.drawBorder = v
-	return b
-}
-func (b *_SA_Button) AlphaNoBack(v bool) *_SA_Button {
-	b.alphaNoBack = v
-	return b
-}
-func (b *_SA_Button) RatioH(v float64) *_SA_Button {
-	b.ratioH = v
-	return b
-}
-func (b *_SA_Button) IconInverseColor(v bool) *_SA_Button {
-	b.iconInverseColor = v
-	return b
-}
-
-func (b *_SA_Button) Margin(v float64) *_SA_Button {
-	b.margin = v
-	return b
-}
-func (b *_SA_Button) MarginIcon(v float64) *_SA_Button {
-	b.marginIcon = v
-	return b
-}
-
-func (b *_SA_Button) Url(v string) *_SA_Button {
-	b.url = v
-	return b
-}
-
 func (b *_SA_Button) Show(x, y, w, h int) _SA_ButtonOut {
 
 	var ret _SA_ButtonOut
 
 	//SA_DivStart() can trigger sleep mode: no mouse action, outside the screen, etc.
 	if SA_DivStart(x, y, w, h) {
+
+		if b.style == nil {
+			b.style = &styles.Button //use default
+		}
+
+		if b.style.Id == 0 {
+			file, err := json.MarshalIndent(b.style, "", "")
+			if err != nil {
+				return ret
+			}
+			b.style.Id = uint32(_sa_register_style(_SA_bytesToPtr(file)))
+		}
+
 		var out [2 * 8]byte
-		_sa_swp_drawButton(uint32(b.cd.r), uint32(b.cd.g), uint32(b.cd.b), uint32(b.cd.a),
-			uint32(b.frontCd.r), uint32(b.frontCd.g), uint32(b.frontCd.b), uint32(b.frontCd.a),
-			_SA_stringToPtr(b.value), _SA_stringToPtr(b.icon), _SA_stringToPtr(b.url), _SA_stringToPtr(b.title),
-			b.font, b.alpha, _SA_boolToUint32(b.alphaNoBack), _SA_boolToUint32(b.iconInverseColor),
-			b.margin, b.marginIcon, b.align, b.ratioH,
-			_SA_boolToUint32(b.enable), _SA_boolToUint32(b.highlight), _SA_boolToUint32(b.drawBorder),
-			_SA_bytesToPtr(out[:]))
+		_sa_swp_drawButton(b.style.Id, _SA_stringToPtr(b.value), _SA_stringToPtr(b.icon), b.icon_margin, _SA_stringToPtr(b.url), _SA_stringToPtr(b.title), _SA_boolToUint32(b.enable), _SA_bytesToPtr(out[:]))
 
 		ret.click = binary.LittleEndian.Uint64(out[0:]) != 0
 		ret.rclick = binary.LittleEndian.Uint64(out[8:]) != 0
@@ -868,7 +846,7 @@ func (b *_SA_Text) Show(x, y, w, h int) {
 			SAPaint_Rect(0, 0, 1, 1, b.back_margin, b.backCd, 0)
 		}
 
-		_sa_swp_drawText(uint32(b.frontCd.r), uint32(b.frontCd.g), uint32(b.frontCd.b), uint32(b.frontCd.a),
+		_sa_swp_drawText(uint32(b.frontCd.R), uint32(b.frontCd.G), uint32(b.frontCd.B), uint32(b.frontCd.A),
 			_SA_stringToPtr(b.value), _SA_stringToPtr(b.title), b.font,
 			b.margin, b.marginX, b.marginY, b.align, b.alignV, b.ratioH,
 			_SA_boolToUint32(b.enable), _SA_boolToUint32(b.selection))
@@ -1081,7 +1059,7 @@ func (b *_SA_Editbox) Show(x, y, w, h int) _SA_EditboxOut {
 		}
 
 		var out [4 * 8]byte
-		_sa_swp_drawEdit(uint32(b.frontCd.r), uint32(b.frontCd.g), uint32(b.frontCd.b), uint32(b.frontCd.a),
+		_sa_swp_drawEdit(uint32(b.frontCd.R), uint32(b.frontCd.G), uint32(b.frontCd.B), uint32(b.frontCd.A),
 			_SA_stringToPtr(value), _SA_stringToPtr(valueOrig), _SA_stringToPtr(title), b.font,
 			b.margin, b.marginX, b.marginY, b.align, b.alignV, b.ratioH,
 			_SA_boolToUint32(b.enable),
@@ -1221,7 +1199,7 @@ func (b *_SA_Combo) Show(x, y, w, h int) bool {
 			title = b.title
 		}
 
-		v := _sa_swp_drawCombo(uint32(b.frontCd.r), uint32(b.frontCd.g), uint32(b.frontCd.b), uint32(b.frontCd.a),
+		v := _sa_swp_drawCombo(uint32(b.frontCd.R), uint32(b.frontCd.G), uint32(b.frontCd.B), uint32(b.frontCd.A),
 			uint64(*b.value), _SA_stringToPtr(b.options), _SA_stringToPtr(title), b.font,
 			b.margin, b.marginX, b.marginY, b.align, b.ratioH,
 			_SA_boolToUint32(b.enable))
@@ -1279,7 +1257,7 @@ func (b *_SA_Checkbox) Show(x, y, w, h int) bool {
 			val = 1
 		}
 
-		v := _sa_swp_drawCheckbox(uint32(b.frontCd.r), uint32(b.frontCd.g), uint32(b.frontCd.b), uint32(b.frontCd.a),
+		v := _sa_swp_drawCheckbox(uint32(b.frontCd.R), uint32(b.frontCd.G), uint32(b.frontCd.B), uint32(b.frontCd.A),
 			val, _SA_stringToPtr(b.description), _SA_stringToPtr(b.title), b.height, b.align, b.alignV, _SA_boolToUint32(b.enable))
 
 		changed = (val != uint64(v))
@@ -1343,7 +1321,7 @@ func (b *_SA_Image) Show(x, y, w, h int) {
 	if SA_DivStart(x, y, w, h) {
 		_sa_paint_file(0, 0, 1, 1,
 			_SA_stringToPtr(b.file), _SA_stringToPtr(b.title), b.margin, b.marginX, b.marginY,
-			uint32(b.cd.r), uint32(b.cd.g), uint32(b.cd.b), uint32(b.cd.a),
+			uint32(b.cd.R), uint32(b.cd.G), uint32(b.cd.B), uint32(b.cd.A),
 			b.align, b.alignV, _SA_boolToUint32(b.fill), _SA_boolToUint32(b.inverseCd))
 
 	}
@@ -1352,7 +1330,7 @@ func (b *_SA_Image) Show(x, y, w, h int) {
 
 /* -------------------- Themes, Colors, etc. -------------------- */
 type SACd struct {
-	r, g, b, a byte
+	R, G, B, A byte
 }
 
 func SA_InitCd(r uint32, g uint32, b uint32, a uint32) SACd {
@@ -1360,10 +1338,10 @@ func SA_InitCd(r uint32, g uint32, b uint32, a uint32) SACd {
 }
 func (s SACd) Aprox(e SACd, t float32) SACd {
 	var ret SACd
-	ret.r = byte(float32(s.r) + (float32(e.r)-float32(s.r))*t)
-	ret.g = byte(float32(s.g) + (float32(e.g)-float32(s.g))*t)
-	ret.b = byte(float32(s.b) + (float32(e.b)-float32(s.b))*t)
-	ret.a = byte(float32(s.a) + (float32(e.a)-float32(s.a))*t)
+	ret.R = byte(float32(s.R) + (float32(e.R)-float32(s.R))*t)
+	ret.G = byte(float32(s.G) + (float32(e.G)-float32(s.G))*t)
+	ret.B = byte(float32(s.B) + (float32(e.B)-float32(s.B))*t)
+	ret.A = byte(float32(s.A) + (float32(e.A)-float32(s.A))*t)
 	return ret
 }
 
@@ -1566,7 +1544,7 @@ func SA_ColSpacer(x, y, w, h int) {
 func SA_DialogConfirm() bool {
 	SA_ColMax(0, 5)
 
-	click := SA_Button("Confirm").BackCd(SA_ThemeWarning()).Show(0, 0, 1, 1).click //translations ... maybe add 'confirm string' do args ...
+	click := SA_ButtonDanger("Confirm").Show(0, 0, 1, 1).click //translations ... maybe add 'confirm string' do args ...
 	if click {
 		SA_DialogClose()
 	}
@@ -1695,3 +1673,179 @@ func SA_Rating(value int, max_value int, cdActive SACd, cdDeactive SACd, icon st
 
 	return value, changed
 }
+
+/* -------------------- Styles -------------------- */
+
+type _SAStyle_Div struct {
+	Margin_top, Margin_bottom, Margin_left, Margin_right     float64 //from cell
+	Border_top, Border_bottom, Border_left, Border_right     float64 //from cell
+	Padding_top, Padding_bottom, Padding_left, Padding_right float64 //from cell
+
+	Margin_top_color, Margin_bottom_color, Margin_left_color, Margin_right_color     SACd
+	Border_top_color, Border_bottom_color, Border_left_color, Border_right_color     SACd
+	Padding_top_color, Padding_bottom_color, Padding_left_color, Padding_right_color SACd
+	Content_color                                                                    SACd
+
+	Image_color                SACd
+	Image_margin               float64
+	Image_fill                 bool
+	Image_alignV, Image_alignH int
+
+	Font_color               SACd
+	Font_path                string
+	Font_height              float64 //from cell
+	Font_alignV, Font_alignH int
+
+	Cursor string
+
+	//radius ...
+	//shadow ...
+	//transition_sec(blend between states) ...
+}
+
+func (b *_SAStyle_Div) MarginEx(top, bottom, left, right float64) *_SAStyle_Div {
+	b.Margin_top = top
+	b.Margin_bottom = bottom
+	b.Margin_left = left
+	b.Margin_right = right
+	return b
+}
+func (b *_SAStyle_Div) Margin(v float64) *_SAStyle_Div {
+	return b.MarginEx(v, v, v, v)
+}
+
+func (b *_SAStyle_Div) BorderEx(top, bottom, left, right float64) *_SAStyle_Div {
+	b.Border_top = top
+	b.Border_bottom = bottom
+	b.Border_left = left
+	b.Border_right = right
+	return b
+}
+func (b *_SAStyle_Div) Border(v float64) *_SAStyle_Div {
+	return b.BorderEx(v, v, v, v)
+}
+
+func (b *_SAStyle_Div) PaddingEx(top, bottom, left, right float64) *_SAStyle_Div {
+	b.Padding_top = top
+	b.Padding_bottom = bottom
+	b.Padding_left = left
+	b.Padding_right = right
+	return b
+}
+func (b *_SAStyle_Div) Padding(v float64) *_SAStyle_Div {
+	return b.PaddingEx(v, v, v, v)
+}
+
+func (b *_SAStyle_Div) MarginColorEx(top, bottom, left, right SACd) *_SAStyle_Div {
+	b.Margin_top_color = top
+	b.Margin_bottom_color = bottom
+	b.Margin_left_color = left
+	b.Margin_right_color = right
+	return b
+}
+func (b *_SAStyle_Div) MarginColor(v SACd) *_SAStyle_Div {
+	return b.MarginColorEx(v, v, v, v)
+}
+
+func (b *_SAStyle_Div) BorderColorEx(top, bottom, left, right SACd) *_SAStyle_Div {
+	b.Border_top_color = top
+	b.Border_bottom_color = bottom
+	b.Border_left_color = left
+	b.Border_right_color = right
+	return b
+}
+func (b *_SAStyle_Div) BorderColor(v SACd) *_SAStyle_Div {
+	return b.BorderColorEx(v, v, v, v)
+}
+
+func (b *_SAStyle_Div) PaddingColorEx(top, bottom, left, right SACd) *_SAStyle_Div {
+	b.Padding_top_color = top
+	b.Padding_bottom_color = bottom
+	b.Padding_left_color = left
+	b.Padding_right_color = right
+	return b
+}
+func (b *_SAStyle_Div) PaddingColor(v SACd) *_SAStyle_Div {
+	return b.PaddingColorEx(v, v, v, v)
+}
+
+type _SA_Style struct {
+	Id           uint32
+	Main         _SAStyle_Div
+	Hover        _SAStyle_Div
+	Touch_hover  _SAStyle_Div
+	Touch_ouside _SAStyle_Div
+	Disable      _SAStyle_Div
+}
+
+func (b *_SA_Style) Padding(v float64) *_SA_Style {
+	b.Main.Padding(v)
+	b.Hover.Padding(v)
+	b.Touch_hover.Padding(v)
+	b.Touch_ouside.Padding(v)
+	b.Disable.Padding(v)
+	return b
+}
+func (b *_SA_Style) Margin(v float64) *_SA_Style {
+	b.Main.Margin(v)
+	b.Hover.Margin(v)
+	b.Touch_hover.Margin(v)
+	b.Touch_ouside.Margin(v)
+	b.Disable.Margin(v)
+	return b
+}
+
+func (b *_SA_Style) FontAlignH(v int) *_SA_Style {
+	b.Main.Font_alignH = v
+	b.Hover.Font_alignH = v
+	b.Touch_hover.Font_alignH = v
+	b.Touch_ouside.Font_alignH = v
+	b.Disable.Font_alignH = v
+	return b
+}
+func (b *_SA_Style) FontAlignV(v int) *_SA_Style {
+	b.Main.Font_alignV = v
+	b.Hover.Font_alignV = v
+	b.Touch_hover.Font_alignV = v
+	b.Touch_ouside.Font_alignV = v
+	b.Disable.Font_alignV = v
+	return b
+}
+
+func (b *_SA_Style) FontH(v float64) *_SA_Style {
+	b.Main.Font_height = v
+	b.Hover.Font_height = v
+	b.Touch_hover.Font_height = v
+	b.Touch_ouside.Font_height = v
+	b.Disable.Font_height = v
+	return b
+}
+
+//more ...
+
+type SA_Styles struct {
+	Button             _SA_Style
+	ButtonLight        _SA_Style
+	ButtonAlpha        _SA_Style
+	ButtonMenu         _SA_Style
+	ButtonMenuSelected _SA_Style
+
+	ButtonBig      _SA_Style
+	ButtonLightBig _SA_Style
+	ButtonAlphaBig _SA_Style
+	ButtonMenuBig  _SA_Style
+
+	ButtonAlphaBorder _SA_Style
+	ButtonDanger      _SA_Style
+	ButtonDangerMenu  _SA_Style
+
+	ButtonIcon _SA_Style
+}
+
+/*var customButton _SA_Style
+func open() {
+	//in most cases, app should be fine with pre-define 'styles.'
+	customButton = styles.Button
+	customButton.Id = 0
+	customButton.Padding(0.14).Margin(0.07) //set for all
+}*/

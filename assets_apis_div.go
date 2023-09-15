@@ -154,7 +154,7 @@ func (asset *Asset) DrawGrid() {
 
 		py = start.Y
 		for y, row := range st.stack.data.rows.outputs {
-			st.buff.AddText(fmt.Sprintf("[%d, %d]", x, y), OsV4{OsV2{px, py}, OsV2{int(col), int(row)}}, root.fonts.Get(0), cd, root.ui.io.GetDPI()/8, OsV2{1, 1}, nil)
+			st.buff.AddText(fmt.Sprintf("[%d, %d]", x, y), OsV4{OsV2{px, py}, OsV2{int(col), int(row)}}, root.fonts.Get(SKYALT_FONT_0), cd, root.ui.io.GetDPI()/8, OsV2{1, 1}, nil)
 			py += int(row)
 		}
 
@@ -827,6 +827,30 @@ func (asset *Asset) _sa_div_drop(groupNameMem uint64, vertical uint32, horizonta
 	binary.LittleEndian.PutUint64(out[8:], uint64(pos))
 
 	return done
+}
+
+func (asset *Asset) register_style(js []byte) int64 {
+	id, err := asset.styles.AddJs(js)
+
+	if err != nil {
+		asset.AddLogErr(err)
+		return -1
+	}
+
+	if len(asset.styles.styles) == 100 {
+		asset.AddLogErr(fmt.Errorf("register_style(%.70s) called 100times. Probably bug", string(js)))
+	}
+
+	return int64(id)
+}
+
+func (asset *Asset) _sa_register_style(jsMem uint64) int64 {
+
+	js, err := asset.ptrToBytesDirect(jsMem)
+	if asset.AddLogErr(err) {
+		return -1
+	}
+	return asset.register_style(js)
 }
 
 func (asset *Asset) render_app(appName string, dbName string, sts_id uint64) (int64, error) {

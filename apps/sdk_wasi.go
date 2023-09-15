@@ -8,16 +8,19 @@ import (
 
 func main() {}
 
-//export _sa_open
-func _sa_open(jsonMem SAMem) {
-	js := _SA_ptrToBytes(jsonMem)
-	if !open(js) {
-		json.Unmarshal(js, &store)
+//export _sa_init
+func _sa_init(storeMem SAMem, stylesMem SAMem) {
+	jsStyles := _SA_ptrToBytes(stylesMem)
+	json.Unmarshal(jsStyles, &styles)
+
+	jsStore := _SA_ptrToBytes(storeMem)
+	if !open(jsStore) {
+		json.Unmarshal(jsStore, &store)
 	}
 }
 
-//export _sa_save
-func _sa_save() {
+//export _sa_exit
+func _sa_exit() {
 	js, written := save()
 	if !written {
 		js, _ = json.MarshalIndent(&store, "", "")
@@ -162,13 +165,7 @@ func _sa_fn_setReturn(argsMem SAMem) int64
 func _sa_fn_getReturn(argsMem SAMem) int64
 
 //export _sa_swp_drawButton
-func _sa_swp_drawButton(cd_r, cd_g, cd_b, cd_a uint32,
-	frontCd_r, frontCd_g, frontCd_b, frontCd_a uint32,
-	valueMem SAMem, iconMem SAMem, urlMem SAMem, titleMem SAMem,
-	font uint32, alpha float64, alphaNoBack uint32, iconInverseColor uint32,
-	margin float64, marginIcon float64, align uint32, ratioH float64,
-	enable uint32, highlight uint32, drawBorder uint32,
-	outMem SAMem) int64
+func _sa_swp_drawButton(style uint32, valueMem SAMem, iconMem SAMem, icon_margin float64, urlMem SAMem, titleMem SAMem, enable uint32, outMem SAMem) int64
 
 //export _sa_swp_drawSlider
 func _sa_swp_drawSlider(value float64, min float64, max float64, jump float64, titleMem SAMem, enable uint32, outMem SAMem) float64
@@ -200,6 +197,9 @@ func _sa_swp_drawCombo(cd_r, cd_g, cd_b, cd_a uint32,
 
 //export _sa_swp_drawCheckbox
 func _sa_swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32, value uint64, descriptionMem SAMem, titleMem SAMem, height float64, align uint32, alignV uint32, enable uint32) int64
+
+//export _sa_register_style
+func _sa_register_style(jsMem SAMem) int64
 
 //export _sa_div_drag
 func _sa_div_drag(groupNameMem SAMem, id uint64) int64

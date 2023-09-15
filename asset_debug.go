@@ -118,7 +118,7 @@ func (ad *AssetDebug) WriteBytes(data []byte) {
 }
 
 func (ad *AssetDebug) SaveData(asset *Asset) {
-	ad.Call("_sa_save", nil, asset)
+	ad.Call("_sa_exit", nil, asset)
 }
 
 func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, error) {
@@ -457,40 +457,16 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ad.WriteUint64(1)
 
 		case 80:
-			cd_r := uint32(ad.ReadUint64())
-			cd_g := uint32(ad.ReadUint64())
-			cd_b := uint32(ad.ReadUint64())
-			cd_a := uint32(ad.ReadUint64())
-			frontCd_r := uint32(ad.ReadUint64())
-			frontCd_g := uint32(ad.ReadUint64())
-			frontCd_b := uint32(ad.ReadUint64())
-			frontCd_a := uint32(ad.ReadUint64())
+			style := uint32(ad.ReadUint64())
 
 			value := string(ad.ReadBytes())
 			icon := string(ad.ReadBytes())
+			icon_margin := ad.ReadFloat64()
 			url := string(ad.ReadBytes())
 			title := string(ad.ReadBytes())
-
-			font := uint32(ad.ReadUint64())
-			alpha := ad.ReadFloat64()
-			alphaNoBack := uint32(ad.ReadUint64())
-			iconInverseColor := uint32(ad.ReadUint64())
-
-			margin := ad.ReadFloat64()
-			marginIcon := ad.ReadFloat64()
-			align := uint32(ad.ReadUint64())
-			ratioH := ad.ReadFloat64()
-
 			enable := uint32(ad.ReadUint64())
-			highlight := uint32(ad.ReadUint64())
-			drawBorder := uint32(ad.ReadUint64())
 
-			click, rclick, ret := asset.swp_drawButton(InitOsCd32(cd_r, cd_g, cd_b, cd_a),
-				InitOsCd32(frontCd_r, frontCd_g, frontCd_b, frontCd_a),
-				value, icon, url, title,
-				font, alpha, alphaNoBack, iconInverseColor,
-				margin, marginIcon, align, ratioH,
-				enable, highlight, drawBorder)
+			click, rclick, ret := asset.swp_drawButton(style, value, icon, icon_margin, url, title, enable > 0)
 
 			var dst [2 * 8]byte
 			binary.LittleEndian.PutUint64(dst[0:], uint64(OsTrn(click, 1, 0)))
@@ -630,12 +606,17 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ad.WriteUint64(uint64(valueOut))
 
 		case 100:
+			js := ad.ReadBytes()
+			ret := asset.register_style(js)
+			ad.WriteUint64(uint64(ret))
+
+		case 110:
 			groupName := string(ad.ReadBytes())
 			id := ad.ReadUint64()
 			ret := asset.div_drag(groupName, id)
 			ad.WriteUint64(uint64(ret))
 
-		case 101:
+		case 111:
 			groupName := string(ad.ReadBytes())
 			vertical := uint32(ad.ReadUint64())
 			horizontal := uint32(ad.ReadUint64())
@@ -649,7 +630,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ad.WriteBytes(dst[:])
 			ad.WriteUint64(uint64(done))
 
-		case 110:
+		case 120:
 			app := string(ad.ReadBytes())
 			db := string(ad.ReadBytes())
 			sts_id := ad.ReadUint64()

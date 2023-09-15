@@ -53,14 +53,19 @@ func main() {
 		case "render":
 			render()
 
-		case "_sa_open":
-			var js []byte
-			_arrayToArgs(args, &js)
-			if !open(js) {
-				json.Unmarshal(js, &store)
+		case "_sa_init":
+			var jsStore []byte
+			var jsStyles []byte
+			_arrayToArgs(args, &jsStore)
+			_arrayToArgs(args, &jsStyles)
+
+			json.Unmarshal(jsStyles, &styles)
+
+			if !open(jsStore) {
+				json.Unmarshal(jsStore, &store)
 			}
 
-		case "_sa_save":
+		case "_sa_exit":
 			js, written := save()
 			if !written {
 				js, _ = json.MarshalIndent(&store, "", "")
@@ -557,44 +562,17 @@ func _sa_fn_getReturn(argsMem SAMem) int64 {
 	return int64(ReadUint64())
 }
 
-func _sa_swp_drawButton(cd_r, cd_g, cd_b, cd_a uint32,
-	frontCd_r, frontCd_g, frontCd_b, frontCd_a uint32,
-	valueMem SAMem, iconMem SAMem, urlMem SAMem, titleMem SAMem,
-	font uint32, alpha float64, alphaNoBack uint32, iconInverseColor uint32,
-	margin float64, marginIcon float64, align uint32, ratioH float64,
-	enable uint32, highlight uint32, drawBorder uint32,
-	outMem SAMem) int64 {
+func _sa_swp_drawButton(style uint32, valueMem SAMem, iconMem SAMem, icon_margin float64, urlMem SAMem, titleMem SAMem, enable uint32, outMem SAMem) int64 {
 
 	WriteUint64(80)
 
-	WriteUint64(uint64(cd_r))
-	WriteUint64(uint64(cd_g))
-	WriteUint64(uint64(cd_b))
-	WriteUint64(uint64(cd_a))
-
-	WriteUint64(uint64(frontCd_r))
-	WriteUint64(uint64(frontCd_g))
-	WriteUint64(uint64(frontCd_b))
-	WriteUint64(uint64(frontCd_a))
+	WriteUint64(uint64(style))
 
 	WriteMem(valueMem)
 	WriteMem(iconMem)
 	WriteMem(urlMem)
 	WriteMem(titleMem)
-
-	WriteUint64(uint64(font))
-	WriteFloat64(alpha)
-	WriteUint64(uint64(alphaNoBack))
-	WriteUint64(uint64(iconInverseColor))
-
-	WriteFloat64(margin)
-	WriteFloat64(marginIcon)
-	WriteUint64(uint64(align))
-	WriteFloat64(ratioH)
-
 	WriteUint64(uint64(enable))
-	WriteUint64(uint64(highlight))
-	WriteUint64(uint64(drawBorder))
 
 	ReadMem(outMem)
 	return int64(ReadUint64())
@@ -733,15 +711,21 @@ func _sa_swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32,
 	return int64(ReadUint64())
 }
 
-func _sa_div_drag(groupName SAMem, id uint64) int64 {
+func _sa_register_style(jsMem SAMem) int64 {
 	WriteUint64(100)
+	WriteMem(jsMem)
+	return int64(ReadUint64())
+}
+
+func _sa_div_drag(groupName SAMem, id uint64) int64 {
+	WriteUint64(110)
 	WriteMem(groupName)
 	WriteUint64(id)
 	return int64(ReadUint64())
 }
 
 func _sa_div_drop(groupName SAMem, vertical uint32, horizontal uint32, inside uint32, outMem SAMem) int64 {
-	WriteUint64(101)
+	WriteUint64(111)
 	WriteMem(groupName)
 	WriteUint64(uint64(vertical))
 	WriteUint64(uint64(horizontal))
@@ -752,7 +736,7 @@ func _sa_div_drop(groupName SAMem, vertical uint32, horizontal uint32, inside ui
 }
 
 func _sa_render_app(appMem SAMem, dbMem SAMem, sts_id uint64) int64 {
-	WriteUint64(110)
+	WriteUint64(120)
 	WriteMem(appMem)
 	WriteMem(dbMem)
 	WriteUint64(sts_id)
