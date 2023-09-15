@@ -212,7 +212,7 @@ func Settings() {
 						SA_MoveElement(&langs, &langs, int(src), i, pos)
 						changed = true
 					}
-					SA_Image(SA_ResourceBuildAssetPath("", "reorder.png")).Margin(0.17).Show(0, 0, 1, 1)
+					SA_Image(SA_ResourceBuildAssetPath("", "reorder.png")).Margin(0.15).Show(0, 0, 1, 1)
 				}
 				SA_DivEnd()
 
@@ -221,7 +221,7 @@ func Settings() {
 					changed = true
 				}
 
-				if SA_Button("X").Enable(len(langs) > 1 || i > 0).Margin(0.06).Alpha(0.5).Show(3, 0, 1, 1).click {
+				if SA_ButtonLight("X").Enable(len(langs) > 1 || i > 0).Show(3, 0, 1, 1).click {
 					langs = append(langs[:i], langs[i+1:]...)
 					changed = true
 				}
@@ -243,7 +243,7 @@ func Settings() {
 		}
 
 		SA_DivStart(1, y, 1, 1)
-		if SA_Button("+").Margin(0.1).Alpha(0.5).Show(0, 0, 1, 1).click {
+		if SA_ButtonLight("+").Show(0, 0, 1, 1).click {
 			SA_InfoSet("languages", SA_Info("languages")+"/")
 		}
 		y++
@@ -311,12 +311,12 @@ func About() {
 
 	SA_Text(trns.ABOUT).Align(1).Show(0, 0, 1, 1)
 
-	SA_Image(SA_ResourceBuildAssetPath("", "logo.png")).Margin(0.3).InverseColor(true).Show(0, 1, 1, 1)
+	SA_Image(SA_ResourceBuildAssetPath("", "logo.png")).InverseColor(true).Show(0, 1, 1, 1)
 
-	SA_Text("v0.1").Align(1).Show(0, 2, 1, 1)
+	SA_Text("v0.2").Align(1).Show(0, 2, 1, 1)
 
-	SA_Button("www.skyalt.com").Alpha(1).Url("https://www.skyalt.com").Show(0, 3, 1, 1)
-	SA_Button("github.com/milansuk/skyalt/").Alpha(1).Url("https://github.com/milansuk/skyalt/").Show(0, 4, 1, 1)
+	SA_ButtonAlpha("www.skyalt.com").Url("https://www.skyalt.com").Show(0, 3, 1, 1)
+	SA_ButtonAlpha("github.com/milansuk/skyalt/").Url("https://github.com/milansuk/skyalt/").Show(0, 4, 1, 1)
 
 	SA_Text(trns.COPYRIGHT).Align(1).Show(0, 5, 1, 1)
 	SA_Text(trns.WARRANTY).Align(1).Show(0, 6, 1, 1)
@@ -324,14 +324,14 @@ func About() {
 
 func Menu() {
 	SA_ColMax(0, 8)
-	SA_Row(1, 0.3)
-	SA_Row(3, 0.3)
-	SA_Row(5, 0.3)
-	SA_Row(7, 0.3)
-	SA_Row(9, 0.3)
+	SA_Row(1, 0.2)
+	SA_Row(3, 0.2)
+	SA_Row(5, 0.2)
+	SA_Row(7, 0.2)
+	SA_Row(9, 0.2)
 
 	//save
-	if SA_Button(trns.SAVE).Alpha(1).Align(0).Show(0, 0, 1, 1).click {
+	if SA_ButtonMenu(trns.SAVE).Show(0, 0, 1, 1).click {
 		SA_InfoSetFloat("save", 1)
 		SA_DialogClose()
 	}
@@ -339,7 +339,7 @@ func Menu() {
 	SA_RowSpacer(0, 1, 1, 1)
 
 	//settings
-	if SA_Button(trns.SETTINGS).Alpha(1).Align(0).Show(0, 2, 1, 1).click {
+	if SA_ButtonMenu(trns.SETTINGS).Show(0, 2, 1, 1).click {
 		SA_DialogClose()
 		SA_DialogOpen("Settings", 0)
 	}
@@ -356,12 +356,12 @@ func Menu() {
 
 		dpi := SA_InfoFloat("dpi")
 		dpi_default := SA_InfoFloat("dpi_default")
-		if SA_Button("+").Margin(0.1).Alpha(0.5).Show(1, 0, 1, 1).click {
+		if SA_ButtonAlphaBorder("+").Show(1, 0, 1, 1).click {
 			SA_InfoSetFloat("dpi", dpi+3)
 		}
 		dpiV := int(dpi / dpi_default * 100)
 		SA_Text(strconv.Itoa(dpiV)+"%").Align(1).Show(2, 0, 1, 1)
-		if SA_Button("-").Margin(0.1).Alpha(0.5).Show(3, 0, 1, 1).click {
+		if SA_ButtonAlphaBorder("-").Show(3, 0, 1, 1).click {
 			SA_InfoSetFloat("dpi", dpi-3)
 		}
 	}
@@ -376,7 +376,7 @@ func Menu() {
 		if isFullscreen == 0 {
 			ff = trns.FULLSCREEN_MODE
 		}
-		if SA_Button(ff).Alpha(1).Align(0).Show(0, 6, 1, 1).click {
+		if SA_ButtonMenu(ff).Show(0, 6, 1, 1).click {
 			if isFullscreen > 0 {
 				isFullscreen = 0
 			} else {
@@ -388,14 +388,14 @@ func Menu() {
 
 	SA_RowSpacer(0, 7, 1, 1)
 
-	if SA_Button(trns.ABOUT).Alpha(1).Align(0).Show(0, 8, 1, 1).click {
+	if SA_ButtonMenu(trns.ABOUT).Show(0, 8, 1, 1).click {
 		SA_DialogClose()
 		SA_DialogOpen("About", 0)
 	}
 
 	SA_RowSpacer(0, 9, 1, 1)
 
-	if SA_Button(trns.QUIT).Alpha(1).Align(0).Show(0, 10, 1, 1).click {
+	if SA_ButtonMenu(trns.QUIT).Show(0, 10, 1, 1).click {
 		SA_InfoSetFloat("exit", 1)
 		SA_DialogClose()
 	}
@@ -427,7 +427,7 @@ func Apps(file *File, file_i int) {
 			nm += "(" + trns.IN_USE + ")"
 		}
 
-		if SA_Button(nm).Alpha(1).Show(0, y, 1, 1).click {
+		if SA_ButtonAlpha(nm).Show(0, y, 1, 1).click {
 			sts_id := int(SA_InfoFloat("sts_uid"))
 			file.AddApp(file_i, sts_id, app, app)
 			SA_DialogClose()
@@ -509,7 +509,7 @@ func Files() {
 			if !file.Expand {
 				iconName = "tree_show.png"
 			}
-			if SA_Button("").Alpha(1).Enable(len(file.Apps) > 0).Icon(SA_ResourceBuildAssetPath("", iconName)).MarginIcon(0.15).Show(0, 0, 1, 1).click {
+			if SA_ButtonAlpha("").Enable(len(file.Apps) > 0).Icon(SA_ResourceBuildAssetPath("", iconName), 0.15).Show(0, 0, 1, 1).click {
 				file.Expand = !file.Expand
 			}
 
@@ -535,7 +535,7 @@ func Files() {
 			SA_DivStart(1, 0, 1, 1)
 			{
 				SA_ColMax(0, 100)
-				if SA_Button(file.Name).Alpha(1).Align(0).Highlight(isSelected).Title("id: "+strconv.Itoa(file.Sts_id)).Show(0, 0, 1, 1).click {
+				if SA_ButtonMenu(file.Name).Highlight(isSelected, &styles.ButtonMenuSelected).Title("id: "+strconv.Itoa(file.Sts_id)).Show(0, 0, 1, 1).click {
 					store.SelectedFile = file_i
 					store.SelectedApp = -1
 
@@ -552,7 +552,7 @@ func Files() {
 			SA_DivEnd()
 
 			//add app
-			if SA_Button("+").Title(trns.ADD_APP).Margin(0.15).Alpha(1).Border(true).BackCd(SA_ThemeCd().Aprox(SA_ThemeWhite(), 0.6)).Show(2, 0, 1, 1).click {
+			if SA_ButtonStyle("+", &g_ButtonAddApp).Title(trns.ADD_APP).Show(2, 0, 1, 1).click {
 				SA_DialogOpen("apps_"+file.Name, 1)
 			}
 			if SA_DialogStart("apps_" + file.Name) {
@@ -561,25 +561,25 @@ func Files() {
 			}
 
 			//context
-			if SA_Button("").Alpha(1).Icon(SA_ResourceBuildAssetPath("", "context.png")).MarginIcon(0.3).Show(3, 0, 1, 1).click {
+			if SA_ButtonAlpha("").Icon(SA_ResourceBuildAssetPath("", "context.png"), 0.3).Show(3, 0, 1, 1).click {
 				SA_DialogOpen("fileContext_"+file.Name, 1)
 			}
 
 			if SA_DialogStart("fileContext_" + file.Name) {
 				SA_ColMax(0, 5)
 
-				if SA_Button(trns.RENAME).Alpha(1).Align(0).Show(0, 0, 1, 1).click {
+				if SA_ButtonMenu(trns.RENAME).Show(0, 0, 1, 1).click {
 					SA_DialogClose()
 					SA_DialogOpen("RenameFile_"+file.Name, 1)
 				}
 
-				if SA_Button(trns.DUPLICATE).Alpha(1).Align(0).Show(0, 1, 1, 1).click {
+				if SA_ButtonMenu(trns.DUPLICATE).Show(0, 1, 1, 1).click {
 					SA_DialogClose()
 					SA_DialogOpen("DuplicateFile_"+file.Name, 1)
 					store.duplicateName = file.Name + "_2"
 				}
 
-				if SA_Button(trns.REMOVE).Alpha(1).Align(0).Show(0, 2, 1, 1).click {
+				if SA_ButtonMenu(trns.REMOVE).Show(0, 2, 1, 1).click {
 					SA_DialogClose()
 					SA_DialogOpen("RemoveFileConfirm_"+file.Name, 1)
 				}
@@ -650,7 +650,7 @@ func Files() {
 					SA_DivStart(1, 0, 1, 1)
 					{
 						SA_ColMax(0, 100)
-						if SA_Button(app.Label).Alpha(1).Align(0).Highlight(isSelected).Title("app: "+app.Name+", id: "+strconv.Itoa(app.Sts_id)).Show(0, 0, 1, 1).click {
+						if SA_ButtonMenu(app.Label).Highlight(isSelected, &styles.ButtonMenuSelected).Title("app: "+app.Name+", id: "+strconv.Itoa(app.Sts_id)).Show(0, 0, 1, 1).click {
 							store.SelectedFile = file_i
 							store.SelectedApp = app_i
 
@@ -671,25 +671,25 @@ func Files() {
 					SA_DivEnd()
 
 					//context
-					if SA_Button("").Alpha(1).Icon(SA_ResourceBuildAssetPath("", "context.png")).MarginIcon(0.3).Show(2, 0, 1, 1).click {
+					if SA_ButtonAlpha("").Icon(SA_ResourceBuildAssetPath("", "context.png"), 0.3).Show(2, 0, 1, 1).click {
 						SA_DialogOpen("appContext_"+file.Name+"_"+strconv.Itoa(app.Sts_id), 1)
 					}
 
 					if SA_DialogStart("appContext_" + file.Name + "_" + strconv.Itoa(app.Sts_id)) {
 						SA_ColMax(0, 5)
 
-						if SA_Button(trns.RENAME).Alpha(1).Align(0).Show(0, 0, 1, 1).click {
+						if SA_ButtonMenu(trns.RENAME).Show(0, 0, 1, 1).click {
 							SA_DialogClose()
 							SA_DialogOpen("RenameApp_"+file.Name+"_"+strconv.Itoa(app.Sts_id), 1)
 						}
 
-						if SA_Button(trns.DUPLICATE).Alpha(1).Align(0).Show(0, 1, 1, 1).click {
+						if SA_ButtonMenu(trns.DUPLICATE).Show(0, 1, 1, 1).click {
 							SA_DialogClose()
 							SA_DialogOpen("DuplicateApp_"+file.Name+"_"+strconv.Itoa(app.Sts_id), 1)
 							store.duplicateName = app.Name + "_2"
 						}
 
-						if SA_Button(trns.REMOVE).Alpha(1).Align(0).Show(0, 2, 1, 1).click {
+						if SA_ButtonMenu(trns.REMOVE).Show(0, 2, 1, 1).click {
 							SA_DialogClose()
 							SA_DialogOpen("RemoveAppConfirm_"+file.Name+"_"+strconv.Itoa(app.Sts_id), 1)
 
@@ -749,7 +749,7 @@ func Files() {
 	//new database
 	SA_DivStart(0, y, 1, 1)
 	{
-		if SA_Button("+").Title(trns.CREATE_DB).Margin(0.1).Alpha(0.5).Show(0, 0, 1, 1).click {
+		if SA_Button("+").Title(trns.CREATE_DB).Show(0, 0, 1, 1).click {
 			SA_DialogOpen("newFile", 1)
 		}
 		if SA_DialogStart("newFile") {
@@ -799,7 +799,7 @@ func render() uint32 {
 		SA_ColMax(1, 100)
 
 		//Menu + dialogs
-		if SA_Button("").Alpha(1).Icon(SA_ResourceBuildAssetPath("", "logo_small.png")).IconInverseColor(true).Margin(0.1).Show(0, 0, 1, 1).click {
+		if SA_ButtonAlpha("").Icon(SA_ResourceBuildAssetPath("", "logo_small.png"), 0).Show(0, 0, 1, 1).click {
 			SA_DialogOpen("Menu", 1)
 		}
 		if SA_DialogStart("Menu") {
@@ -817,7 +817,7 @@ func render() uint32 {
 		}
 
 		//Search
-		SA_Editbox(&store.SearchFiles).TempToValue(true).Margin(0.1).Ghost(trns.SEARCH).HighlightEdit(len(store.SearchFiles) > 0).Show(1, 0, 1, 1)
+		SA_Editbox(&store.SearchFiles).TempToValue(true).Ghost(trns.SEARCH).HighlightEdit(len(store.SearchFiles) > 0).Show(1, 0, 1, 1)
 
 	}
 	SA_DivEnd()
@@ -841,9 +841,15 @@ func render() uint32 {
 	return 0
 }
 
+var g_ButtonAddApp _SA_Style
+
 func open(buff []byte) bool {
 
-	//init
+	//styles
+	g_ButtonAddApp = styles.ButtonAlphaBorder
+	g_ButtonAddApp.Margin(0.17)
+
+	//storage
 	store.SelectedFile = -1
 	store.SelectedApp = -1
 

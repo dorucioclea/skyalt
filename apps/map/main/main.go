@@ -377,7 +377,7 @@ func Map(cam *Cam) {
 	//top
 	SA_DivStart(0, 0, 1, 1)
 	{
-		if SA_Button("+").Title(trns.ADD_LOCATOR).Alpha(1).Border(true).BackCd(SA_ThemeBlack()).Highlight(store.add_locator).Show(0, 0, 1, 1).click {
+		if SA_ButtonAlphaBorder("+").Title(trns.ADD_LOCATOR).Highlight(store.add_locator, &styles.Button).Show(0, 0, 1, 1).click {
 			store.add_locator = !store.add_locator
 		}
 	}
@@ -401,7 +401,7 @@ func Map(cam *Cam) {
 		SA_Editbox(&cam.Lon).Precision(3).ShowDescription(3, 0, 1, 1, "Lon", 1.5, 2)
 		SA_Editbox(&cam.Lat).Precision(3).ShowDescription(4, 0, 1, 1, "Lat", 1.5, 2)
 		SA_Editbox(&cam.Zoom).Precision(0).ShowDescription(5, 0, 1, 1, trns.ZOOM, 1.5, 2)
-		SA_Button("(c)OpenStreetMap contributors").Alpha(1).BackCd(SA_ThemeWhite()).Url("https://www.openstreetmap.org/copyright").Show(7, 0, 1, 1)
+		SA_ButtonAlpha("(c)OpenStreetMap contributors").Url("https://www.openstreetmap.org/copyright").Show(7, 0, 1, 1)
 	}
 	SA_DivEnd()
 }

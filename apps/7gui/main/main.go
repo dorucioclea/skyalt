@@ -202,7 +202,7 @@ func CRUDList(search string) {
 
 	for i, person := range store.People {
 		if len(search) == 0 || strings.Contains(strings.ToLower(person.Name), strings.ToLower(search)) || strings.Contains(strings.ToLower(person.Surname), strings.ToLower(search)) {
-			if SA_Button(person.Surname+", "+person.Name).Alpha(1).Align(0).Highlight(i == store.SelectedPerson).Show(0, y, 1, 1).click {
+			if SA_ButtonMenu(person.Surname+", "+person.Name).Highlight(i == store.SelectedPerson, &styles.ButtonMenuSelected).Show(0, y, 1, 1).click {
 				store.SelectedPerson = i
 				store.Surname = person.Surname
 				store.Name = person.Name
@@ -315,7 +315,7 @@ func CircleDrawerCanvas() {
 		if closest_i == i {
 			//highlight
 			selectCd := SA_ThemeGrey(0.5)
-			selectCd.a = 120
+			selectCd.A = 120
 			SAPaint_Circle(it.X, it.Y, it.Rad, selectCd, 0) //select
 			SAPaint_Cursor("hand")
 

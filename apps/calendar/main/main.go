@@ -300,33 +300,42 @@ func Calendar(value *int64, page *int64) {
 	dtt := GetStartWeekDay(*page, format)
 	for y := 0; y < 6; y++ {
 		for x := 0; x < 7; x++ {
-			alpha := float64(1)
-			backCd := SA_ThemeCd()
-			frontCd := SA_ThemeBlack()
+			//alpha := float64(1)
+			//backCd := SA_ThemeCd()
+			//frontCd := SA_ThemeBlack()
 
 			isDayToday := CmpDates(dtt.Unix(), now)
 			isDaySelected := CmpDates(dtt.Unix(), *value)
 			isDayInMonth := dtt.Month() == orig_month
 
+			style := &styles.ButtonAlpha
+
 			if isDayToday {
-				frontCd = SA_ThemeCd()
+				style = &g_ButtonToday
+				//frontCd = SA_ThemeCd()
 			}
 
 			if isDaySelected && isDayInMonth { //selected day
-				alpha = 0 //show back
-				frontCd = SA_ThemeWhite()
-				backCd = SA_ThemeGrey(0.4)
+				//alpha = 0 //show back
+				//frontCd = SA_ThemeWhite()
+				//backCd = SA_ThemeGrey(0.4)
+				style = &g_ButtonSelect
 
 				if isDayToday {
-					backCd = SA_ThemeCd()
+					style = &styles.Button
 				}
 			}
 
 			if !isDayInMonth { //is day in current month
-				frontCd = SA_ThemeGrey(0.7)
+				//frontCd = SA_ThemeGrey(0.7)
+				if isDaySelected {
+					style = &g_ButtonOutsideMonthSelect
+				} else {
+					style = &g_ButtonOutsideMonth
+				}
 			}
 
-			if SA_Button(strconv.Itoa(dtt.Day())).Alpha(alpha).FrontCd(frontCd).BackCd(backCd).Show(x, 1+y, 1, 1).click {
+			if SA_ButtonStyle(strconv.Itoa(dtt.Day()), style).Show(x, 1+y, 1, 1).click {
 				*value = dtt.Unix()
 				*page = *value
 			}
@@ -523,11 +532,11 @@ func Side() {
 			SA_ColMax(0, 100)
 			SA_Text(GetMonthYear(store.Small_page)).RatioH(0.5).Show(0, 0, 1, 1)
 
-			if SA_Button("<").Alpha(0.5).Show(1, 0, 1, 1).click {
+			if SA_ButtonLight("<").Show(1, 0, 1, 1).click {
 				tm := time.Unix(store.Small_page, 0)
 				store.Small_page = tm.AddDate(0, -1, 0).Unix()
 			}
-			if SA_Button(">").Alpha(0.5).Show(2, 0, 1, 1).click {
+			if SA_ButtonLight(">").Show(2, 0, 1, 1).click {
 				tm := time.Unix(store.Small_page, 0)
 				store.Small_page = tm.AddDate(0, 1, 0).Unix()
 			}
@@ -590,7 +599,7 @@ func ModeYear() {
 					SA_ColMax(0, 100)
 					SA_RowMax(1, 100)
 
-					if SA_Button(MonthText(1+i)).Alpha(1).RatioH(0.45).Align(0).AlphaNoBack(true).Show(0, 0, 1, 1).click {
+					if SA_ButtonStyle(MonthText(1+i), &styles.ButtonMenuBig).Show(0, 0, 1, 1).click {
 
 						//change month = i+1
 						t := time.Unix(store.Small_date, 0)
@@ -657,10 +666,6 @@ func ModeMonth() {
 
 		for y := 0; y < 6; y++ {
 			for x := 0; x < 7; x++ {
-				frontCd := SA_ThemeBlack()
-				if dtt.Month() != orig_month { //is day in current month
-					frontCd = SA_ThemeGrey(0.75)
-				}
 
 				SA_DivStart(x, 1+y, 1, 1)
 				{
@@ -672,7 +677,11 @@ func ModeMonth() {
 						SAPaint_Rect(0, 0, 1, 1, 0.03, SA_ThemeWhite().Aprox(SA_ThemeCd(), 0.3), 0)
 					}
 
-					if SA_Button(strconv.Itoa(dtt.Day())+".").Alpha(1).FrontCd(frontCd).RatioH(0.4).Align(0).AlphaNoBack(true).Show(0, 0, 1, 1).click {
+					style := &styles.ButtonBig
+					if dtt.Month() != orig_month { //is day out of current month
+						style = &g_ButtonH1OutsideMonth
+					}
+					if SA_ButtonStyle(strconv.Itoa(dtt.Day())+".", style).Show(0, 0, 1, 1).click {
 						store.Small_date = dtt.Unix()
 						store.Mode = "day"
 					}
@@ -697,7 +706,7 @@ func ModeMonth() {
 						var title string
 						for query.Next(&rowid, &start, &title) {
 
-							if SA_Button(title).Alpha(0.5).Title(GetTextTime(start)).Align(0).Margin(0.06).Show(0, y, 1, 1).click {
+							if SA_ButtonStyle(title, &g_ButtonEvent).Title(GetTextTime(start)).Show(0, y, 1, 1).click {
 								SA_DialogOpen(fmt.Sprintf("eventDetail_%d", rowid), 1)
 							}
 
@@ -759,21 +768,21 @@ func ModeWeek() {
 		changeDay := -1
 		if format == 1 {
 			//"us"
-			if SA_Button(strconv.Itoa(dtt.Day())+". "+DayTextShort(7)).Alpha(1).RatioH(0.4).AlphaNoBack(true).Align(0).Show(1, 0, 1, 1).click {
+			if SA_ButtonStyle(strconv.Itoa(dtt.Day())+". "+DayTextShort(7), &styles.ButtonAlphaBig).Show(1, 0, 1, 1).click {
 				changeDay = dtt.Day()
 			}
 
 			dtt = dtt.AddDate(0, 0, 1) //add day
 
 			for x := 1; x < 7; x++ {
-				if SA_Button(strconv.Itoa(dtt.Day())+". "+DayTextShort(x)).Alpha(1).RatioH(0.4).AlphaNoBack(true).Align(0).Show(1+x, 0, 1, 1).click {
+				if SA_ButtonStyle(strconv.Itoa(dtt.Day())+". "+DayTextShort(x), &styles.ButtonAlphaBig).Show(1+x, 0, 1, 1).click {
 					changeDay = dtt.Day()
 				}
 				dtt = dtt.AddDate(0, 0, 1) //add day
 			}
 		} else {
 			for x := 1; x < 8; x++ {
-				if SA_Button(strconv.Itoa(dtt.Day())+". "+DayTextShort(x)).Alpha(1).RatioH(0.4).AlphaNoBack(true).Align(0).Show(x, 0, 1, 1).click {
+				if SA_ButtonStyle(strconv.Itoa(dtt.Day())+". "+DayTextShort(x), &styles.ButtonAlphaBig).Show(x, 0, 1, 1).click {
 					changeDay = dtt.Day()
 				}
 				dtt = dtt.AddDate(0, 0, 1) //add day
@@ -943,7 +952,7 @@ func DayEvent(t int64) {
 			}
 
 			for i, it := range cols[c] {
-				if SA_Button(it.title).Align(1).Title(GetTextTime(it.start)+"-"+GetTextTime(it.end)).Show(0, i*2+1, 1, 1).click {
+				if SA_Button(it.title).Title(GetTextTime(it.start)+"-"+GetTextTime(it.end)).Show(0, i*2+1, 1, 1).click {
 					SA_DialogOpen(fmt.Sprintf("eventDetail_%d", it.rowid), 1)
 				}
 
@@ -1052,13 +1061,13 @@ func ModePanel() {
 		SA_ColMax(4, 8)
 
 		//today
-		if SA_Button(trns.TODAY).Title(GetTextDate(int64(SA_Time()))).Alpha(0.5).Show(0, 0, 1, 1).click {
+		if SA_ButtonLight(trns.TODAY).Title(GetTextDate(int64(SA_Time()))).Show(0, 0, 1, 1).click {
 			store.Small_date = int64(SA_Time())
 			store.Small_page = int64(SA_Time())
 		}
 
 		//arrows
-		if SA_Button("<").Alpha(0.5).Show(1, 0, 1, 1).click {
+		if SA_ButtonLight("<").Show(1, 0, 1, 1).click {
 			tm := time.Unix(store.Small_date, 0)
 			if store.Mode == "year" {
 				store.Small_date = tm.AddDate(-1, 0, 0).Unix()
@@ -1070,7 +1079,7 @@ func ModePanel() {
 				store.Small_date = tm.AddDate(0, 0, -1).Unix()
 			}
 		}
-		if SA_Button(">").Alpha(0.5).Show(2, 0, 1, 1).click {
+		if SA_ButtonLight(">").Show(2, 0, 1, 1).click {
 			tm := time.Unix(store.Small_date, 0)
 			if store.Mode == "year" {
 				store.Small_date = tm.AddDate(1, 0, 0).Unix()
@@ -1101,16 +1110,16 @@ func ModePanel() {
 				}
 			}
 
-			if SA_Button(trns.DAY).Alpha(1).Highlight(store.Mode == "day").Show(0, 0, 1, 1).click {
+			if SA_ButtonAlpha(trns.DAY).Highlight(store.Mode == "day", &styles.Button).Show(0, 0, 1, 1).click {
 				store.Mode = "day"
 			}
-			if SA_Button(trns.WEEK).Alpha(1).Highlight(store.Mode == "week").Show(2, 0, 1, 1).click {
+			if SA_ButtonAlpha(trns.WEEK).Highlight(store.Mode == "week", &styles.Button).Show(2, 0, 1, 1).click {
 				store.Mode = "week"
 			}
-			if SA_Button(trns.MONTH).Alpha(1).Highlight(store.Mode == "month").Show(4, 0, 1, 1).click {
+			if SA_ButtonAlpha(trns.MONTH).Highlight(store.Mode == "month", &styles.Button).Show(4, 0, 1, 1).click {
 				store.Mode = "month"
 			}
-			if SA_Button(trns.YEAR).Alpha(1).Highlight(store.Mode == "year").Show(6, 0, 1, 1).click {
+			if SA_ButtonAlpha(trns.YEAR).Highlight(store.Mode == "year", &styles.Button).Show(6, 0, 1, 1).click {
 				store.Mode = "year"
 			}
 
@@ -1143,8 +1152,43 @@ func render() uint32 {
 	return 0
 }
 
+var g_ButtonSelect _SA_Style
+var g_ButtonToday _SA_Style
+var g_ButtonOutsideMonth _SA_Style
+var g_ButtonOutsideMonthSelect _SA_Style
+
+var g_ButtonEvent _SA_Style
+
+var g_ButtonH1OutsideMonth _SA_Style
+
 func open(buff []byte) bool {
-	//init
+	//styles
+	g_ButtonSelect = styles.Button
+	g_ButtonSelect.Main.Font_color = SA_ThemeWhite()
+	g_ButtonSelect.Main.Content_color = SA_ThemeGrey(0.4)
+	g_ButtonSelect.Id = 0
+
+	g_ButtonToday = styles.ButtonAlpha
+	g_ButtonToday.Main.Font_color = SA_ThemeCd()
+	g_ButtonToday.Id = 0
+
+	g_ButtonOutsideMonth = styles.ButtonAlpha
+	g_ButtonOutsideMonth.Main.Font_color = SA_ThemeGrey(0.7)
+	g_ButtonOutsideMonth.Id = 0
+
+	g_ButtonOutsideMonthSelect = styles.Button
+	g_ButtonOutsideMonthSelect.Main.Font_color = SA_ThemeGrey(0.7)
+	g_ButtonOutsideMonthSelect.Id = 0
+
+	g_ButtonEvent = styles.ButtonLight
+	g_ButtonEvent.FontAlignH(0)
+	g_ButtonEvent.Id = 0
+
+	g_ButtonH1OutsideMonth = styles.ButtonBig
+	g_ButtonH1OutsideMonth.Main.Font_color = SA_ThemeGrey(0.7)
+	g_ButtonH1OutsideMonth.Id = 0
+
+	//init store
 	store.ShowSide = true
 	store.Small_date = int64(SA_Time())
 	store.Small_page = int64(SA_Time())

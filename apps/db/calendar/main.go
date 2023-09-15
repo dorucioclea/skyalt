@@ -175,7 +175,7 @@ func Calendar(value int64, page int64) (int64, int64) {
 	//--Today--
 	{
 		act_tm := int64(SA_Time())
-		if SA_Button(trns.TODAY+"("+Format(act_tm)+")").Alpha(1).Border(true).Show(0, 0, 7, 1).click {
+		if SA_ButtonAlphaBorder(trns.TODAY+"("+Format(act_tm)+")").Show(0, 0, 7, 1).click {
 			value = act_tm
 			page = act_tm
 		}
@@ -191,19 +191,19 @@ func Calendar(value int64, page int64) (int64, int64) {
 	{
 		tm := time.Unix(page, 0)
 
-		if SA_Button("<<").Alpha(0.5).Margin(0.1).Show(0, 1, 1, 1).click {
+		if SA_ButtonLight("<<").Show(0, 1, 1, 1).click {
 			page = tm.AddDate(-1, 0, 0).Unix()
 		}
-		if SA_Button("<").Alpha(0.5).Margin(0.1).Show(1, 1, 1, 1).click {
+		if SA_ButtonLight("<").Show(1, 1, 1, 1).click {
 			page = tm.AddDate(0, -1, 0).Unix()
 		}
 
 		SA_Text(MonthText(int(tm.Month()))+" "+strconv.Itoa(tm.Year())).Align(1).Show(2, 1, 3, 1)
 
-		if SA_Button(">").Alpha(0.5).Margin(0.1).Show(5, 1, 1, 1).click {
+		if SA_ButtonLight(">").Show(5, 1, 1, 1).click {
 			page = tm.AddDate(0, 1, 0).Unix()
 		}
-		if SA_Button(">>").Alpha(0.5).Margin(0.1).Show(6, 1, 1, 1).click {
+		if SA_ButtonLight(">>").Show(6, 1, 1, 1).click {
 			page = tm.AddDate(1, 0, 0).Unix()
 		}
 	}
@@ -227,33 +227,45 @@ func Calendar(value int64, page int64) (int64, int64) {
 	dtt := GetStartWeekDay(orig_dtt, format)
 	for y := 0; y < 6; y++ {
 		for x := 0; x < 7; x++ {
-			alpha := float64(1)
-			backCd := SA_ThemeCd()
-			frontCd := SA_ThemeBlack()
+			//alpha := float64(1)
+			//backCd := SA_ThemeCd()
+			//frontCd := SA_ThemeBlack()
 
 			isDayToday := CmpDates(dtt.Unix(), now) > 0
 			isDaySelected := CmpDates(dtt.Unix(), value) > 0
 			isDayInMonth := dtt.Month() == orig_dtt.Month()
 
+			style := &styles.Button
+
 			if isDayToday {
-				frontCd = SA_ThemeCd()
+				style = &g_ButtonToday
+				//frontCd = SA_ThemeCd()
 			}
 
 			if isDaySelected && isDayInMonth { //selected day
-				alpha = 0 //show back
-				frontCd = SA_ThemeWhite()
-				backCd = SA_ThemeGrey(0.4)
+				//alpha = 0 //show back
+				//frontCd = SA_ThemeWhite()
+				//backCd = SA_ThemeGrey(0.4)
+				style = &g_ButtonSelect
 
 				if isDayToday {
-					backCd = SA_ThemeCd()
+					//backCd = SA_ThemeCd()
+					style = &g_ButtonTodaySelect
 				}
 			}
 
 			if !isDayInMonth { //is day in current month
-				frontCd = SA_ThemeGrey(0.7)
+				if isDaySelected {
+					style = &g_ButtonOutsideMonthSelect
+				} else {
+					style = &g_ButtonOutsideMonth
+				}
+				//frontCd = SA_ThemeGrey(0.7)
 			}
 
-			if SA_Button(strconv.Itoa(dtt.Day())).Alpha(alpha).FrontCd(frontCd).BackCd(backCd).Show(x, 3+y, 1, 1).click {
+			//.Alpha(alpha).FrontCd(frontCd).BackCd(backCd)
+
+			if SA_ButtonStyle(strconv.Itoa(dtt.Day()), style).Show(x, 3+y, 1, 1).click {
 				value = dtt.Unix()
 				page = value
 			}
@@ -275,7 +287,7 @@ func CalendarButton(dialogNameMem SAMem, value int64, page int64, enable uint32)
 
 	SA_ColMax(0, 100)
 	SA_RowMax(0, 100)
-	if SA_Button(Format(value)).Alpha(1).Border(true).Enable(enable != 0).Show(0, 0, 1, 1).click {
+	if SA_ButtonAlphaBorder(Format(value)).Enable(enable != 0).Show(0, 0, 1, 1).click {
 		SA_DialogOpen(dialogName, 1)
 		page = value
 	}
@@ -307,7 +319,34 @@ func render() uint32 {
 	return 0
 }
 
+var g_ButtonSelect _SA_Style
+var g_ButtonToday _SA_Style
+var g_ButtonTodaySelect _SA_Style
+var g_ButtonOutsideMonth _SA_Style
+var g_ButtonOutsideMonthSelect _SA_Style
+
 func open(buff []byte) bool {
+	g_ButtonSelect = styles.Button
+	g_ButtonSelect.Main.Font_color = SA_ThemeWhite()
+	g_ButtonSelect.Main.Content_color = SA_ThemeGrey(0.4)
+	g_ButtonSelect.Id = 0
+
+	g_ButtonToday = styles.ButtonAlpha
+	g_ButtonToday.Main.Font_color = SA_ThemeCd()
+	g_ButtonToday.Id = 0
+
+	g_ButtonTodaySelect = styles.Button
+	g_ButtonTodaySelect.Main.Font_color = SA_ThemeCd()
+	g_ButtonTodaySelect.Id = 0
+
+	g_ButtonOutsideMonth = styles.ButtonAlpha
+	g_ButtonOutsideMonth.Main.Font_color = SA_ThemeGrey(0.7)
+	g_ButtonOutsideMonth.Id = 0
+
+	g_ButtonOutsideMonthSelect = styles.Button
+	g_ButtonOutsideMonthSelect.Main.Font_color = SA_ThemeGrey(0.7)
+	g_ButtonOutsideMonthSelect.Id = 0
+
 	return false //default json
 }
 func save() ([]byte, bool) {
