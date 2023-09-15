@@ -269,14 +269,6 @@ func (arr *LayoutArray) HasResize() bool {
 	return false
 }
 
-/*func (arr *LayoutArray) GetResize(i int) (float32, error) {
-
-	if i < arr.NumIns() && arr.items[i].resize >= 0 {
-		return arr.items[i].resize, nil
-	}
-	return -1, errors.New("Invalid")
-}*/
-
 func (arr *LayoutArray) FindOrAddResize(name string) (*LayoutArrayRes, bool) {
 
 	//find
@@ -291,19 +283,6 @@ func (arr *LayoutArray) FindOrAddResize(name string) (*LayoutArrayRes, bool) {
 	arr.resizes = append(arr.resizes, it)
 	return it, false
 }
-
-/*func (arr *LayoutArray) SetResize(pos int, name string, value float32) {
-
-	if len(name) == 0 {
-		name = strconv.Itoa(pos)
-	}
-
-	res := arr.FindOrAddResize(name)
-	res.value = value
-
-	//set to inputs
-	//arr.findOrAdd(pos).resize = value
-}*/
 
 func (arr *LayoutArray) GetOutput(i int) int {
 

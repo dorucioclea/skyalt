@@ -1841,11 +1841,3 @@ type SA_Styles struct {
 
 	ButtonIcon _SA_Style
 }
-
-/*var customButton _SA_Style
-func open() {
-	//in most cases, app should be fine with pre-define 'styles.'
-	customButton = styles.Button
-	customButton.Id = 0
-	customButton.Padding(0.14).Margin(0.07) //set for all
-}*/

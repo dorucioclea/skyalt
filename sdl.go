@@ -871,7 +871,7 @@ func (ui *Ui) RenderTile(text string, coord OsV4, cd OsCd, font *Font) error {
 	return err
 }
 
-func (ui *Ui) RenderInfoStats(ui_info *Info, vm_info *Info, font *Font /*, netStats *ClientStat*/) error {
+func (ui *Ui) RenderInfoStats(ui_info *Info, vm_info *Info, font *Font) error {
 	if ui == nil {
 		return nil
 	}
