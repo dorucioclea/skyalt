@@ -26,19 +26,17 @@ import (
 func (asset *Asset) print(str string) {
 	fmt.Println(str)
 }
-func (asset *Asset) _sa_print(strMem uint64) int64 {
+func (asset *Asset) _sa_print(strMem uint64) {
 
 	str, err := asset.ptrToString(strMem)
 	if asset.AddLogErr(err) {
-		return -1
+		return
 	}
 
 	asset.print(str)
-	return 1
 }
-func (asset *Asset) _sa_print_float(val float64) int64 {
+func (asset *Asset) _sa_print_float(val float64) {
 	fmt.Println(val)
-	return 1
 }
 
 func (asset *Asset) info_float(key string) float64 {
