@@ -185,16 +185,16 @@ func (scroll *LayerScroll) _GetTempScroll(srcl int, ui *Ui) int {
 	return ui.Cell() * srcl
 }
 
-func (scroll *LayerScroll) IsMove(packLayout *LayoutDiv, root *Root, wheel_add int, deep int) bool {
+func (scroll *LayerScroll) IsMove(packLayout *LayoutDiv, root *Root, wheel_add int, deep int, onlyH bool) bool {
 	inside := packLayout.CropWithScroll(root.ui).Inside(root.ui.io.touch.pos)
 	if inside {
 
 		//test childs
 		for _, div := range packLayout.childs {
-			if div.data.scrollV.IsMove(div, root, wheel_add, deep+1) {
+			if !onlyH && div.data.scrollV.IsMove(div, root, wheel_add, deep+1, onlyH) {
 				return deep > 0 //bottom layer must return false(can't scroll, because upper layer can scroll)
 			}
-			if div.data.scrollH.IsMove(div, root, wheel_add, deep+1) {
+			if div.data.scrollH.IsMove(div, root, wheel_add, deep+1, onlyH) {
 				return deep > 0 //bottom layer must return false(can't scroll, because upper layer can scroll)
 			}
 		}
@@ -217,12 +217,9 @@ func (scroll *LayerScroll) TouchV(packLayout *LayoutDiv, root *Root) {
 		ui.PaintCursor("default")
 	}
 
-	canUp := scroll.IsMove(packLayout, root, -1, 0)
-	canDown := scroll.IsMove(packLayout, root, +1, 0)
+	canUp := scroll.IsMove(packLayout, root, -1, 0, false)
+	canDown := scroll.IsMove(packLayout, root, +1, 0, false)
 	if ui.io.touch.wheel != 0 && !ui.io.keys.shift {
-
-		canUp = scroll.IsMove(packLayout, root, -1, 0)
-
 		if (ui.io.touch.wheel < 0 && canUp) || (ui.io.touch.wheel > 0 && canDown) {
 			if scroll.SetWheel(scroll.GetWheel() + scroll._GetTempScroll(ui.io.touch.wheel, ui)) {
 				ui.io.touch.wheel = 0 // let child scroll
@@ -304,8 +301,8 @@ func (scroll *LayerScroll) TouchH(needShiftWheel bool, packLayout *LayoutDiv, ro
 		ui.PaintCursor("default")
 	}
 
-	canLeft := scroll.IsMove(packLayout, root, -1, 0)
-	canRight := scroll.IsMove(packLayout, root, +1, 0)
+	canLeft := scroll.IsMove(packLayout, root, -1, 0, ui.io.keys.shift)
+	canRight := scroll.IsMove(packLayout, root, +1, 0, ui.io.keys.shift)
 	if ui.io.touch.wheel != 0 && (!needShiftWheel || ui.io.keys.shift) {
 		if (ui.io.touch.wheel < 0 && canLeft) || (ui.io.touch.wheel > 0 && canRight) {
 			if scroll.SetWheel(scroll.GetWheel() + scroll._GetTempScroll(ui.io.touch.wheel, ui)) {
