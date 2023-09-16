@@ -175,7 +175,7 @@ func Calendar(value int64, page int64) (int64, int64) {
 	//--Today--
 	{
 		act_tm := int64(SA_Time())
-		if SA_ButtonAlphaBorder(trns.TODAY+"("+Format(act_tm)+")").Show(0, 0, 7, 1).click {
+		if SA_ButtonBorder(trns.TODAY+"("+Format(act_tm)+")").Show(0, 0, 7, 1).click {
 			value = act_tm
 			page = act_tm
 		}
@@ -235,7 +235,7 @@ func Calendar(value int64, page int64) (int64, int64) {
 			isDaySelected := CmpDates(dtt.Unix(), value) > 0
 			isDayInMonth := dtt.Month() == orig_dtt.Month()
 
-			style := &styles.Button
+			style := &styles.ButtonAlpha
 
 			if isDayToday {
 				style = &g_ButtonToday
@@ -250,7 +250,7 @@ func Calendar(value int64, page int64) (int64, int64) {
 
 				if isDayToday {
 					//backCd = SA_ThemeCd()
-					style = &g_ButtonTodaySelect
+					style = &styles.Button
 				}
 			}
 
@@ -287,7 +287,7 @@ func CalendarButton(dialogNameMem SAMem, value int64, page int64, enable uint32)
 
 	SA_ColMax(0, 100)
 	SA_RowMax(0, 100)
-	if SA_ButtonAlphaBorder(Format(value)).Enable(enable != 0).Show(0, 0, 1, 1).click {
+	if SA_ButtonStyle(Format(value), &g_ButtonBorderDate).Enable(enable != 0).Icon(SA_ResourceBuildAssetPath("", "type_date.png"), 0.2).Show(0, 0, 1, 1).click {
 		SA_DialogOpen(dialogName, 1)
 		page = value
 	}
@@ -321,9 +321,9 @@ func render() uint32 {
 
 var g_ButtonSelect _SA_Style
 var g_ButtonToday _SA_Style
-var g_ButtonTodaySelect _SA_Style
 var g_ButtonOutsideMonth _SA_Style
 var g_ButtonOutsideMonthSelect _SA_Style
+var g_ButtonBorderDate _SA_Style
 
 func open(buff []byte) bool {
 	g_ButtonSelect = styles.Button
@@ -335,10 +335,6 @@ func open(buff []byte) bool {
 	g_ButtonToday.Main.Color = SA_ThemeCd()
 	g_ButtonToday.Id = 0
 
-	g_ButtonTodaySelect = styles.Button
-	g_ButtonTodaySelect.Main.Color = SA_ThemeCd()
-	g_ButtonTodaySelect.Id = 0
-
 	g_ButtonOutsideMonth = styles.ButtonAlpha
 	g_ButtonOutsideMonth.Main.Color = SA_ThemeGrey(0.7)
 	g_ButtonOutsideMonth.Id = 0
@@ -346,6 +342,10 @@ func open(buff []byte) bool {
 	g_ButtonOutsideMonthSelect = styles.Button
 	g_ButtonOutsideMonthSelect.Main.Color = SA_ThemeGrey(0.7)
 	g_ButtonOutsideMonthSelect.Id = 0
+
+	g_ButtonBorderDate = styles.ButtonBorder
+	g_ButtonBorderDate.FontAlignH(0)
+	g_ButtonBorderDate.Id = 0
 
 	return false //default json
 }

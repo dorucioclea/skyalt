@@ -356,12 +356,12 @@ func Menu() {
 
 		dpi := SA_InfoFloat("dpi")
 		dpi_default := SA_InfoFloat("dpi_default")
-		if SA_ButtonAlphaBorder("+").Show(1, 0, 1, 1).click {
+		if SA_ButtonBorder("+").Show(1, 0, 1, 1).click {
 			SA_InfoSetFloat("dpi", dpi+3)
 		}
 		dpiV := int(dpi / dpi_default * 100)
 		SA_Text(strconv.Itoa(dpiV)+"%").Align(1).Show(2, 0, 1, 1)
-		if SA_ButtonAlphaBorder("-").Show(3, 0, 1, 1).click {
+		if SA_ButtonBorder("-").Show(3, 0, 1, 1).click {
 			SA_InfoSetFloat("dpi", dpi-3)
 		}
 	}
@@ -846,7 +846,7 @@ var g_ButtonAddApp _SA_Style
 func open(buff []byte) bool {
 
 	//styles
-	g_ButtonAddApp = styles.ButtonAlphaBorder
+	g_ButtonAddApp = styles.ButtonBorder
 	g_ButtonAddApp.Margin(0.17)
 
 	//storage

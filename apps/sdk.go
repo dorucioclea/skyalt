@@ -562,8 +562,8 @@ func SA_ButtonMenu(value string) *_SA_Button {
 	return SA_ButtonStyle(value, &styles.ButtonMenu)
 }
 
-func SA_ButtonAlphaBorder(value string) *_SA_Button {
-	return SA_ButtonStyle(value, &styles.ButtonAlphaBorder)
+func SA_ButtonBorder(value string) *_SA_Button {
+	return SA_ButtonStyle(value, &styles.ButtonBorder)
 }
 func SA_ButtonDanger(value string) *_SA_Button {
 	return SA_ButtonStyle(value, &styles.ButtonDanger)
@@ -1826,8 +1826,8 @@ type SA_Styles struct {
 	ButtonAlphaBig _SA_Style
 	ButtonMenuBig  _SA_Style
 
-	ButtonAlphaBorder _SA_Style
-	ButtonLogo        _SA_Style
+	ButtonBorder _SA_Style
+	ButtonLogo   _SA_Style
 
 	ButtonDanger     _SA_Style
 	ButtonDangerMenu _SA_Style

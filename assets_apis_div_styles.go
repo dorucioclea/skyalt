@@ -275,7 +275,7 @@ type DivDefaultStyles struct {
 	ButtonAlphaBig SwpStyle
 	ButtonMenuBig  SwpStyle
 
-	ButtonAlphaBorder SwpStyle
+	ButtonBorder SwpStyle
 
 	ButtonLogo SwpStyle
 
@@ -357,10 +357,10 @@ func DivStyles_getDefaults(asset *Asset) DivDefaultStyles {
 	}
 
 	{
-		stls.ButtonAlphaBorder = stls.ButtonAlpha
-		//stls.ButtonAlphaBorder.Margin(0.1)
-		stls.ButtonAlphaBorder.Border(0.03)
-		stls.ButtonAlphaBorder.BorderCd(asset.themeCd())
+		stls.ButtonBorder = stls.ButtonAlpha
+		//stls.ButtonBorder.Margin(0.1)
+		stls.ButtonBorder.Border(0.03)
+		stls.ButtonBorder.BorderCd(asset.themeCd())
 	}
 
 	{

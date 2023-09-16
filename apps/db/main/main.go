@@ -555,7 +555,7 @@ func TableView(table *Table) {
 			}
 		}
 
-		if SA_ButtonAlphaBorder(trns.COLUMNS).Highlight(hidden, &styles.Button).Show(0, 0, 1, 1).click {
+		if SA_ButtonBorder(trns.COLUMNS).Highlight(hidden, &styles.Button).Show(0, 0, 1, 1).click {
 			SA_DialogOpen("Columns", 1)
 		}
 
@@ -598,7 +598,7 @@ func TableView(table *Table) {
 			SA_DialogEnd()
 		}
 
-		if SA_ButtonAlphaBorder(trns.FILTER).Highlight(table.Filter.Enable && len(table.Filter.Items) > 0, &styles.Button).Show(2, 0, 1, 1).click || store.showFilterDialog {
+		if SA_ButtonBorder(trns.FILTER).Highlight(table.Filter.Enable && len(table.Filter.Items) > 0, &styles.Button).Show(2, 0, 1, 1).click || store.showFilterDialog {
 			store.showFilterDialog = false
 			SA_DialogOpen("Filter", 1)
 		}
@@ -654,7 +654,7 @@ func TableView(table *Table) {
 			SA_DialogEnd()
 		}
 
-		if SA_ButtonAlphaBorder(trns.SORT).Highlight(table.Sort.Enable && len(table.Sort.Items) > 0, &styles.Button).Show(4, 0, 1, 1).click {
+		if SA_ButtonBorder(trns.SORT).Highlight(table.Sort.Enable && len(table.Sort.Items) > 0, &styles.Button).Show(4, 0, 1, 1).click {
 			SA_DialogOpen("Sort", 1)
 		}
 
