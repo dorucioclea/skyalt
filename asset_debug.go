@@ -715,6 +715,11 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ad.WriteUint64(uint64(ret))
 			ad._checkRead(fnTp)
 
+		case 130:
+			line := int(ad.ReadUint64())
+			asset.SetDebugLine(line)
+			ad._checkRead(fnTp)
+
 		case 1000:
 			//must return len(returnBytes)
 			return 0, nil //render() is done

@@ -7,6 +7,7 @@ import (
 	"math"
 	"net"
 	"reflect"
+	"runtime"
 	"strconv"
 )
 
@@ -852,6 +853,30 @@ func _sa_render_app(appMem SAMem, dbMem SAMem, sts_id uint64) int64 {
 	ret := int64(ReadUint64())
 	_checkRead(120)
 	return ret
+}
+
+func _sa_debug_line(line int64) {
+	WriteUint64(130)
+	WriteUint64(uint64(line))
+	_checkRead(130)
+}
+
+func _SA_DebugLine() {
+
+	ok := true
+	i := 2
+	for ok {
+		var file string
+		var line int
+		_, file, line, ok = runtime.Caller(i)
+
+		if file != "sdk.go" {
+			_sa_debug_line(int64(line))
+			break
+		}
+	}
+
+	fmt.Println("Debug caller not found")
 }
 
 /*func _SA_ptrToString(mem SAMem) string {

@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -68,6 +69,9 @@ type Root struct {
 
 	exit bool
 	save bool
+
+	debug_asset *Asset
+	debug_line  int
 }
 
 func NewRoot(debugPORT int, folderApps string, folderDbs string, folderDevice string, ctx context.Context) (*Root, error) {
@@ -449,6 +453,12 @@ func (root *Root) Tick() (bool, error) {
 		root.tile.NextTick()
 	}
 
+	//debug
+	{
+		root.debug_asset = nil
+		root.debug_line = -1
+	}
+
 	if root.ui.NeedRedraw() {
 
 		stUiTicks := OsTicks()
@@ -469,6 +479,14 @@ func (root *Root) Tick() (bool, error) {
 		// tile - redraw If mouse is over tile
 		if root.tile.IsActive(root.ui.io.touch.pos) {
 			err := root.ui.RenderTile(root.tile.text, root.tile.coord, root.tile.cd, root.fonts.Get(SKYALT_FONT_0))
+			if err != nil {
+				fmt.Printf("RenderTile() failed: %v\n", err)
+			}
+		}
+
+		if root.debug_asset != nil {
+			title := root.debug_asset.getPath() + "/" + strconv.Itoa(root.debug_line)
+			err := root.ui.RenderTile(title, OsV4{root.ui.io.touch.pos, OsV2{1, 1}}, root.debug_asset.themeCd(), root.fonts.Get(SKYALT_FONT_0))
 			if err != nil {
 				fmt.Printf("RenderTile() failed: %v\n", err)
 			}
@@ -534,4 +552,9 @@ func (root *Root) updateAppsList() {
 		}
 	}
 	root.appsList = strings.TrimSuffix(root.appsList, "/") //remove '/' at the end
+}
+
+func (root *Root) SetDebugLine(asset *Asset, line int) {
+	root.debug_asset = asset
+	root.debug_line = line
 }

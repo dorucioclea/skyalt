@@ -245,3 +245,8 @@ func _SA_ptrToString(mem SAMem) string {
 	ptr := unsafe.Pointer(unsafe.SliceData(s))
 	return (uint64(uintptr(ptr)) << uint64(32)) | uint64(len(s)*8)
 }*/
+
+func _SA_DebugLine() {
+	//empty for .wasm
+	//no export neede
+}

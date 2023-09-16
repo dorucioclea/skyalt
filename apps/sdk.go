@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"runtime"
 	"strconv"
 )
 
@@ -164,11 +163,13 @@ func SA_Row(pos int, val float64) float64 {
 	return _sa_div_row(uint64(pos), val)
 }
 
-func SA_DivStart(x, y, w, h int) bool {
-	return _sa_div_start(uint64(x), uint64(y), uint64(w), uint64(h), _SA_stringToPtr("")) != 0
-}
 func SA_DivStartName(x, y, w, h int, name string) bool {
-	return _sa_div_start(uint64(x), uint64(y), uint64(w), uint64(h), _SA_stringToPtr(name)) != 0
+	ret := _sa_div_start(uint64(x), uint64(y), uint64(w), uint64(h), _SA_stringToPtr(name)) != 0
+	_SA_DebugLine()
+	return ret
+}
+func SA_DivStart(x, y, w, h int) bool {
+	return SA_DivStartName(x, y, w, h, "")
 }
 
 func SA_DivEnd() {
@@ -630,11 +631,6 @@ func (b *_SA_Button) Show(x, y, w, h int) _SA_ButtonOut {
 		ret.rclick = binary.LittleEndian.Uint64(out[8:]) != 0
 	}
 	defer SA_DivEnd()
-
-	_, _, line, ok := runtime.Caller(1)
-	if ok {
-		_sa_print_float(float64(line))
-	}
 
 	return ret
 }
