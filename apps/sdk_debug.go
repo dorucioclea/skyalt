@@ -56,8 +56,7 @@ func main() {
 		case "_sa_init":
 			var jsStore []byte
 			var jsStyles []byte
-			_arrayToArgs(args, &jsStore)
-			_arrayToArgs(args, &jsStyles)
+			_arrayToArgs(args, &jsStore, &jsStyles)
 
 			json.Unmarshal(jsStyles, &styles)
 
@@ -96,6 +95,19 @@ func main() {
 	}
 }
 
+func _connectionRead(data []byte) error {
+	p := 0
+	for p < len(data) {
+		n, err := conn.Read(data[p:])
+		if err != nil {
+			return err
+		}
+
+		p += n
+	}
+	return nil
+}
+
 func WriteUint64(v uint64) {
 	var b [8]byte
 	_SA_putUint64(b[:], v)
@@ -106,21 +118,13 @@ func WriteUint64(v uint64) {
 	}
 }
 
-func ReadUint64e() (uint64, error) {
-	var b [8]byte
-	_, err := conn.Read(b[:])
-	if err != nil {
-		return 0, err
-	}
-	return _SA_getUint64(b[:]), nil
-}
-
 func ReadUint64() uint64 {
-	v, err := ReadUint64e()
+	var b [8]byte
+	err := _connectionRead(b[:])
 	if err != nil {
 		log.Panic(err)
 	}
-	return v
+	return _SA_getUint64(b[:])
 }
 
 func WriteFloat64(v float64) {
@@ -132,8 +136,6 @@ func ReadFloat64() float64 {
 }
 
 func WriteMem(mem SAMem) {
-	//data := _SA_ptrToBytes(mem)
-
 	WriteUint64(uint64(len(mem.v))) //size
 	_, err := conn.Write(mem.v)     //data
 	if err != nil {
@@ -142,16 +144,19 @@ func WriteMem(mem SAMem) {
 }
 
 func ReadBytes() ([]byte, error) {
-	sz, err := ReadUint64e()
-	if err != nil {
-		return nil, err
-	}
 
-	data := make([]byte, sz)
-	_, err = conn.Read(data)
+	//size
+	//ReadUint64() but with error
+	var b [8]byte
+	err := _connectionRead(b[:])
 	if err != nil {
 		return nil, err
 	}
+	sz := _SA_getUint64(b[:])
+
+	//data
+	data := make([]byte, sz)
+	_connectionRead(data)
 	return data, nil
 }
 func WriteBytes(data []byte) {
@@ -167,31 +172,43 @@ func ReadMem(mem SAMem) {
 	if sz != len(mem.v) {
 		log.Panic("Wrong size")
 	}
-	_, err := conn.Read(mem.v)
-	if err != nil {
-		log.Panic(err)
-	}
+	_connectionRead(mem.v)
 }
 
 //-------
 
+func _checkRead(fnTp uint64) {
+	WriteUint64(fnTp) //send so other side can check as well
+
+	tp := ReadUint64()
+	if tp != fnTp {
+		fmt.Printf("Error: Expecting(%d), but it's %d\n", fnTp, tp)
+	}
+}
+
 func _sa_storage_write(jsonMem SAMem) int64 {
 	WriteUint64(0)
 	WriteMem(jsonMem)
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(0)
+	return ret
 }
 
 func _sa_info_float(keyMem SAMem) float64 {
 	WriteUint64(1)
 	WriteMem(keyMem)
-	return ReadFloat64()
+	ret := ReadFloat64()
+	_checkRead(1)
+	return ret
 }
 
 func _sa_info_setFloat(keyMem SAMem, value float64) int64 {
 	WriteUint64(2)
 	WriteMem(keyMem)
 	WriteFloat64(value)
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(2)
+	return ret
 }
 
 func _sa_info_string(keyMem SAMem, dstMem SAMem) int64 {
@@ -199,20 +216,26 @@ func _sa_info_string(keyMem SAMem, dstMem SAMem) int64 {
 	WriteMem(keyMem)
 
 	ReadMem(dstMem)
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(3)
+	return ret
 }
 
 func _sa_info_string_len(keyMem SAMem) int64 {
 	WriteUint64(4)
 	WriteMem(keyMem)
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(4)
+	return ret
 }
 
 func _sa_info_setString(keyMem SAMem, valueMem SAMem) int64 {
 	WriteUint64(5)
 	WriteMem(keyMem)
 	WriteMem(valueMem)
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(5)
+	return ret
 }
 
 func _sa_resource(pathMem SAMem, dstMem SAMem) int64 {
@@ -220,23 +243,29 @@ func _sa_resource(pathMem SAMem, dstMem SAMem) int64 {
 	WriteMem(pathMem)
 
 	ReadMem(dstMem)
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(6)
+	return ret
 }
 
 func _sa_resource_len(pathMem SAMem) int64 {
 	WriteUint64(7)
 	WriteMem(pathMem)
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(7)
+	return ret
 }
 
 func _sa_print(mem SAMem) {
 	WriteUint64(8)
 	WriteMem(mem)
+	_checkRead(8)
 }
 
 func _sa_print_float(val float64) {
 	WriteUint64(9)
 	WriteFloat64(val)
+	_checkRead(9)
 }
 
 //-------
@@ -245,14 +274,18 @@ func _sa_sql_write(dbMem SAMem, queryMem SAMem) int64 {
 	WriteUint64(10)
 	WriteMem(dbMem)
 	WriteMem(queryMem)
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(10)
+	return ret
 }
 
 func _sa_sql_read(dbMem SAMem, queryMem SAMem) int64 {
 	WriteUint64(11)
 	WriteMem(dbMem)
 	WriteMem(queryMem)
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(11)
+	return ret
 }
 
 func _sa_sql_readRowCount(dbMem SAMem, queryMem SAMem, queryHash int64) int64 {
@@ -260,7 +293,9 @@ func _sa_sql_readRowCount(dbMem SAMem, queryMem SAMem, queryHash int64) int64 {
 	WriteMem(dbMem)
 	WriteMem(queryMem)
 	WriteUint64(uint64(queryHash))
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(12)
+	return ret
 }
 
 func _sa_sql_readRowLen(dbMem SAMem, queryMem SAMem, queryHash int64, row_i uint64) int64 {
@@ -269,7 +304,9 @@ func _sa_sql_readRowLen(dbMem SAMem, queryMem SAMem, queryHash int64, row_i uint
 	WriteMem(queryMem)
 	WriteUint64(uint64(queryHash))
 	WriteUint64(row_i)
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(13)
+	return ret
 }
 
 func _sa_sql_readRow(dbMem SAMem, queryMem SAMem, queryHash int64, row_i uint64, resultMem SAMem) int64 {
@@ -280,7 +317,9 @@ func _sa_sql_readRow(dbMem SAMem, queryMem SAMem, queryHash int64, row_i uint64,
 	WriteUint64(row_i)
 
 	ReadMem(resultMem)
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(14)
+	return ret
 }
 
 //-------
@@ -291,7 +330,9 @@ func _sa_div_colResize(pos uint64, nameMem SAMem, val float64) float64 {
 	WriteMem(nameMem)
 	WriteFloat64(val)
 
-	return ReadFloat64()
+	ret := ReadFloat64()
+	_checkRead(20)
+	return ret
 }
 func _sa_div_rowResize(pos uint64, nameMem SAMem, val float64) float64 {
 	WriteUint64(21)
@@ -299,14 +340,18 @@ func _sa_div_rowResize(pos uint64, nameMem SAMem, val float64) float64 {
 	WriteMem(nameMem)
 	WriteFloat64(val)
 
-	return ReadFloat64()
+	ret := ReadFloat64()
+	_checkRead(21)
+	return ret
 }
 func _sa_div_colMax(pos uint64, val float64) float64 {
 	WriteUint64(22)
 	WriteUint64(pos)
 	WriteFloat64(val)
 
-	return ReadFloat64()
+	ret := ReadFloat64()
+	_checkRead(22)
+	return ret
 }
 
 func _sa_div_rowMax(pos uint64, val float64) float64 {
@@ -314,7 +359,9 @@ func _sa_div_rowMax(pos uint64, val float64) float64 {
 	WriteUint64(pos)
 	WriteFloat64(val)
 
-	return ReadFloat64()
+	ret := ReadFloat64()
+	_checkRead(23)
+	return ret
 }
 
 func _sa_div_col(pos uint64, val float64) float64 {
@@ -322,7 +369,9 @@ func _sa_div_col(pos uint64, val float64) float64 {
 	WriteUint64(pos)
 	WriteFloat64(val)
 
-	return ReadFloat64()
+	ret := ReadFloat64()
+	_checkRead(24)
+	return ret
 }
 
 func _sa_div_row(pos uint64, val float64) float64 {
@@ -330,7 +379,9 @@ func _sa_div_row(pos uint64, val float64) float64 {
 	WriteUint64(pos)
 	WriteFloat64(val)
 
-	return ReadFloat64()
+	ret := ReadFloat64()
+	_checkRead(25)
+	return ret
 }
 
 func _sa_div_start(x, y, w, h uint64, nameMem SAMem) int64 {
@@ -341,11 +392,14 @@ func _sa_div_start(x, y, w, h uint64, nameMem SAMem) int64 {
 	WriteUint64(h)
 	WriteMem(nameMem)
 
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(26)
+	return ret
 }
 
 func _sa_div_end() {
 	WriteUint64(27)
+	_checkRead(27)
 }
 
 func _sa_div_get_info(idMem SAMem, x int64, y int64) float64 {
@@ -354,7 +408,9 @@ func _sa_div_get_info(idMem SAMem, x int64, y int64) float64 {
 	WriteUint64(uint64(x))
 	WriteUint64(uint64(y))
 
-	return ReadFloat64()
+	ret := ReadFloat64()
+	_checkRead(28)
+	return ret
 }
 
 func _sa_div_set_info(idMem SAMem, val float64, x int64, y int64) float64 {
@@ -364,7 +420,9 @@ func _sa_div_set_info(idMem SAMem, val float64, x int64, y int64) float64 {
 	WriteUint64(uint64(x))
 	WriteUint64(uint64(y))
 
-	return ReadFloat64()
+	ret := ReadFloat64()
+	_checkRead(29)
+	return ret
 }
 
 //-------
@@ -374,22 +432,28 @@ func _sa_div_dialogOpen(nameMem SAMem, tp uint64) int64 {
 	WriteMem(nameMem)
 	WriteUint64(tp)
 
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(40)
+	return ret
 }
 
 func _sa_div_dialogClose() {
 	WriteUint64(41)
+	_checkRead(41)
 }
 
 func _sa_div_dialogStart(nameMem SAMem) int64 {
 	WriteUint64(42)
 	WriteMem(nameMem)
 
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(42)
+	return ret
 }
 
 func _sa_div_dialogEnd() {
 	WriteUint64(43)
+	_checkRead(43)
 }
 
 //-------
@@ -407,7 +471,9 @@ func _sa_paint_rect(x, y, w, h float64, margin float64, r, g, b, a uint32, borde
 	WriteUint64(uint64(a))
 	WriteFloat64(borderWidth)
 
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(50)
+	return ret
 }
 
 func _sa_paint_line(x, y, w, h float64, margin float64, sx, sy, ex, ey float64, r, g, b, a uint32, width float64) int64 {
@@ -427,7 +493,9 @@ func _sa_paint_line(x, y, w, h float64, margin float64, sx, sy, ex, ey float64, 
 	WriteUint64(uint64(a))
 	WriteFloat64(width)
 
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(51)
+	return ret
 }
 
 func _sa_paint_circle(x, y, w, h float64, margin float64, sx, sy, rad float64, r, g, b, a uint32, borderWidth float64) int64 {
@@ -446,7 +514,9 @@ func _sa_paint_circle(x, y, w, h float64, margin float64, sx, sy, rad float64, r
 	WriteUint64(uint64(a))
 	WriteFloat64(borderWidth)
 
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(52)
+	return ret
 }
 
 func _sa_paint_file(x, y, w, h float64, fileMem SAMem, titleMem SAMem, margin, marginX, marginY float64, r, g, b, a uint32, alignV, alignH uint32, fill uint32) int64 {
@@ -468,7 +538,9 @@ func _sa_paint_file(x, y, w, h float64, fileMem SAMem, titleMem SAMem, margin, m
 	WriteUint64(uint64(alignH))
 	WriteUint64(uint64(fill))
 
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(53)
+	return ret
 }
 
 func _sa_paint_text(x, y, w, h float64,
@@ -507,7 +579,9 @@ func _sa_paint_text(x, y, w, h float64,
 	WriteUint64(uint64(tabIsChar))
 	WriteUint64(uint64(enable))
 
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(54)
+	return ret
 }
 
 func _sa_paint_textWidth(valueMem SAMem, fontId uint32, ratioH float64, cursorPos int64) float64 {
@@ -517,7 +591,9 @@ func _sa_paint_textWidth(valueMem SAMem, fontId uint32, ratioH float64, cursorPo
 	WriteFloat64(ratioH)
 	WriteUint64(uint64(cursorPos))
 
-	return ReadFloat64()
+	ret := ReadFloat64()
+	_checkRead(55)
+	return ret
 }
 
 func _sa_paint_title(x, y, w, h float64, valueMem SAMem) int64 {
@@ -528,14 +604,18 @@ func _sa_paint_title(x, y, w, h float64, valueMem SAMem) int64 {
 	WriteFloat64(h)
 	WriteMem(valueMem)
 
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(56)
+	return ret
 }
 
 func _sa_paint_cursor(nameMem SAMem) int64 {
 	WriteUint64(57)
 	WriteMem(nameMem)
 
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(57)
+	return ret
 }
 
 func _sa_fn_call(assetMem SAMem, fnMem SAMem, argsMem SAMem) int64 {
@@ -544,37 +624,46 @@ func _sa_fn_call(assetMem SAMem, fnMem SAMem, argsMem SAMem) int64 {
 	WriteMem(fnMem)
 	WriteMem(argsMem)
 
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(70)
+	return ret
 }
 
 func _sa_fn_setReturn(argsMem SAMem) int64 {
 	WriteUint64(71)
 	WriteMem(argsMem)
 
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(71)
+	return ret
 }
 
 func _sa_fn_getReturn(argsMem SAMem) int64 {
 	WriteUint64(72)
 
 	ReadMem(argsMem)
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(72)
+	return ret
 }
 
 func _sa_swp_drawButton(style uint32, valueMem SAMem, iconMem SAMem, icon_margin float64, urlMem SAMem, titleMem SAMem, enable uint32, outMem SAMem) int64 {
-
 	WriteUint64(80)
 
 	WriteUint64(uint64(style))
 
 	WriteMem(valueMem)
 	WriteMem(iconMem)
+	WriteFloat64(icon_margin)
 	WriteMem(urlMem)
 	WriteMem(titleMem)
 	WriteUint64(uint64(enable))
 
 	ReadMem(outMem)
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+
+	_checkRead(80)
+	return ret
 }
 
 func _sa_swp_drawSlider(value float64, min float64, max float64, jump float64, titleMem SAMem, enable uint32, outMem SAMem) float64 {
@@ -587,7 +676,9 @@ func _sa_swp_drawSlider(value float64, min float64, max float64, jump float64, t
 	WriteUint64(uint64(enable))
 
 	ReadMem(outMem)
-	return ReadFloat64()
+	ret := ReadFloat64()
+	_checkRead(81)
+	return ret
 }
 
 func _sa_swp_drawProgress(value float64, maxValue float64, titleMem SAMem, margin float64, enable uint32) int64 {
@@ -597,7 +688,9 @@ func _sa_swp_drawProgress(value float64, maxValue float64, titleMem SAMem, margi
 	WriteMem(titleMem)
 	WriteFloat64(margin)
 	WriteUint64(uint64(enable))
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(82)
+	return ret
 }
 
 func _sa_swp_drawText(cd_r, cd_g, cd_b, cd_a uint32,
@@ -624,14 +717,18 @@ func _sa_swp_drawText(cd_r, cd_g, cd_b, cd_a uint32,
 	WriteUint64(uint64(enable))
 	WriteUint64(uint64(selection))
 
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(83)
+	return ret
 }
 
 func _sa_swp_getEditValue(outMem SAMem) int64 {
 	WriteUint64(84)
 
 	ReadMem(outMem)
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(84)
+	return ret
 }
 
 func _sa_swp_drawEdit(cd_r, cd_g, cd_b, cd_a uint32,
@@ -660,7 +757,9 @@ func _sa_swp_drawEdit(cd_r, cd_g, cd_b, cd_a uint32,
 	WriteUint64(uint64(enable))
 
 	ReadMem(outMem)
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(85)
+	return ret
 }
 
 func _sa_swp_drawCombo(cd_r, cd_g, cd_b, cd_a uint32,
@@ -686,7 +785,9 @@ func _sa_swp_drawCombo(cd_r, cd_g, cd_b, cd_a uint32,
 
 	WriteUint64(uint64(enable))
 
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(86)
+	return ret
 }
 
 func _sa_swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32,
@@ -707,20 +808,26 @@ func _sa_swp_drawCheckbox(cd_r, cd_g, cd_b, cd_a uint32,
 	WriteUint64(uint64(alignV))
 	WriteUint64(uint64(enable))
 
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(87)
+	return ret
 }
 
 func _sa_register_style(jsMem SAMem) int64 {
 	WriteUint64(100)
 	WriteMem(jsMem)
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(100)
+	return ret
 }
 
 func _sa_div_drag(groupName SAMem, id uint64) int64 {
 	WriteUint64(110)
 	WriteMem(groupName)
 	WriteUint64(id)
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(110)
+	return ret
 }
 
 func _sa_div_drop(groupName SAMem, vertical uint32, horizontal uint32, inside uint32, outMem SAMem) int64 {
@@ -731,7 +838,9 @@ func _sa_div_drop(groupName SAMem, vertical uint32, horizontal uint32, inside ui
 	WriteUint64(uint64(inside))
 
 	ReadMem(outMem)
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(111)
+	return ret
 }
 
 func _sa_render_app(appMem SAMem, dbMem SAMem, sts_id uint64) int64 {
@@ -740,7 +849,9 @@ func _sa_render_app(appMem SAMem, dbMem SAMem, sts_id uint64) int64 {
 	WriteMem(dbMem)
 	WriteUint64(sts_id)
 
-	return int64(ReadUint64())
+	ret := int64(ReadUint64())
+	_checkRead(120)
+	return ret
 }
 
 /*func _SA_ptrToString(mem SAMem) string {

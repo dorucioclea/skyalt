@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"runtime"
 	"strconv"
 )
 
@@ -629,6 +630,11 @@ func (b *_SA_Button) Show(x, y, w, h int) _SA_ButtonOut {
 		ret.rclick = binary.LittleEndian.Uint64(out[8:]) != 0
 	}
 	defer SA_DivEnd()
+
+	_, _, line, ok := runtime.Caller(1)
+	if ok {
+		_sa_print_float(float64(line))
+	}
 
 	return ret
 }
