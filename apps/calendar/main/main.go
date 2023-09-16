@@ -660,9 +660,13 @@ func ModeMonth() {
 	}
 
 	{
-		//fix page(need to start with day 1)
+
 		orig_month := time.Unix(store.Small_date, 0).Month()
-		dtt := GetStartWeekDay(store.Small_date, format)
+
+		//fix page(need to start with day 1)
+		dtt := time.Unix(store.Small_date, 0)
+		page := dtt.AddDate(0, 0, -(dtt.Day() - 1)).Unix()
+		dtt = GetStartWeekDay(page, format)
 
 		for y := 0; y < 6; y++ {
 			for x := 0; x < 7; x++ {
@@ -677,7 +681,7 @@ func ModeMonth() {
 						SAPaint_Rect(0, 0, 1, 1, 0.03, SA_ThemeWhite().Aprox(SA_ThemeCd(), 0.3), 0)
 					}
 
-					style := &styles.ButtonBig
+					style := &styles.ButtonMenuBig
 					if dtt.Month() != orig_month { //is day out of current month
 						style = &g_ButtonH1OutsideMonth
 					}
@@ -1184,7 +1188,7 @@ func open(buff []byte) bool {
 	g_ButtonEvent.FontAlignH(0)
 	g_ButtonEvent.Id = 0
 
-	g_ButtonH1OutsideMonth = styles.ButtonBig
+	g_ButtonH1OutsideMonth = styles.ButtonMenuBig
 	g_ButtonH1OutsideMonth.Main.Color = SA_ThemeGrey(0.7)
 	g_ButtonH1OutsideMonth.Id = 0
 
