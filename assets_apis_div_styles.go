@@ -351,9 +351,9 @@ func DivStyles_getDefaults(asset *Asset) DivDefaultStyles {
 		stls.ButtonAlphaBig = stls.ButtonAlpha
 		stls.ButtonMenuBig = stls.ButtonMenu
 		stls.ButtonBig.FontH(0.45)
-		stls.ButtonLightBig.FontH(0.45)
-		stls.ButtonAlphaBig.FontH(0.45)
-		stls.ButtonMenuBig.FontH(0.45)
+		stls.ButtonLightBig.FontH(0.4)
+		stls.ButtonAlphaBig.FontH(0.4)
+		stls.ButtonMenuBig.FontH(0.4)
 	}
 
 	{
