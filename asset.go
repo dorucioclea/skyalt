@@ -27,11 +27,6 @@ import (
 	"strings"
 )
 
-type AssetLog struct {
-	err error
-	tp  int //0=info, 1=warning, 2=error
-}
-
 type Asset struct {
 	app  *App
 	name string
@@ -42,8 +37,6 @@ type Asset struct {
 	wasm  *AssetWasm
 	debug *AssetDebug
 
-	logs []AssetLog
-
 	sts_rowid int
 
 	styles *DivStyles
@@ -51,8 +44,7 @@ type Asset struct {
 
 func (asset *Asset) AddLogErr(err error) bool {
 	if err != nil {
-		fmt.Printf("Error(%s): %v\n", asset.getWasmPath(), err)
-		asset.logs = append(asset.logs, AssetLog{err: err, tp: 2})
+		asset.app.AddLog(asset.name + ": " + err.Error())
 		return true
 	}
 	return false

@@ -34,6 +34,8 @@ type App struct {
 
 	fn2Return  []byte
 	fn2Returns []byte
+
+	logs []string
 }
 
 func NewApp(root *Root, name string, db_name string, sts_id int) (*App, error) {
@@ -63,17 +65,31 @@ func NewApp(root *Root, name string, db_name string, sts_id int) (*App, error) {
 	return &app, nil
 }
 func (app *App) Destroy() {
-
 	for _, asset := range app.assets {
 		asset.Destroy()
 	}
 }
 
 func (app *App) SaveData() {
-
 	for _, asset := range app.assets {
 		asset.SaveData()
 	}
+}
+
+func (app *App) AddLog(err string) {
+	//print
+	fmt.Printf("Error(%s): %s\n", app.getPath(), err)
+
+	//add
+	app.logs = append(app.logs, err)
+}
+func (app *App) GetLog() string {
+	var ret string
+	if len(app.logs) > 0 {
+		ret = app.logs[0]
+		app.logs = app.logs[1:] //cut
+	}
+	return ret
 }
 
 func (app *App) FindAsset(name string) *Asset {
