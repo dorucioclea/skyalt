@@ -263,7 +263,7 @@ func (asset *Asset) Tick() {
 	asset.UpdateResources()
 }
 
-func (asset *Asset) SetDebugLine(line int) {
+func (asset *Asset) SetDebugLine(line string) {
 
 	st := asset.app.root.levels.GetStack()
 	if st.stack == nil || st.stack.crop.IsZero() {
@@ -272,7 +272,7 @@ func (asset *Asset) SetDebugLine(line int) {
 
 	if st.stack.enableInput {
 		if st.stack.crop.Inside(asset.app.root.ui.io.touch.pos) {
-			asset.app.root.SetDebugLine(asset, line)
+			asset.app.root.SetDebugLine(line)
 		}
 	}
 }

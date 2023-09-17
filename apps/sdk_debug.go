@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"net"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -855,9 +856,9 @@ func _sa_render_app(appMem SAMem, dbMem SAMem, sts_id uint64) int64 {
 	return ret
 }
 
-func _sa_debug_line(line int64) {
+func _sa_debug_line(lineMem SAMem) {
 	WriteUint64(130)
-	WriteUint64(uint64(line))
+	WriteMem(lineMem)
 	_checkRead(130)
 }
 
@@ -870,10 +871,12 @@ func _SA_DebugLine() {
 		var line int
 		_, file, line, ok = runtime.Caller(i)
 
-		if file != "sdk.go" {
-			_sa_debug_line(int64(line))
-			break
+		if filepath.Base(file) != "sdk.go" {
+			str := file + "/" + strconv.Itoa(line)
+			_sa_debug_line(_SA_stringToPtr(str))
+			return
 		}
+		i++
 	}
 
 	fmt.Println("Debug caller not found")

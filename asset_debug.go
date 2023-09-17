@@ -716,7 +716,7 @@ func (ad *AssetDebug) Call(fnName string, args []byte, asset *Asset) (int64, err
 			ad._checkRead(fnTp)
 
 		case 130:
-			line := int(ad.ReadUint64())
+			line := string(ad.ReadBytes())
 			asset.SetDebugLine(line)
 			ad._checkRead(fnTp)
 
