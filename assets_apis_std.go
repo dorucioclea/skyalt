@@ -155,6 +155,19 @@ func (asset *Asset) _sa_info_setFloat(keyMem uint64, v float64) int64 {
 }
 
 func (asset *Asset) info_string(key string) (string, int64) {
+
+	logSts_Id, found := strings.CutPrefix(key, "log_")
+	if found {
+		sts_id, err := strconv.Atoi(logSts_Id)
+		if err == nil {
+			app := asset.app.root.FindAppId(sts_id)
+			if app != nil {
+				return app.GetLog(), 1
+			}
+		}
+		return "", 1
+	}
+
 	switch strings.ToLower(key) {
 	case "asset":
 		return asset.name, 1
