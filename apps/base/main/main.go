@@ -20,12 +20,21 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"time"
 )
+
+type Log struct {
+	Time int64
+	Text string
+}
 
 type App struct {
 	Name   string
 	Label  string
 	Sts_id int
+
+	logs          []Log
+	logs_showtime float64
 }
 
 type File struct {
@@ -158,6 +167,8 @@ type Translations struct {
 
 	ADD_APP   string
 	CREATE_DB string
+
+	LOGS string
 }
 
 // https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
@@ -650,6 +661,7 @@ func Files() {
 					SA_DivStart(1, 0, 1, 1)
 					{
 						SA_ColMax(0, 100)
+
 						if SA_ButtonMenu(app.Label).Highlight(isSelected, &styles.ButtonMenuSelected).Title("app: "+app.Name+", id: "+strconv.Itoa(app.Sts_id)).Show(0, 0, 1, 1).click {
 							store.SelectedFile = file_i
 							store.SelectedApp = app_i
@@ -667,6 +679,40 @@ func Files() {
 							src_app_i := uint32(src)
 							SA_MoveElement(&store.Files[src_file_i].Apps, &file.Apps, int(src_app_i), app_i, pos)
 						}
+
+						//logs
+						{
+							log := SA_Info("log_" + strconv.Itoa(app.Sts_id))
+							if len(log) > 0 {
+								app.logs = append(app.logs, Log{Text: log, Time: int64(SA_Time())})
+								app.logs_showtime = SA_Time()
+							}
+							if app.logs_showtime+5 > SA_Time() {
+								if SA_ButtonAlpha("").Icon(SA_ResourceBuildAssetPath("", "warning.png"), 0.2).Show(1, 0, 1, 1).click {
+									SA_DialogOpen("log_"+strconv.Itoa(app.Sts_id), 0)
+								}
+							}
+							if SA_DialogStart("log_" + strconv.Itoa(app.Sts_id)) {
+								SA_ColMax(0, 20)
+								SA_RowMax(1, 20)
+								SA_Text(trns.LOGS).Align(1).Show(0, 0, 1, 1)
+
+								SA_DivStart(0, 1, 1, 1)
+								{
+									SA_ColMax(0, 4)
+									SA_ColMax(1, 100)
+									for i, l := range app.logs {
+										dt := time.Unix(l.Time, 0)
+										SA_Text(dt.Format("2006-01-02 15:04:05")).Show(0, i, 1, 1)
+										SA_Text(l.Text).Show(1, i, 1, 1)
+									}
+								}
+								SA_DivEnd()
+
+								SA_DialogEnd()
+							}
+						}
+
 					}
 					SA_DivEnd()
 

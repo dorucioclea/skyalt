@@ -103,6 +103,12 @@
 "ADD_APP.cs": "Přidat aplikaci",
 
 "CREATE_DB.en": "Create database",
-"CREATE_DB.cs": "Vytvořit databázi"
+"CREATE_DB.cs": "Vytvořit databázi",
+
+
+"LOGS.en": "Logs",
+"LOGS.cs": "Logy"
+
+
 
 }
