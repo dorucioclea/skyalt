@@ -199,6 +199,15 @@ func (root *Root) GetSettingsPaths() (string, string, error) {
 	return root.folderDevice + "/" + dev + "_ini.json", "device/" + dev + "_scroll.json", nil
 }
 
+func (root *Root) FindAppId(sts_id int) *App {
+	for _, app := range root.apps {
+		if app.sts_id == sts_id {
+			return app
+		}
+	}
+	return nil
+}
+
 func (root *Root) FindApp(appName string, dbName string, sts_id int) *App {
 	for _, app := range root.apps {
 		if app.name == appName && (len(dbName) == 0 || app.db_name == dbName) && (sts_id < 0 || app.sts_id == sts_id) {
